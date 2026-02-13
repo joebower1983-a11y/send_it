@@ -77,6 +77,22 @@ A pump.fun competitor built with Anchor, featuring bonding curves, anti-snipe pr
 - `migrate_to_raydium` — Migrate liquidity when threshold met
 - `update_leaderboard` — Permissionless leaderboard update
 
+### 🛡️ FairScale Reputation Integration
+- On-chain reputation gating via [FairScale](https://api.fairscale.xyz) scores
+- **Reputation tiers:** Bronze / Silver / Gold / Platinum with fee discounts (0-20%)
+- **Launch gating:** Minimum FairScore of 30 required to create tokens
+- **Trust indicators:** 🟢 High Trust / 🟡 Medium / 🔴 Low / ⚫ Unscored on every token
+- **Vesting enforcement:** Low-reputation creators get 2x vesting periods
+- **Premium launches:** Require FairScore ≥ 60 (Gold/Platinum tier)
+- Oracle-attested scores cached on-chain as PDAs
+- See [docs/FAIRSCALE_INTEGRATION.md](docs/FAIRSCALE_INTEGRATION.md) for full details
+
+### PDAs
+| Account | Seeds |
+|---------|-------|
+| ReputationConfig | `["reputation_config"]` |
+| ReputationAttestation | `["reputation", wallet]` |
+
 ## Build
 
 ```bash
