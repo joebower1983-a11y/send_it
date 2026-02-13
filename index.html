@@ -111,6 +111,24 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 .migration-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--neon2));transition:width .5s ease}
 .migration-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
 .creator-addr{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:8px}
+.trust-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;margin-left:8px}
+.tier-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.tier-bronze{background:rgba(205,127,50,.15);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
+.tier-silver{background:rgba(192,192,192,.15);color:#c0c0c0;border:1px solid rgba(192,192,192,.3)}
+.tier-gold{background:rgba(255,215,0,.15);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
+.tier-platinum{background:rgba(229,228,226,.15);color:#e5e4e2;border:1px solid rgba(229,228,226,.3)}
+.reputation-gauge{width:100%;height:12px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:6px}
+.reputation-gauge .fill{height:100%;border-radius:6px;transition:width .6s ease}
+.reputation-section{margin-top:20px}
+.reputation-section h3{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.rep-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.rep-stat .rep-label{color:var(--text3)}
+.rep-stat .rep-val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.fairscore-big{font-size:48px;font-weight:900;font-family:'JetBrains Mono',monospace;text-align:center;margin:16px 0 8px}
+.launch-rep-gate{background:var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,.06)}
+.launch-rep-gate.eligible{border-color:rgba(0,255,136,.2)}
+.launch-rep-gate.blocked{border-color:rgba(255,45,120,.2)}
+.launch-rep-gate h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
 
 /* ─── TOKEN DETAIL ─── */
 .detail-back{display:inline-flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:600;margin-bottom:20px;cursor:pointer;transition:.2s}
@@ -235,6 +253,7 @@ main,header,nav{position:relative;z-index:1}
   <button class="nav-item" data-page="explore"><i class="fa-solid fa-compass"></i> Explore</button>
   <button class="nav-item" data-page="leaderboard"><i class="fa-solid fa-trophy"></i> Leaderboards</button>
   <button class="nav-item" data-page="portfolio"><i class="fa-solid fa-chart-pie"></i> Portfolio</button>
+  <button class="nav-item" data-page="reputation"><i class="fa-solid fa-shield-halved"></i> Reputation</button>
 </nav>
 
 <!-- MAIN CONTENT -->
@@ -298,7 +317,11 @@ main,header,nav{position:relative;z-index:1}
         </div>
       </div>
     </div>
-    <button type="submit" class="send-btn">SEND IT 🚀</button>
+    <div class="launch-rep-gate" id="launchRepGate" style="display:none">
+      <h4><i class="fa-solid fa-shield-halved"></i> Reputation Check</h4>
+      <div id="launchRepContent"></div>
+    </div>
+    <button type="submit" class="send-btn" id="launchBtn">SEND IT 🚀</button>
   </form>
 </div>
 
@@ -337,6 +360,46 @@ main,header,nav{position:relative;z-index:1}
   </div>
 </div>
 
+<!-- ═══ REPUTATION PAGE ═══ -->
+<div class="page" id="page-reputation">
+  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px"><i class="fa-solid fa-shield-halved" style="color:var(--neon)"></i> Your Reputation</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:800px">
+    <div class="card" style="text-align:center">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">FairScore</div>
+      <div class="fairscore-big" id="myFairScore">—</div>
+      <div class="reputation-gauge"><div class="fill" id="myScoreGauge" style="width:0%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon))"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px"><span>0</span><span>50</span><span>100</span></div>
+      <div style="margin-top:12px" id="myTierBadge"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Details</div>
+      <div id="myRepDetails">
+        <div class="rep-stat"><span class="rep-label">Tier</span><span class="rep-val" id="repTier">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Trust Level</span><span class="rep-val" id="repTrust">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Fee Discount</span><span class="rep-val" id="repDiscount">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Wallet Age</span><span class="rep-val" id="repAge">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Transactions</span><span class="rep-val" id="repTxCount">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Active Days</span><span class="rep-val" id="repActiveDays">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Can Launch</span><span class="rep-val" id="repCanLaunch">—</span></div>
+        <div class="rep-stat"><span class="rep-label">Vesting</span><span class="rep-val" id="repVesting">—</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="max-width:800px;margin-top:20px">
+    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Badges</div>
+    <div id="myBadges" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+  <div class="card" style="max-width:800px;margin-top:20px">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text2)">Tier Benefits</h3>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center">
+      <div style="padding:12px;border-radius:8px;background:rgba(205,127,50,.06);border:1px solid rgba(205,127,50,.15)"><div style="font-size:18px">🥉</div><div style="font-weight:800;color:#cd7f32;margin:4px 0">Bronze</div><div style="font-size:11px;color:var(--text3)">0% discount<br>2x vesting</div></div>
+      <div style="padding:12px;border-radius:8px;background:rgba(192,192,192,.06);border:1px solid rgba(192,192,192,.15)"><div style="font-size:18px">🥈</div><div style="font-weight:800;color:#c0c0c0;margin:4px 0">Silver</div><div style="font-size:11px;color:var(--text3)">5% discount<br>1x vesting</div></div>
+      <div style="padding:12px;border-radius:8px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15)"><div style="font-size:18px">🥇</div><div style="font-weight:800;color:#ffd700;margin:4px 0">Gold</div><div style="font-size:11px;color:var(--text3)">10% discount<br>Premium launch</div></div>
+      <div style="padding:12px;border-radius:8px;background:rgba(229,228,226,.06);border:1px solid rgba(229,228,226,.15)"><div style="font-size:18px">💎</div><div style="font-weight:800;color:#e5e4e2;margin:4px 0">Platinum</div><div style="font-size:11px;color:var(--text3)">20% discount<br>Premium launch</div></div>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -355,6 +418,40 @@ const MOCK_TOKENS = [
   {name:"PixelPunk",symbol:"PPUNK",img:"👾",price:0.00321,mcap:321000,vol:105000,migration:58,creator:"4rYh..nS7k",time:5400,curve:"exponential",supply:"1B",reserve:"56.2 SOL",holders:567,antiSnipe:true},
   {name:"LaserEyes",symbol:"LASER",img:"👀",price:0.00189,mcap:189000,vol:67000,migration:50,creator:"1qAz..xD0m",time:2700,curve:"sigmoid",supply:"1B",reserve:"34.1 SOL",holders:401,antiSnipe:true},
 ];
+
+// Mock FairScore data per creator
+const MOCK_FAIRSCORES = {
+  "7xKq..3mFz": {fairscore:72,tier:"gold",badges:["early_adopter","defi_native"],social_score:65,features:{tx_count:1423,active_days:287,wallet_age_days:540}},
+  "9pLm..kQ2x": {fairscore:85,tier:"platinum",badges:["whale","diamond_hands","og"],social_score:80,features:{tx_count:5200,active_days:400,wallet_age_days:720}},
+  "3nRt..vZ8w": {fairscore:22,tier:"bronze",badges:[],social_score:10,features:{tx_count:45,active_days:12,wallet_age_days:30}},
+  "5kJp..mN4a": {fairscore:55,tier:"silver",badges:["active_trader"],social_score:40,features:{tx_count:800,active_days:150,wallet_age_days:365}},
+  "2wXz..hL9c": {fairscore:38,tier:"bronze",badges:["newcomer"],social_score:20,features:{tx_count:120,active_days:45,wallet_age_days:90}},
+  "8mVn..qR5t": {fairscore:91,tier:"platinum",badges:["whale","og","defi_native","diamond_hands"],social_score:88,features:{tx_count:8900,active_days:500,wallet_age_days:900}},
+  "6tBc..eW3j": {fairscore:15,tier:"bronze",badges:[],social_score:5,features:{tx_count:20,active_days:5,wallet_age_days:14}},
+  "4rYh..nS7k": {fairscore:63,tier:"gold",badges:["active_trader","early_adopter"],social_score:55,features:{tx_count:1100,active_days:200,wallet_age_days:450}},
+  "1qAz..xD0m": {fairscore:47,tier:"silver",badges:["newcomer"],social_score:30,features:{tx_count:300,active_days:80,wallet_age_days:180}},
+};
+
+function getTrustLevel(score){
+  if(score===null||score===undefined) return {label:"Unscored",emoji:"⚫",color:"#555570"};
+  if(score>=70) return {label:"High Trust",emoji:"🟢",color:"#00ff88"};
+  if(score>=40) return {label:"Medium",emoji:"🟡",color:"#ffcc00"};
+  return {label:"Low",emoji:"🔴",color:"#ff2d78"};
+}
+function getTierColor(tier){
+  return {bronze:"#cd7f32",silver:"#c0c0c0",gold:"#ffd700",platinum:"#e5e4e2"}[tier]||"#555570";
+}
+function getFeeDiscount(tier){
+  return {bronze:0,silver:5,gold:10,platinum:20}[tier]||0;
+}
+function tierBadgeHtml(tier){
+  if(!tier) return '';
+  return `<span class="tier-badge tier-${tier}">${{bronze:"🥉",silver:"🥈",gold:"🥇",platinum:"💎"}[tier]||""} ${tier}</span>`;
+}
+function trustBadgeHtml(score){
+  const t=getTrustLevel(score);
+  return `<span class="trust-badge" style="color:${t.color};background:${t.color}15;border:1px solid ${t.color}30">${t.emoji} ${t.label}</span>`;
+}
 
 const MOCK_CREATORS = [
   {addr:"7xKq..3mFz",launches:12,volume:1450000},
@@ -457,7 +554,7 @@ function renderTokenGrid(tokens){
       </div>
       <div class="migration-bar"><div class="fill" style="width:${t.migration}%"></div></div>
       <div class="migration-label"><span>Migration</span><span style="color:${t.migration>80?'var(--neon)':'var(--text2)'}">${t.migration}%</span></div>
-      <div class="creator-addr">by ${t.creator}</div>
+      <div class="creator-addr">by ${t.creator} ${tierBadgeHtml((MOCK_FAIRSCORES[t.creator]||{}).tier)} ${trustBadgeHtml((MOCK_FAIRSCORES[t.creator]||{}).fairscore)}</div>
     </div>
   `).join('');
 }
@@ -507,6 +604,26 @@ function openDetail(idx){
           <div class="info-item"><div class="label">Holders</div><div class="val" style="color:var(--neon2)">${t.holders.toLocaleString()}</div></div>
           <div class="info-item"><div class="label">Anti-Snipe</div><div class="val" style="color:${t.antiSnipe?'var(--neon)':'var(--pink)'}">${t.antiSnipe?'Active ✓':'Disabled'}</div></div>
         </div>
+        ${(()=>{
+          const fs=MOCK_FAIRSCORES[t.creator];
+          if(!fs) return '';
+          const trust=getTrustLevel(fs.fairscore);
+          return `<div class="card reputation-section" style="margin-top:20px">
+            <h3><i class="fa-solid fa-shield-halved" style="color:var(--neon)"></i> Creator Reputation</h3>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+              <div style="font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace;color:${getTierColor(fs.tier)}">${fs.fairscore}</div>
+              ${tierBadgeHtml(fs.tier)}
+              ${trustBadgeHtml(fs.fairscore)}
+            </div>
+            <div class="reputation-gauge"><div class="fill" style="width:${fs.fairscore}%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon))"></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+              <div class="stat"><div class="label">Wallet Age</div><div class="value">${fs.features.wallet_age_days}d</div></div>
+              <div class="stat"><div class="label">Transactions</div><div class="value">${fs.features.tx_count.toLocaleString()}</div></div>
+              <div class="stat"><div class="label">Active Days</div><div class="value">${fs.features.active_days}</div></div>
+            </div>
+            ${fs.badges.length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">${fs.badges.map(b=>`<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(0,255,136,.08);color:var(--neon);border:1px solid rgba(0,255,136,.15)">${b.replace(/_/g,' ')}</span>`).join('')}</div>`:''}
+          </div>`;
+        })()}
         <div class="trade-history">
           <h3>Recent Trades</h3>
           <div class="trade-row header"><div>Type</div><div>Amount</div><div>Tokens</div><div>Time</div></div>
@@ -636,9 +753,41 @@ function renderPortfolio(){
 // ═══════════════════════════════════════════════
 //  LAUNCH HANDLER
 // ═══════════════════════════════════════════════
+function checkLaunchReputation(){
+  const gate=document.getElementById('launchRepGate');
+  if(!walletConnected){gate.style.display='none';return;}
+  gate.style.display='block';
+  const fs=MOCK_FAIRSCORES['7xKq..3mFz']; // demo wallet
+  if(!fs){
+    gate.className='launch-rep-gate blocked';
+    document.getElementById('launchRepContent').innerHTML='<div style="color:var(--pink)">⚫ No FairScore found. You need a minimum score of 30 to launch.</div>';
+    document.getElementById('launchBtn').disabled=true;
+    return;
+  }
+  const trust=getTrustLevel(fs.fairscore);
+  const eligible=fs.fairscore>=30;
+  const premium=fs.fairscore>=60;
+  gate.className='launch-rep-gate '+(eligible?'eligible':'blocked');
+  document.getElementById('launchRepContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <span style="font-size:24px;font-weight:900;font-family:'JetBrains Mono',monospace;color:${getTierColor(fs.tier)}">${fs.fairscore}</span>
+      ${tierBadgeHtml(fs.tier)} ${trustBadgeHtml(fs.fairscore)}
+    </div>
+    <div style="font-size:12px;color:var(--text3)">
+      ${eligible?'✅ Eligible to launch':`❌ Score too low (min 30)`}
+      ${eligible&&!premium?' · Standard launches only':''}
+      ${premium?' · Premium launches unlocked':''}
+      · Fee discount: ${getFeeDiscount(fs.tier)}%
+      ${fs.fairscore<40?' · ⚠️ Extended vesting (2x) applies':''}
+    </div>`;
+  document.getElementById('launchBtn').disabled=!eligible;
+}
+
 function handleLaunch(e){
   e.preventDefault();
   if(!walletConnected){toast('Connect wallet first!');return;}
+  const fs=MOCK_FAIRSCORES['7xKq..3mFz'];
+  if(!fs||fs.fairscore<30){toast('Insufficient reputation to launch!');return;}
   const name = document.getElementById('tokenName').value;
   const symbol = document.getElementById('tokenSymbol').value;
   MOCK_TOKENS.unshift({
@@ -682,9 +831,33 @@ function initParticles(){
 // ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
+function renderReputation(){
+  const fs=MOCK_FAIRSCORES['7xKq..3mFz']; // demo wallet
+  if(!fs){
+    document.getElementById('myFairScore').textContent='—';
+    return;
+  }
+  const trust=getTrustLevel(fs.fairscore);
+  document.getElementById('myFairScore').style.color=getTierColor(fs.tier);
+  document.getElementById('myFairScore').textContent=fs.fairscore;
+  document.getElementById('myScoreGauge').style.width=fs.fairscore+'%';
+  document.getElementById('myTierBadge').innerHTML=tierBadgeHtml(fs.tier);
+  document.getElementById('repTier').innerHTML=tierBadgeHtml(fs.tier);
+  document.getElementById('repTrust').innerHTML=`<span style="color:${trust.color}">${trust.emoji} ${trust.label}</span>`;
+  document.getElementById('repDiscount').textContent=getFeeDiscount(fs.tier)+'%';
+  document.getElementById('repAge').textContent=fs.features.wallet_age_days+' days';
+  document.getElementById('repTxCount').textContent=fs.features.tx_count.toLocaleString();
+  document.getElementById('repActiveDays').textContent=fs.features.active_days;
+  document.getElementById('repCanLaunch').innerHTML=fs.fairscore>=30?'<span style="color:var(--neon)">✅ Yes</span>':'<span style="color:var(--pink)">❌ No (min 30)</span>';
+  document.getElementById('repVesting').textContent=fs.fairscore<40?'2x (extended)':'1x (normal)';
+  document.getElementById('myBadges').innerHTML=fs.badges.length?fs.badges.map(b=>`<span style="font-size:12px;padding:6px 14px;border-radius:16px;background:rgba(0,255,136,.08);color:var(--neon);border:1px solid rgba(0,255,136,.15);font-weight:600">${b.replace(/_/g,' ')}</span>`).join(''):'<span style="color:var(--text3)">No badges yet</span>';
+}
+
 renderTokenGrid(MOCK_TOKENS);
 renderLeaderboards();
 renderPortfolio();
+renderReputation();
+checkLaunchReputation();
 initParticles();
 </script>
 </body>
