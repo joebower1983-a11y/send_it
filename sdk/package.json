@@ -1,0 +1,23 @@
+{
+  "name": "@sendit/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript client SDK for Send.it — Solana token launchpad",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/spl-token": "^0.4.6",
+    "bn.js": "^5.2.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/bn.js": "^5.1.5"
+  },
+  "files": ["dist"],
+  "license": "MIT"
+}
