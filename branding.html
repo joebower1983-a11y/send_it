@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Send.it Branding - Download Images</title>
+<style>
+body { background: #0a0a0a; color: white; font-family: Arial; text-align: center; padding: 40px; }
+h1 { color: #00ff88; }
+h2 { color: #ccc; margin-top: 40px; }
+p { color: #888; }
+canvas { border: 1px solid #333; margin: 20px; cursor: pointer; }
+a { color: #00ff88; font-size: 18px; }
+</style>
+</head>
+<body>
+<h1>Send.it 🚀 Branding Assets</h1>
+<p>Right-click images → "Save image as" or use the download links below</p>
+
+<h2>Profile Picture (400x400)</h2>
+<canvas id="pfp" width="400" height="400"></canvas>
+<br><a id="pfpLink" download="sendit-profile.png" href="#">⬇️ Download Profile Pic</a>
+
+<h2>Banner (1500x500)</h2>
+<canvas id="banner" width="1500" height="500"></canvas>
+<br><a id="bannerLink" download="sendit-banner.png" href="#">⬇️ Download Banner</a>
+
+<script>
+// Profile pic
+const pfp = document.getElementById('pfp');
+const pCtx = pfp.getContext('2d');
+
+// Background
+const bg = pCtx.createRadialGradient(200,200,0,200,200,200);
+bg.addColorStop(0,'#1a1a2e');
+bg.addColorStop(1,'#0d0d1a');
+pCtx.beginPath();
+pCtx.arc(200,200,195,0,Math.PI*2);
+pCtx.fillStyle = bg;
+pCtx.fill();
+pCtx.strokeStyle = '#00ff88';
+pCtx.lineWidth = 4;
+pCtx.stroke();
+
+// Inner ring
+pCtx.beginPath();
+pCtx.arc(200,200,185,0,Math.PI*2);
+pCtx.strokeStyle = 'rgba(0,255,136,0.2)';
+pCtx.lineWidth = 2;
+pCtx.stroke();
+
+// Rocket body
+pCtx.save();
+pCtx.translate(200,200);
+pCtx.rotate(-30*Math.PI/180);
+pCtx.translate(-200,-200);
+
+const rGrad = pCtx.createLinearGradient(200,280,200,80);
+rGrad.addColorStop(0,'#00ff88');
+rGrad.addColorStop(1,'#00ffcc');
+
+// Body
+pCtx.beginPath();
+pCtx.moveTo(200,80);
+pCtx.bezierCurveTo(215,80,240,140,240,220);
+pCtx.lineTo(240,260);
+pCtx.quadraticCurveTo(240,280,220,280);
+pCtx.lineTo(180,280);
+pCtx.quadraticCurveTo(160,280,160,260);
+pCtx.lineTo(160,220);
+pCtx.bezierCurveTo(160,140,185,80,200,80);
+pCtx.fillStyle = rGrad;
+pCtx.globalAlpha = 0.95;
+pCtx.fill();
+pCtx.globalAlpha = 1;
+
+// Nose
+pCtx.beginPath();
+pCtx.moveTo(200,60);
+pCtx.bezierCurveTo(210,60,230,100,230,130);
+pCtx.lineTo(170,130);
+pCtx.bezierCurveTo(170,100,190,60,200,60);
+pCtx.fillStyle = '#00ffcc';
+pCtx.fill();
+
+// Window
+pCtx.beginPath();
+pCtx.arc(200,180,30,0,Math.PI*2);
+pCtx.fillStyle = '#0d0d1a';
+pCtx.fill();
+pCtx.strokeStyle = '#00ff88';
+pCtx.lineWidth = 3;
+pCtx.stroke();
+
+// S
+pCtx.font = '900 38px Arial Black, Arial, sans-serif';
+pCtx.fillStyle = '#00ff88';
+pCtx.textAlign = 'center';
+pCtx.textBaseline = 'middle';
+pCtx.shadowColor = '#00ff88';
+pCtx.shadowBlur = 10;
+pCtx.fillText('S',200,180);
+pCtx.shadowBlur = 0;
+
+// Fins
+pCtx.beginPath();
+pCtx.moveTo(160,240);pCtx.lineTo(130,290);pCtx.lineTo(160,280);pCtx.closePath();
+pCtx.fillStyle = '#00ff88';pCtx.globalAlpha=0.8;pCtx.fill();pCtx.globalAlpha=1;
+
+pCtx.beginPath();
+pCtx.moveTo(240,240);pCtx.lineTo(270,290);pCtx.lineTo(240,280);pCtx.closePath();
+pCtx.fillStyle = '#00ff88';pCtx.globalAlpha=0.8;pCtx.fill();pCtx.globalAlpha=1;
+
+// Flame
+pCtx.beginPath();pCtx.ellipse(200,300,20,35,0,0,Math.PI*2);
+pCtx.fillStyle='#ff6600';pCtx.globalAlpha=0.9;pCtx.fill();pCtx.globalAlpha=1;
+pCtx.beginPath();pCtx.ellipse(200,295,12,25,0,0,Math.PI*2);
+pCtx.fillStyle='#ffcc00';pCtx.globalAlpha=0.9;pCtx.fill();pCtx.globalAlpha=1;
+pCtx.beginPath();pCtx.ellipse(200,290,6,15,0,0,Math.PI*2);
+pCtx.fillStyle='#ffffff';pCtx.globalAlpha=0.8;pCtx.fill();pCtx.globalAlpha=1;
+
+pCtx.restore();
+
+document.getElementById('pfpLink').href = pfp.toDataURL('image/png');
+
+// Banner
+const ban = document.getElementById('banner');
+const bCtx = ban.getContext('2d');
+
+// Background
+const bbg = bCtx.createLinearGradient(0,0,1500,500);
+bbg.addColorStop(0,'#0d0d1a');
+bbg.addColorStop(0.5,'#1a1a2e');
+bbg.addColorStop(1,'#0d0d1a');
+bCtx.fillStyle = bbg;
+bCtx.fillRect(0,0,1500,500);
+
+// Grid
+bCtx.strokeStyle = 'rgba(0,255,136,0.08)';
+bCtx.lineWidth = 1;
+for(let i=0;i<1500;i+=50){bCtx.beginPath();bCtx.moveTo(i,0);bCtx.lineTo(i,500);bCtx.stroke();}
+for(let i=0;i<500;i+=50){bCtx.beginPath();bCtx.moveTo(0,i);bCtx.lineTo(1500,i);bCtx.stroke();}
+
+// SEND IT text
+bCtx.font = '900 120px Arial Black, Arial, sans-serif';
+bCtx.textAlign = 'center';
+bCtx.textBaseline = 'middle';
+bCtx.shadowColor = '#00ff88';
+bCtx.shadowBlur = 30;
+bCtx.fillStyle = '#00ff88';
+bCtx.fillText('SEND IT 🚀',750,200);
+bCtx.shadowBlur = 0;
+
+// Tagline
+bCtx.font = '300 36px Arial, sans-serif';
+bCtx.fillStyle = '#cccccc';
+bCtx.fillText('The Fairest Token Launchpad on Solana',750,300);
+
+// Features bar
+bCtx.font = '600 20px Arial, sans-serif';
+bCtx.fillStyle = '#00ff8899';
+const features = ['Anti-Snipe','Rug Protection','Holder Rewards','Bonding Curves','Perp Trading','SolForge Burn'];
+const spacing = 1200/(features.length-1);
+features.forEach((f,i) => {
+  bCtx.fillText('⚡ '+f, 150 + i*spacing, 400);
+});
+
+// Border glow
+bCtx.strokeStyle = '#00ff8844';
+bCtx.lineWidth = 3;
+bCtx.strokeRect(20,20,1460,460);
+
+document.getElementById('bannerLink').href = ban.toDataURL('image/png');
+</script>
+</body>
+</html>
+</content>
+</invoke>
