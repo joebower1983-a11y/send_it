@@ -1,0 +1,19 @@
+{
+  "name": "sendit-discord-bot",
+  "version": "1.0.0",
+  "description": "Send.it Discord bot — token launches, whale alerts, price commands",
+  "main": "discord-bot.js",
+  "scripts": {
+    "start": "node discord-bot.js",
+    "dev": "nodemon discord-bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.1",
+    "@solana/web3.js": "^1.89.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Send.it — Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222235;
+--neon:#00ff88;--neon2:#00ccff;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,255,136,.3);
+--radius:16px;--radius2:12px;
+--safe-b:env(safe-area-inset-bottom,0px);
+--tab-h:64px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:calc(var(--tab-h) + var(--safe-b) + 8px)}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg3);color:var(--text);border-radius:var(--radius2);padding:14px 16px;font-size:16px;width:100%;transition:.2s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea{resize:vertical;min-height:100px}
+::-webkit-scrollbar{display:none}
+
+/* ─── MOBILE HEADER ─── */
+.m-header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.05)}
+.m-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:20px;letter-spacing:-1px}
+.m-logo span{background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.m-logo .dot{-webkit-text-fill-color:var(--pink)}
+.m-logo-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--neon),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-text-fill-color:#000;animation:glow-pulse 2s ease-in-out infinite}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 8px rgba(0,255,136,.4)}50%{box-shadow:0 0 20px rgba(0,255,136,.7)}}
+.m-wallet-btn{padding:8px 16px;border-radius:10px;font-weight:700;font-size:12px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));min-height:36px;display:flex;align-items:center;gap:6px}
+.m-wallet-btn.connected{background:var(--bg3);color:var(--neon);border:1px solid rgba(0,255,136,.2);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* ─── TESTNET BANNER ─── */
+.testnet-bar{background:linear-gradient(90deg,#ff8800,#ffcc00,#ff6600);padding:6px;text-align:center;font-weight:800;font-size:11px;letter-spacing:1px;color:#0a0a0f;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+
+/* ─── BOTTOM TAB NAV ─── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(10,10,15,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-around;align-items:center;height:var(--tab-h);padding-bottom:var(--safe-b)}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:12px;transition:.2s;min-width:56px;-webkit-tap-highlight-color:transparent}
+.tab-item i{font-size:20px;color:var(--text3);transition:.2s}
+.tab-item span{font-size:10px;font-weight:600;color:var(--text3);transition:.2s}
+.tab-item.active i{color:var(--neon)}
+.tab-item.active span{color:var(--neon)}
+.tab-item:active{transform:scale(0.92)}
+
+/* ─── PAGES ─── */
+.m-page{display:none;padding:16px;padding-top:8px;animation:slideIn .25s ease}
+.m-page.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+
+/* ─── PULL TO REFRESH INDICATOR ─── */
+.pull-indicator{text-align:center;padding:12px;color:var(--neon);font-size:12px;font-weight:600;display:none}
+.pull-indicator.show{display:block;animation:fadeDown .3s ease}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── CARDS ─── */
+.m-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:.2s;-webkit-tap-highlight-color:transparent}
+.m-card:active{transform:scale(0.98);border-color:rgba(0,255,136,.15)}
+
+/* ─── EXPLORE: Token Cards ─── */
+.token-card{display:flex;align-items:center;gap:12px}
+.token-avatar{width:44px;height:44px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.token-info{flex:1;min-width:0}
+.token-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.token-symbol{font-size:12px;color:var(--neon);font-family:'JetBrains Mono',monospace}
+.token-right{text-align:right;flex-shrink:0}
+.token-price{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}
+.token-change{font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.token-change.up{color:var(--neon)}
+.token-change.down{color:var(--pink)}
+.migration-mini{height:4px;background:var(--bg4);border-radius:2px;margin-top:6px;overflow:hidden}
+.migration-mini .fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--neon2));border-radius:2px;transition:.3s}
+
+/* ─── SEARCH ─── */
+.m-search{position:relative;margin-bottom:16px}
+.m-search input{padding-left:40px;background:var(--bg3);border-radius:24px;height:44px;font-size:15px}
+.m-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px}
+
+/* ─── SECTION HEADERS ─── */
+.m-section{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:20px}
+.m-section:first-child{margin-top:0}
+.m-section h2{font-size:18px;font-weight:800}
+.m-section .see-all{font-size:13px;color:var(--neon);font-weight:600}
+
+/* ─── TRENDING HORIZONTAL SCROLL ─── */
+.trending-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.trending-scroll::-webkit-scrollbar{display:none}
+.trending-item{min-width:140px;flex-shrink:0;scroll-snap-align:start;background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:14px;text-align:center}
+.trending-item .emoji{font-size:28px;margin-bottom:6px}
+.trending-item .t-name{font-weight:700;font-size:13px}
+.trending-item .t-price{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon);margin-top:2px}
+.trending-item .t-change{font-size:11px;font-weight:700;margin-top:4px}
+
+/* ─── LAUNCH PAGE ─── */
+.launch-header{text-align:center;margin-bottom:24px}
+.launch-header h1{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--neon),var(--neon2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.launch-header p{color:var(--text2);font-size:13px;margin-top:4px}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-section{background:var(--bg3);border-radius:var(--radius);padding:16px;border:1px solid rgba(255,255,255,.04);margin-bottom:16px}
+.form-section h3{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.submit-btn{width:100%;padding:16px;border-radius:var(--radius);font-weight:800;font-size:16px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));margin-top:8px;min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px}
+.submit-btn:active{transform:scale(0.97)}
+.submit-btn:disabled{opacity:.5}
+
+/* ─── TRADE PAGE ─── */
+.trade-pair{text-align:center;margin-bottom:16px}
+.trade-pair h2{font-size:22px;font-weight:900}
+.trade-pair .price-big{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--neon);margin:4px 0}
+.trade-pair .change{font-size:14px;font-weight:700}
+.chart-placeholder{width:100%;height:200px;background:var(--bg2);border-radius:var(--radius);border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;color:var(--text3);margin-bottom:16px;overflow:hidden;position:relative}
+.chart-placeholder canvas{width:100%;height:100%}
+.trade-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border-radius:12px;padding:4px}
+.trade-tab{flex:1;padding:10px;border-radius:10px;text-align:center;font-weight:700;font-size:14px;color:var(--text2);transition:.2s}
+.trade-tab.active{background:var(--neon);color:#000}
+.trade-tab:active{transform:scale(0.95)}
+.trade-input-group{background:var(--bg3);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.trade-input-group .label{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between}
+.trade-input-group input{background:transparent;font-size:22px;font-weight:700;padding:4px 0}
+.trade-input-group input:focus{box-shadow:none}
+.quick-amounts{display:flex;gap:8px;margin-bottom:16px}
+.quick-btn{flex:1;padding:10px;border-radius:10px;background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;text-align:center}
+.quick-btn:active{background:rgba(0,255,136,.1);color:var(--neon)}
+
+/* ─── PORTFOLIO PAGE ─── */
+.port-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.port-stat{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:16px;text-align:center}
+.port-stat .val{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.port-stat .lbl{font-size:11px;color:var(--text2);margin-top:4px;font-weight:600}
+.port-stat.neon .val{background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.holding-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.holding-item:last-child{border-bottom:none}
+.holding-avatar{width:40px;height:40px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.holding-info{flex:1;min-width:0}
+.holding-name{font-weight:700;font-size:14px}
+.holding-bal{font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.holding-right{text-align:right;flex-shrink:0}
+.holding-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px}
+.holding-pnl{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* ─── TOAST ─── */
+.m-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid rgba(0,255,136,.2);color:var(--neon);padding:12px 24px;border-radius:24px;font-size:13px;font-weight:600;z-index:999;animation:toastIn .3s ease,toastOut .3s ease 2.5s forwards;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+/* ─── SWIPE HINT ─── */
+.swipe-hint{text-align:center;padding:40px 20px;color:var(--text3)}
+.swipe-hint i{font-size:32px;margin-bottom:12px;display:block}
+
+/* ─── MODAL / BOTTOM SHEET ─── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;animation:fadeIn .2s}
+.sheet-overlay.show{display:block}
+.bottom-sheet{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--bg2);border-radius:20px 20px 0 0;padding:20px 16px calc(20px + var(--safe-b));max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease}
+.bottom-sheet.show{transform:translateY(0)}
+.sheet-handle{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:18px;font-weight:800;margin-bottom:16px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- TESTNET BANNER -->
+<div class="testnet-bar">⚠️ DEVNET TESTNET — NOT REAL FUNDS ⚠️</div>
+
+<!-- HEADER -->
+<header class="m-header">
+  <div class="m-logo">
+    <div class="m-logo-icon">🚀</div>
+    <span>Send<span class="dot">.</span>it</span>
+  </div>
+  <button class="m-wallet-btn" id="walletBtn" onclick="toggleWallet()">
+    <i class="fas fa-wallet"></i> Connect
+  </button>
+</header>
+
+<!-- PAGES -->
+<div id="page-explore" class="m-page active">
+  <div id="pullIndicator" class="pull-indicator"><i class="fas fa-sync-alt"></i> Pull to refresh</div>
+
+  <div class="m-search">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="Search tokens..." id="searchInput" oninput="filterTokens(this.value)">
+  </div>
+
+  <div class="m-section"><h2>🔥 Trending</h2></div>
+  <div class="trending-scroll" id="trendingScroll"></div>
+
+  <div class="m-section"><h2>All Tokens</h2><span class="see-all" onclick="sortTokens()">Sort ↕</span></div>
+  <div id="tokenList"></div>
+</div>
+
+<div id="page-launch" class="m-page">
+  <div class="launch-header">
+    <h1>🚀 Launch Token</h1>
+    <p>Deploy your token on Solana in seconds</p>
+  </div>
+  <form onsubmit="handleLaunch(event)">
+    <div class="form-group">
+      <label>Token Name</label>
+      <input type="text" id="mTokenName" placeholder="e.g. MoonCat" required maxlength="32">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Symbol</label>
+        <input type="text" id="mTokenSymbol" placeholder="MCAT" required maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>Curve</label>
+        <select id="mCurveType">
+          <option value="linear">📈 Linear</option>
+          <option value="exponential">🚀 Exponential</option>
+          <option value="sigmoid">🌊 Sigmoid</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Image URL</label>
+      <input type="url" id="mTokenUri" placeholder="https://..." maxlength="200">
+    </div>
+
+    <div class="form-section">
+      <h3>⚙️ Advanced</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Creator Fee %</label>
+          <input type="number" value="1" min="0" max="5" step="0.1" id="mCreatorFee">
+        </div>
+        <div class="form-group">
+          <label>Creator Alloc %</label>
+          <input type="number" value="0" min="0" max="10" step="0.5" id="mCreatorAlloc">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Anti-Snipe (sec)</label>
+          <input type="number" value="60" min="0" id="mSnipeWindow">
+        </div>
+        <div class="form-group">
+          <label>Lock Period (hrs)</label>
+          <input type="number" value="24" min="0" id="mLockPeriod">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>🎰 Raffle (Optional)</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ticket Price (SOL)</label>
+          <input type="number" value="0" min="0" step="0.01" id="mRafflePrice">
+        </div>
+        <div class="form-group">
+          <label>Max Tickets</label>
+          <input type="number" value="0" min="0" max="10000" id="mRaffleTickets">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Winners</label>
+        <input type="number" value="0" min="0" max="100" id="mRaffleWinners">
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn">
+      <i class="fas fa-rocket"></i> SEND IT
+    </button>
+  </form>
+</div>
+
+<div id="page-trade" class="m-page">
+  <div class="trade-pair">
+    <h2 id="tradeName">Select Token</h2>
+    <div class="price-big" id="tradePrice">—</div>
+    <div class="change" id="tradeChange" style="color:var(--neon)"></div>
+  </div>
+
+  <div class="chart-placeholder" id="chartArea">
+    <canvas id="miniChart"></canvas>
+  </div>
+
+  <div class="trade-tabs">
+    <div class="trade-tab active" onclick="switchTradeTab(this,'buy')">Buy</div>
+    <div class="trade-tab" onclick="switchTradeTab(this,'sell')">Sell</div>
+  </div>
+
+  <div class="trade-input-group">
+    <div class="label"><span id="tradeInputLabel">You pay</span><span id="tradeBalance" style="color:var(--neon)"></span></div>
+    <input type="number" id="tradeAmount" placeholder="0.00" step="0.001" inputmode="decimal">
+  </div>
+
+  <div class="quick-amounts">
+    <div class="quick-btn" onclick="setAmount(0.1)">0.1</div>
+    <div class="quick-btn" onclick="setAmount(0.5)">0.5</div>
+    <div class="quick-btn" onclick="setAmount(1)">1.0</div>
+    <div class="quick-btn" onclick="setAmount(5)">MAX</div>
+  </div>
+
+  <button class="submit-btn" id="tradeBtn" onclick="executeTrade()">
+    <i class="fas fa-bolt"></i> <span id="tradeBtnLabel">BUY</span>
+  </button>
+</div>
+
+<div id="page-portfolio" class="m-page">
+  <div class="m-section"><h2>Portfolio</h2></div>
+  <div class="port-summary" id="portSummary"></div>
+
+  <div class="m-section"><h2>Holdings</h2></div>
+  <div class="m-card" id="holdingsList"></div>
+</div>
+
+<!-- BOTTOM SHEET (token detail) -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="tokenSheet">
+  <div class="sheet-handle"></div>
+  <div id="sheetContent"></div>
+</div>
+
+<!-- BOTTOM TAB BAR -->
+<nav class="tab-bar">
+  <div class="tab-item active" onclick="showTab('explore',this)" data-tab="explore">
+    <i class="fas fa-compass"></i><span>Explore</span>
+  </div>
+  <div class="tab-item" onclick="showTab('launch',this)" data-tab="launch">
+    <i class="fas fa-rocket"></i><span>Launch</span>
+  </div>
+  <div class="tab-item" onclick="showTab('trade',this)" data-tab="trade">
+    <i class="fas fa-exchange-alt"></i><span>Trade</span>
+  </div>
+  <div class="tab-item" onclick="showTab('portfolio',this)" data-tab="portfolio">
+    <i class="fas fa-wallet"></i><span>Portfolio</span>
+  </div>
+</nav>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let walletConnected = false;
+let currentTab = 'explore';
+let tradeMode = 'buy';
+let selectedToken = null;
+let sortAsc = false;
+
+const MOCK_TOKENS = [
+  {name:'MoonCat',symbol:'MCAT',img:'🐱',price:0.00042,mcap:420000,vol:85000,migration:72,change:+15.3},
+  {name:'DogWifHat',symbol:'DWH',img:'🐕',price:0.00128,mcap:1280000,vol:342000,migration:91,change:+42.1},
+  {name:'SolPepe',symbol:'SPEPE',img:'🐸',price:0.00003,mcap:30000,vol:12000,migration:18,change:-8.2},
+  {name:'RocketFuel',symbol:'FUEL',img:'🔥',price:0.00215,mcap:2150000,vol:567000,migration:95,change:+78.5},
+  {name:'NeonGhost',symbol:'GHOST',img:'👻',price:0.00067,mcap:670000,vol:134000,migration:55,change:+5.7},
+  {name:'CyberApe',symbol:'CAPE',img:'🦍',price:0.00095,mcap:950000,vol:210000,migration:68,change:-3.1},
+  {name:'LaserEyes',symbol:'LASER',img:'👁️',price:0.00180,mcap:1800000,vol:450000,migration:88,change:+33.9},
+  {name:'PixelPunk',symbol:'PXPK',img:'👾',price:0.00011,mcap:110000,vol:28000,migration:25,change:+12.0},
+  {name:'SolShib',symbol:'SSHIB',img:'🐶',price:0.00008,mcap:80000,vol:45000,migration:35,change:-15.4},
+  {name:'NightOwl',symbol:'NOWL',img:'🦉',price:0.00055,mcap:550000,vol:98000,migration:48,change:+8.8},
+];
+
+const fmt = n => n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toFixed(0);
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+function showTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.m-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+//  WALLET
+// ═══════════════════════════════════════════════
+function toggleWallet() {
+  walletConnected = !walletConnected;
+  const btn = document.getElementById('walletBtn');
+  if (walletConnected) {
+    btn.innerHTML = '◉ 7xKq..3mFz';
+    btn.classList.add('connected');
+    toast('Wallet connected! 🔗');
+  } else {
+    btn.innerHTML = '<i class="fas fa-wallet"></i> Connect';
+    btn.classList.remove('connected');
+  }
+  renderPortfolio();
+}
+
+// ═══════════════════════════════════════════════
+//  EXPLORE
+// ═══════════════════════════════════════════════
+function renderTrending() {
+  const top = [...MOCK_TOKENS].sort((a,b) => b.vol - a.vol).slice(0, 5);
+  document.getElementById('trendingScroll').innerHTML = top.map(t => `
+    <div class="trending-item" onclick="openTokenDetail('${t.symbol}')">
+      <div class="emoji">${t.img}</div>
+      <div class="t-name">${t.name}</div>
+      <div class="t-price">${t.price.toFixed(5)} SOL</div>
+      <div class="t-change" style="color:${t.change>=0?'var(--neon)':'var(--pink)'}">${t.change>=0?'+':''}${t.change}%</div>
+    </div>
+  `).join('');
+}
+
+function renderTokenList(tokens) {
+  document.getElementById('tokenList').innerHTML = tokens.map(t => `
+    <div class="m-card" onclick="openTokenDetail('${t.symbol}')">
+      <div class="token-card">
+        <div class="token-avatar">${t.img}</div>
+        <div class="token-info">
+          <div class="token-name">${t.name}</div>
+          <div class="token-symbol">$${t.symbol}</div>
+          <div class="migration-mini"><div class="fill" style="width:${t.migration}%"></div></div>
+        </div>
+        <div class="token-right">
+          <div class="token-price">${t.price.toFixed(5)}</div>
+          <div class="token-change ${t.change>=0?'up':'down'}">${t.change>=0?'+':''}${t.change}%</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTokens(q) {
+  const f = MOCK_TOKENS.filter(t =>
+    t.name.toLowerCase().includes(q.toLowerCase()) ||
+    t.symbol.toLowerCase().includes(q.toLowerCase())
+  );
+  renderTokenList(f);
+}
+
+function sortTokens() {
+  sortAsc = !sortAsc;
+  const sorted = [...MOCK_TOKENS].sort((a,b) => sortAsc ? a.vol - b.vol : b.vol - a.vol);
+  renderTokenList(sorted);
+}
+
+// ═══════════════════════════════════════════════
+//  TOKEN DETAIL (BOTTOM SHEET)
+// ═══════════════════════════════════════════════
+function openTokenDetail(symbol) {
+  const t = MOCK_TOKENS.find(tk => tk.symbol === symbol);
+  if (!t) return;
+  selectedToken = t;
+
+  document.getElementById('sheetContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div class="token-avatar" style="width:52px;height:52px;font-size:28px">${t.img}</div>
+      <div>
+        <div style="font-size:20px;font-weight:800">${t.name}</div>
+        <div style="font-size:14px;color:var(--neon);font-family:'JetBrains Mono',monospace">$${t.symbol}</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace">${t.price.toFixed(5)}</div>
+        <div style="font-size:13px;font-weight:700;color:${t.change>=0?'var(--neon)':'var(--pink)'}">${t.change>=0?'+':''}${t.change}%</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="port-stat"><div class="val" style="font-size:14px">$${fmt(t.mcap)}</div><div class="lbl">Mcap</div></div>
+      <div class="port-stat"><div class="val" style="font-size:14px">$${fmt(t.vol)}</div><div class="lbl">Volume</div></div>
+      <div class="port-stat"><div class="val" style="font-size:14px">${t.migration}%</div><div class="lbl">Migration</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="submit-btn" style="font-size:14px;padding:12px" onclick="goTrade('buy')"><i class="fas fa-arrow-up"></i> Buy</button>
+      <button class="submit-btn" style="font-size:14px;padding:12px;background:linear-gradient(135deg,var(--pink),var(--purple))" onclick="goTrade('sell')"><i class="fas fa-arrow-down"></i> Sell</button>
+    </div>
+  `;
+
+  document.getElementById('sheetOverlay').classList.add('show');
+  document.getElementById('tokenSheet').classList.add('show');
+}
+
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('show');
+  document.getElementById('tokenSheet').classList.remove('show');
+}
+
+function goTrade(mode) {
+  closeSheet();
+  tradeMode = mode;
+  if (selectedToken) {
+    document.getElementById('tradeName').textContent = selectedToken.name + ' / SOL';
+    document.getElementById('tradePrice').textContent = selectedToken.price.toFixed(5) + ' SOL';
+    document.getElementById('tradeChange').textContent = (selectedToken.change >= 0 ? '+' : '') + selectedToken.change + '%';
+    document.getElementById('tradeChange').style.color = selectedToken.change >= 0 ? 'var(--neon)' : 'var(--pink)';
+  }
+  updateTradeUI();
+  showTab('trade');
+  drawMiniChart();
+}
+
+// ═══════════════════════════════════════════════
+//  TRADE
+// ═══════════════════════════════════════════════
+function switchTradeTab(el, mode) {
+  tradeMode = mode;
+  el.parentNode.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  updateTradeUI();
+}
+
+function updateTradeUI() {
+  const isBuy = tradeMode === 'buy';
+  document.getElementById('tradeInputLabel').textContent = isBuy ? 'You pay (SOL)' : 'You sell (tokens)';
+  document.getElementById('tradeBtnLabel').textContent = isBuy ? 'BUY' : 'SELL';
+  document.getElementById('tradeBtn').style.background = isBuy
+    ? 'linear-gradient(135deg,var(--neon),var(--neon2))'
+    : 'linear-gradient(135deg,var(--pink),var(--purple))';
+  document.getElementById('tradeBalance').textContent = walletConnected ? (isBuy ? '5.42 SOL' : '12,340 tokens') : '';
+}
+
+function setAmount(v) {
+  document.getElementById('tradeAmount').value = v;
+}
+
+function executeTrade() {
+  if (!walletConnected) { toast('Connect wallet first!'); return; }
+  const amt = document.getElementById('tradeAmount').value;
+  if (!amt || amt <= 0) { toast('Enter an amount'); return; }
+  const action = tradeMode === 'buy' ? 'Bought' : 'Sold';
+  const sym = selectedToken ? '$' + selectedToken.symbol : 'tokens';
+  toast(`${action} ${amt} ${tradeMode === 'buy' ? 'SOL of' : ''} ${sym} 🚀`);
+  document.getElementById('tradeAmount').value = '';
+}
+
+function drawMiniChart() {
+  const canvas = document.getElementById('miniChart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.parentElement.offsetWidth;
+  const h = canvas.height = canvas.parentElement.offsetHeight;
+  ctx.clearRect(0, 0, w, h);
+
+  // Generate random price line
+  const points = [];
+  let y = h * 0.5;
+  for (let x = 0; x < w; x += 3) {
+    y += (Math.random() - 0.48) * 6;
+    y = Math.max(20, Math.min(h - 20, y));
+    points.push({ x, y });
+  }
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(0,255,136,0.15)');
+  grad.addColorStop(1, 'rgba(0,255,136,0)');
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(w, h);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// ═══════════════════════════════════════════════
+//  LAUNCH
+// ═══════════════════════════════════════════════
+function handleLaunch(e) {
+  e.preventDefault();
+  if (!walletConnected) { toast('Connect wallet first!'); return; }
+  const name = document.getElementById('mTokenName').value;
+  const symbol = document.getElementById('mTokenSymbol').value;
+  MOCK_TOKENS.unshift({
+    name, symbol, img: '🚀',
+    price: 0.00001, mcap: 1000, vol: 0, migration: 0, change: 0
+  });
+  toast(`$${symbol} launched! 🚀`);
+  renderTokenList(MOCK_TOKENS);
+  renderTrending();
+  e.target.reset();
+  setTimeout(() => showTab('explore'), 800);
+}
+
+// ═══════════════════════════════════════════════
+//  PORTFOLIO
+// ═══════════════════════════════════════════════
+function renderPortfolio() {
+  if (!walletConnected) {
+    document.getElementById('portSummary').innerHTML = '';
+    document.getElementById('holdingsList').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3)"><i class="fas fa-wallet" style="font-size:32px;margin-bottom:12px;display:block"></i>Connect wallet to view portfolio</div>';
+    return;
+  }
+  const holdings = MOCK_TOKENS.slice(0, 4);
+  const total = holdings.reduce((s, t) => s + (Math.random() * 5 + 0.5), 0);
+  const pnl = (Math.random() * 50 + 5).toFixed(1);
+  document.getElementById('portSummary').innerHTML = `
+    <div class="port-stat"><div class="val">${total.toFixed(2)}</div><div class="lbl">SOL Value</div></div>
+    <div class="port-stat"><div class="val">${holdings.length}</div><div class="lbl">Tokens</div></div>
+    <div class="port-stat neon"><div class="val">+${pnl}%</div><div class="lbl">Total PnL</div></div>
+    <div class="port-stat"><div class="val">5.42</div><div class="lbl">SOL Balance</div></div>
+  `;
+  document.getElementById('holdingsList').innerHTML = holdings.map(t => {
+    const val = (Math.random() * 5 + 0.2).toFixed(2);
+    const p = (Math.random() * 200 - 50).toFixed(1);
+    return `
+      <div class="holding-item" onclick="openTokenDetail('${t.symbol}')">
+        <div class="holding-avatar">${t.img}</div>
+        <div class="holding-info">
+          <div class="holding-name">${t.name}</div>
+          <div class="holding-bal">${(Math.random() * 50000 + 1000).toFixed(0)} $${t.symbol}</div>
+        </div>
+        <div class="holding-right">
+          <div class="holding-val">${val} SOL</div>
+          <div class="holding-pnl" style="color:${p>0?'var(--neon)':'var(--pink)'}">${p>0?'+':''}${p}%</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'm-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ═══════════════════════════════════════════════
+//  PULL TO REFRESH (touch gesture)
+// ═══════════════════════════════════════════════
+let touchStartY = 0;
+let pulling = false;
+
+document.addEventListener('touchstart', e => {
+  if (currentTab === 'explore' && window.scrollY === 0) {
+    touchStartY = e.touches[0].clientY;
+    pulling = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (!pulling) return;
+  const dy = e.touches[0].clientY - touchStartY;
+  if (dy > 60) {
+    document.getElementById('pullIndicator').classList.add('show');
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+  if (!pulling) return;
+  pulling = false;
+  const ind = document.getElementById('pullIndicator');
+  if (ind.classList.contains('show')) {
+    ind.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    setTimeout(() => {
+      renderTokenList(MOCK_TOKENS);
+      renderTrending();
+      ind.classList.remove('show');
+      ind.innerHTML = '<i class="fas fa-sync-alt"></i> Pull to refresh';
+      toast('Refreshed! ✨');
+    }, 800);
+  }
+}, { passive: true });
+
+// ═══════════════════════════════════════════════
+//  SWIPE NAVIGATION
+// ═══════════════════════════════════════════════
+let swipeStartX = 0;
+const tabOrder = ['explore', 'launch', 'trade', 'portfolio'];
+
+document.addEventListener('touchstart', e => {
+  swipeStartX = e.touches[0].clientX;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  if (Math.abs(dx) < 80) return; // min swipe distance
+  const idx = tabOrder.indexOf(currentTab);
+  if (dx < 0 && idx < tabOrder.length - 1) {
+    showTab(tabOrder[idx + 1]);
+  } else if (dx > 0 && idx > 0) {
+    showTab(tabOrder[idx - 1]);
+  }
+}, { passive: true });
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderTrending();
+renderTokenList(MOCK_TOKENS);
+renderPortfolio();
+</script>
+</body>
+</html>

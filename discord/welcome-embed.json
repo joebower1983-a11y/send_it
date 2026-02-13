@@ -1,0 +1,42 @@
+{
+  "embeds": [
+    {
+      "title": "Welcome to Send.it 🚀",
+      "description": "The fastest Solana token launcher. Fair launches, instant deploys, built-in liquidity.\n\n**Send it or regret it.**",
+      "color": 65416,
+      "fields": [
+        {
+          "name": "📜 Rules",
+          "value": "1. No spam, scams, or phishing\n2. No impersonation\n3. No NSFW content\n4. English only in main channels\n5. Be respectful\n6. No unsolicited DMs\n7. DYOR — not financial advice\n8. Never share private keys\n9. Use the right channels\n10. Report scams to mods",
+          "inline": false
+        },
+        {
+          "name": "🔗 Links",
+          "value": "🌐 [Website](https://sendit.app)\n📱 [Launch a Token](https://sendit.app/launch)\n🐦 [Twitter](https://twitter.com/sendit)\n📄 [Docs](https://docs.sendit.app)",
+          "inline": true
+        },
+        {
+          "name": "🎭 Roles",
+          "value": "🔴 **Admin** — Team\n🟠 **Mod** — Moderators\n🟣 **Developer** — Builders\n🟡 **OG** — Early members\n🔵 **Whale** — 100+ SOL volume\n💎 **Diamond Hands** — Held 30+ days\n🟢 **Degen** — Verified member",
+          "inline": true
+        },
+        {
+          "name": "🤖 Bot Commands",
+          "value": "`/price <token>` — Check token price\n`/trending` — Top 10 tokens\n`/stats` — Platform statistics\n`/launch` — Launch a token",
+          "inline": false
+        },
+        {
+          "name": "✅ Get Started",
+          "value": "1. React below to verify and get the **Degen** role\n2. Head to #introductions and say hi\n3. Check #token-launches for new drops\n4. Connect your wallet with Collab.Land for Whale/Diamond Hands roles",
+          "inline": false
+        }
+      ],
+      "footer": {
+        "text": "Send.it 🚀 • DYOR — Nothing here is financial advice"
+      },
+      "thumbnail": {
+        "url": "https://sendit.app/logo.png"
+      }
+    }
+  ]
+}
