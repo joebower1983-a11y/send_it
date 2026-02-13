@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Solana Token Launchpad</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;--bg4:#222235;
+--neon:#00ff88;--neon2:#00ccff;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,255,136,.3);
+--glow2:0 0 20px rgba(0,204,255,.3);
+--radius:12px;--radius2:8px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg2);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea{resize:vertical;min-height:80px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ─── LAYOUT ─── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ─── HEADER ─── */
+header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo .dot{color:var(--pink);-webkit-text-fill-color:var(--pink)}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--neon),var(--neon2));display:flex;align-items:center;justify-content:center;font-size:18px;-webkit-text-fill-color:#000;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 10px rgba(0,255,136,.4)}50%{box-shadow:0 0 25px rgba(0,255,136,.7)}}
+.header-right{display:flex;align-items:center;gap:16px}
+.sol-balance{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--neon);background:rgba(0,255,136,.08);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,255,136,.15);display:none;align-items:center;gap:6px}
+.sol-balance.show{display:flex}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s;position:relative;overflow:hidden}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+.wallet-btn.connected{background:var(--bg3);color:var(--neon);border:1px solid rgba(0,255,136,.2)}
+.wallet-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);transition:.5s;opacity:0}
+.wallet-btn:hover::after{opacity:1;transform:rotate(45deg) translateY(100%)}
+
+/* ─── NAV ─── */
+nav{position:sticky;top:64px;z-index:99;background:rgba(10,10,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:center;gap:4px;padding:8px 16px}
+.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px;position:relative}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--neon);background:rgba(0,255,136,.08)}
+.nav-item.active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--neon);border-radius:1px}
+.nav-item i{font-size:15px}
+
+/* ─── MAIN ─── */
+main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+.page{display:none;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── CARDS ─── */
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
+.card:hover{border-color:rgba(0,255,136,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
+
+/* ─── CREATE TOKEN PAGE ─── */
+.create-hero{text-align:center;margin-bottom:32px}
+.create-hero h1{font-size:36px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--neon),var(--neon2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.create-hero p{color:var(--text2);font-size:15px}
+.create-form{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.form-section{background:var(--bg3);border-radius:var(--radius);padding:18px;border:1px solid rgba(255,255,255,.04)}
+.form-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.send-btn{width:100%;padding:18px;border-radius:var(--radius);font-size:18px;font-weight:900;color:#000;background:linear-gradient(135deg,var(--neon),#00e07a);position:relative;overflow:hidden;transition:.3s;text-transform:uppercase;letter-spacing:2px}
+.send-btn:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,255,136,.4)}
+.send-btn:active{transform:translateY(0)}
+.send-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%);transition:none}
+.send-btn:hover::before{animation:shimmer .8s}
+@keyframes shimmer{to{transform:translateX(100%)}}
+
+/* ─── TOKEN GRID ─── */
+.explore-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.explore-header h2{font-size:24px;font-weight:800}
+.search-box{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;width:300px}
+.search-box input{background:transparent;padding:0;font-size:14px}
+.search-box input:focus{box-shadow:none}
+.search-box i{color:var(--text3)}
+.token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.token-card{cursor:pointer;position:relative;overflow:hidden}
+.token-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--neon),var(--neon2));opacity:0;transition:.3s}
+.token-card:hover::before{opacity:1}
+.token-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.token-img{width:48px;height:48px;border-radius:10px;object-fit:cover;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.token-img img{width:100%;height:100%;object-fit:cover}
+.token-meta h3{font-size:15px;font-weight:700}
+.token-meta .symbol{color:var(--neon);font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700}
+.token-meta .time{color:var(--text3);font-size:11px}
+.token-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--bg);border-radius:var(--radius2);padding:8px 10px;text-align:center}
+.stat .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.stat .value{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.migration-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.migration-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--neon2));transition:width .5s ease}
+.migration-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+.creator-addr{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:8px}
+
+/* ─── TOKEN DETAIL ─── */
+.detail-back{display:inline-flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:600;margin-bottom:20px;cursor:pointer;transition:.2s}
+.detail-back:hover{color:var(--neon)}
+.detail-layout{display:grid;grid-template-columns:1fr 380px;gap:20px}
+.chart-placeholder{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);height:360px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.chart-placeholder::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px)}
+.chart-line{position:absolute;bottom:40px;left:20px;right:20px}
+.chart-line svg{width:100%;height:120px}
+.trade-panel{display:flex;flex-direction:column;gap:16px}
+.trade-tabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px}
+.trade-tab{flex:1;padding:10px;text-align:center;border-radius:8px;font-weight:700;font-size:14px;transition:.2s;color:var(--text2)}
+.trade-tab.active-buy{background:rgba(0,255,136,.1);color:var(--neon)}
+.trade-tab.active-sell{background:rgba(255,45,120,.1);color:var(--pink)}
+.trade-tab:hover{color:var(--text)}
+.amount-input{position:relative}
+.amount-input input{padding-right:60px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;padding:16px}
+.amount-input .suffix{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;font-weight:700}
+.slippage-row{display:flex;gap:8px}
+.slippage-btn{padding:8px 14px;border-radius:8px;background:var(--bg);color:var(--text2);font-size:12px;font-weight:700;transition:.2s}
+.slippage-btn.active{background:rgba(0,255,136,.1);color:var(--neon)}
+.slippage-btn:hover{color:var(--text)}
+.exec-trade{padding:16px;border-radius:10px;font-size:16px;font-weight:800;width:100%;transition:.3s}
+.exec-trade.buy-btn{background:linear-gradient(135deg,var(--neon),#00cc66);color:#000}
+.exec-trade.sell-btn{background:linear-gradient(135deg,var(--pink),#cc1155);color:#fff}
+.exec-trade:hover{transform:translateY(-1px);box-shadow:0 6px 30px rgba(0,255,136,.3)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.info-item{background:var(--bg2);border-radius:var(--radius2);padding:12px;border:1px solid rgba(255,255,255,.04)}
+.info-item .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.info-item .val{font-size:14px;font-weight:700;margin-top:4px;font-family:'JetBrains Mono',monospace}
+.trade-history{margin-top:20px}
+.trade-history h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text2)}
+.trade-row{display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:8px;padding:10px 12px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);margin-bottom:4px}
+.trade-row.header{color:var(--text3);font-weight:700;font-family:'Inter',sans-serif;background:transparent}
+.trade-type{font-weight:700;border-radius:4px;text-align:center;padding:2px 0}
+.trade-type.buy{color:var(--neon)}
+.trade-type.sell{color:var(--pink)}
+
+/* ─── LEADERBOARD ─── */
+.lb-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border-radius:10px;padding:4px;display:inline-flex}
+.lb-tab{padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;color:var(--text2);transition:.2s}
+.lb-tab.active{background:var(--bg4);color:var(--neon)}
+.lb-tab:hover{color:var(--text)}
+.lb-table{width:100%;border-collapse:separate;border-spacing:0 4px}
+.lb-table th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
+.lb-table td{padding:12px 16px;background:var(--bg2);font-size:13px}
+.lb-table tr td:first-child{border-radius:10px 0 0 10px}
+.lb-table tr td:last-child{border-radius:0 10px 10px 0}
+.lb-table tbody tr{transition:.2s}
+.lb-table tbody tr:hover td{background:var(--bg3)}
+.rank{font-weight:900;font-size:16px;width:40px;text-align:center}
+.rank-1{color:var(--orange);text-shadow:0 0 10px rgba(255,136,0,.5)}
+.rank-2{color:#ccc}
+.rank-3{color:#cd7f32}
+.lb-token{display:flex;align-items:center;gap:10px}
+.lb-token img,.lb-token .lb-avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;background:var(--bg4)}
+
+/* ─── PORTFOLIO ─── */
+.portfolio-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.summary-card{padding:20px;text-align:center}
+.summary-card .big{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.summary-card .desc{font-size:12px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.holdings-table{width:100%}
+.holdings-table th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
+.holdings-table td{padding:14px 16px;background:var(--bg2);font-size:13px;border-bottom:2px solid var(--bg)}
+.pnl-pos{color:var(--neon)}
+.pnl-neg{color:var(--pink)}
+
+/* ─── LIVE INDICATOR ─── */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--neon);display:inline-block;animation:blink 1.5s infinite;margin-right:6px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .detail-layout{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  nav{overflow-x:auto;justify-content:flex-start}
+  .nav-item{white-space:nowrap;padding:10px 16px;font-size:13px}
+  .search-box{width:100%}
+  .explore-header{flex-direction:column;align-items:stretch}
+}
+@media(max-width:480px){
+  main{padding:16px}
+  header{padding:0 16px}
+  .logo{font-size:18px}
+  .token-grid{grid-template-columns:1fr}
+  .create-hero h1{font-size:26px}
+}
+
+/* ─── PARTICLES BG ─── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;background:var(--neon);opacity:.15;animation:float linear infinite}
+@keyframes float{0%{transform:translateY(100vh) scale(0)}50%{opacity:.3}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+main,header,nav{position:relative;z-index:1}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid rgba(0,255,136,.2);padding:14px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:1000;animation:slideIn .3s ease,fadeOut .3s ease 2.7s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateY(10px)}}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<div id="app">
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🚀</div>
+    <span>Send<span class="dot">.</span>it</span>
+  </div>
+  <div class="header-right">
+    <div class="sol-balance" id="solBalance"><i class="fa-solid fa-circle" style="color:var(--neon);font-size:8px"></i> <span id="balanceAmt">0.00</span> SOL</div>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()"><i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet</button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-item active" data-page="launch"><i class="fa-solid fa-rocket"></i> Launch</button>
+  <button class="nav-item" data-page="explore"><i class="fa-solid fa-compass"></i> Explore</button>
+  <button class="nav-item" data-page="leaderboard"><i class="fa-solid fa-trophy"></i> Leaderboards</button>
+  <button class="nav-item" data-page="portfolio"><i class="fa-solid fa-chart-pie"></i> Portfolio</button>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+<!-- ═══ LAUNCH PAGE ═══ -->
+<div class="page active" id="page-launch">
+  <div class="create-hero">
+    <h1>Launch Your Token</h1>
+    <p>Deploy a bonding-curve token on Solana in seconds. No code required.</p>
+  </div>
+  <form class="create-form" onsubmit="handleLaunch(event)">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Token Name</label>
+        <input type="text" placeholder="e.g. MoonCat" required id="tokenName">
+      </div>
+      <div class="form-group">
+        <label>Symbol</label>
+        <input type="text" placeholder="e.g. MCAT" required maxlength="10" id="tokenSymbol">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea placeholder="What makes your token special?" id="tokenDesc"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Image URL</label>
+        <input type="url" placeholder="https://..." id="tokenImage">
+      </div>
+      <div class="form-group">
+        <label>Bonding Curve</label>
+        <select id="curveType">
+          <option value="exponential">Exponential (Default)</option>
+          <option value="linear">Linear</option>
+          <option value="sigmoid">Sigmoid (S-Curve)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3><i class="fa-solid fa-shield-halved"></i> Anti-Snipe Protection</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Launch Delay (seconds)</label>
+          <input type="number" value="5" min="0" max="60" id="launchDelay">
+        </div>
+        <div class="form-group">
+          <label>Max Buy (SOL)</label>
+          <input type="number" value="2" min="0" step="0.1" id="maxBuy">
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <div class="form-group">
+          <label>Snipe Window (seconds)</label>
+          <input type="number" value="30" min="0" max="300" id="snipeWindow">
+        </div>
+        <div class="form-group">
+          <label>Creator Fee %</label>
+          <input type="number" value="1" min="0" max="5" step="0.1" id="creatorFee">
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="send-btn">SEND IT 🚀</button>
+  </form>
+</div>
+
+<!-- ═══ EXPLORE PAGE ═══ -->
+<div class="page" id="page-explore">
+  <div class="explore-header">
+    <h2><span class="live-dot"></span>Live Token Feed</h2>
+    <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search tokens..." id="searchInput" oninput="filterTokens()"></div>
+  </div>
+  <div class="token-grid" id="tokenGrid"></div>
+</div>
+
+<!-- ═══ TOKEN DETAIL PAGE ═══ -->
+<div class="page" id="page-detail">
+  <div class="detail-back" onclick="showPage('explore')"><i class="fa-solid fa-arrow-left"></i> Back to Explore</div>
+  <div id="detailContent"></div>
+</div>
+
+<!-- ═══ LEADERBOARD PAGE ═══ -->
+<div class="page" id="page-leaderboard">
+  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px">🏆 Leaderboards</h2>
+  <div class="lb-tabs">
+    <button class="lb-tab active" onclick="switchLbTab(this,'lb-tokens')">Top Tokens</button>
+    <button class="lb-tab" onclick="switchLbTab(this,'lb-creators')">Top Creators</button>
+  </div>
+  <div id="lb-tokens"></div>
+  <div id="lb-creators" style="display:none"></div>
+</div>
+
+<!-- ═══ PORTFOLIO PAGE ═══ -->
+<div class="page" id="page-portfolio">
+  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px">Your Portfolio</h2>
+  <div class="portfolio-summary" id="portfolioSummary"></div>
+  <div class="card" style="overflow-x:auto">
+    <table class="holdings-table" id="holdingsTable"></table>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  MOCK DATA
+// ═══════════════════════════════════════════════
+const MOCK_TOKENS = [
+  {name:"MoonCat",symbol:"MCAT",img:"🐱",price:0.00234,mcap:234000,vol:89000,migration:72,creator:"7xKq..3mFz",time:180,curve:"exponential",supply:"1B",reserve:"45.2 SOL",holders:342,antiSnipe:true},
+  {name:"Degen Frog",symbol:"DFROG",img:"🐸",price:0.00891,mcap:891000,vol:412000,migration:89,creator:"9pLm..kQ2x",time:420,curve:"sigmoid",supply:"1B",reserve:"122.8 SOL",holders:1203,antiSnipe:true},
+  {name:"SolPepe",symbol:"SPEPE",img:"🐸",price:0.00012,mcap:12000,vol:3200,migration:15,creator:"3nRt..vZ8w",time:60,curve:"linear",supply:"1B",reserve:"3.1 SOL",holders:47,antiSnipe:false},
+  {name:"RocketDoge",symbol:"RDOGE",img:"🐶",price:0.00567,mcap:567000,vol:198000,migration:65,creator:"5kJp..mN4a",time:3600,curve:"exponential",supply:"1B",reserve:"78.9 SOL",holders:876,antiSnipe:true},
+  {name:"NeonApe",symbol:"NAPE",img:"🦍",price:0.00045,mcap:45000,vol:12000,migration:28,creator:"2wXz..hL9c",time:900,curve:"exponential",supply:"1B",reserve:"9.4 SOL",holders:134,antiSnipe:true},
+  {name:"CyberCat",symbol:"CCAT",img:"😺",price:0.01200,mcap:1200000,vol:650000,migration:95,creator:"8mVn..qR5t",time:7200,curve:"sigmoid",supply:"1B",reserve:"201.3 SOL",holders:2104,antiSnipe:true},
+  {name:"GigaChad",symbol:"GCHAD",img:"💪",price:0.00078,mcap:78000,vol:24000,migration:38,creator:"6tBc..eW3j",time:1800,curve:"linear",supply:"1B",reserve:"14.7 SOL",holders:209,antiSnipe:false},
+  {name:"PixelPunk",symbol:"PPUNK",img:"👾",price:0.00321,mcap:321000,vol:105000,migration:58,creator:"4rYh..nS7k",time:5400,curve:"exponential",supply:"1B",reserve:"56.2 SOL",holders:567,antiSnipe:true},
+  {name:"LaserEyes",symbol:"LASER",img:"👀",price:0.00189,mcap:189000,vol:67000,migration:50,creator:"1qAz..xD0m",time:2700,curve:"sigmoid",supply:"1B",reserve:"34.1 SOL",holders:401,antiSnipe:true},
+];
+
+const MOCK_CREATORS = [
+  {addr:"7xKq..3mFz",launches:12,volume:1450000},
+  {addr:"9pLm..kQ2x",launches:8,volume:980000},
+  {addr:"8mVn..qR5t",launches:15,volume:2100000},
+  {addr:"5kJp..mN4a",launches:6,volume:560000},
+  {addr:"4rYh..nS7k",launches:9,volume:720000},
+];
+
+const MOCK_TRADES = [
+  {type:"buy",amount:"1.5 SOL",tokens:"6,410",time:"2m ago"},
+  {type:"sell",amount:"0.8 SOL",tokens:"3,200",time:"5m ago"},
+  {type:"buy",amount:"3.2 SOL",tokens:"13,600",time:"8m ago"},
+  {type:"buy",amount:"0.3 SOL",tokens:"1,280",time:"12m ago"},
+  {type:"sell",amount:"2.1 SOL",tokens:"8,900",time:"15m ago"},
+  {type:"buy",amount:"5.0 SOL",tokens:"21,200",time:"18m ago"},
+];
+
+// ═══════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click',()=>showPage(btn.dataset.page));
+});
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  const nav = document.querySelector(`.nav-item[data-page="${id}"]`);
+  if(nav) nav.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+//  WALLET
+// ═══════════════════════════════════════════════
+let walletConnected = false;
+async function connectWallet(){
+  const btn = document.getElementById('walletBtn');
+  if(walletConnected){
+    walletConnected = false;
+    btn.innerHTML = '<i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet';
+    btn.classList.remove('connected');
+    document.getElementById('solBalance').classList.remove('show');
+    return;
+  }
+  if(window.solana && window.solana.isPhantom){
+    try{
+      const resp = await window.solana.connect();
+      const addr = resp.publicKey.toString();
+      walletConnected = true;
+      btn.innerHTML = addr.slice(0,4)+'..'+addr.slice(-4);
+      btn.classList.add('connected');
+      document.getElementById('balanceAmt').textContent = (Math.random()*50+1).toFixed(2);
+      document.getElementById('solBalance').classList.add('show');
+      toast('Wallet connected!');
+    }catch(e){toast('Connection rejected')}
+  } else {
+    // Demo mode
+    walletConnected = true;
+    btn.innerHTML = '7xKq..3mFz';
+    btn.classList.add('connected');
+    document.getElementById('balanceAmt').textContent = '24.57';
+    document.getElementById('solBalance').classList.add('show');
+    toast('Demo wallet connected');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TOKEN GRID
+// ═══════════════════════════════════════════════
+function timeAgo(s){
+  if(s<60) return s+'s ago';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  return Math.floor(s/3600)+'h ago';
+}
+function fmt(n){
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+
+function renderTokenGrid(tokens){
+  const grid = document.getElementById('tokenGrid');
+  grid.innerHTML = tokens.map((t,i)=>`
+    <div class="card token-card" onclick="openDetail(${i})">
+      <div class="token-card-head">
+        <div class="token-img">${t.img.startsWith('http')?`<img src="${t.img}">`:`<span style="font-size:28px">${t.img}</span>`}</div>
+        <div class="token-meta">
+          <h3>${t.name}</h3>
+          <div class="symbol">$${t.symbol}</div>
+          <div class="time">${timeAgo(t.time)}</div>
+        </div>
+      </div>
+      <div class="token-stats">
+        <div class="stat"><div class="label">Price</div><div class="value" style="color:var(--neon)">${t.price.toFixed(5)}</div></div>
+        <div class="stat"><div class="label">MCap</div><div class="value">$${fmt(t.mcap)}</div></div>
+        <div class="stat"><div class="label">Volume</div><div class="value">$${fmt(t.vol)}</div></div>
+      </div>
+      <div class="migration-bar"><div class="fill" style="width:${t.migration}%"></div></div>
+      <div class="migration-label"><span>Migration</span><span style="color:${t.migration>80?'var(--neon)':'var(--text2)'}">${t.migration}%</span></div>
+      <div class="creator-addr">by ${t.creator}</div>
+    </div>
+  `).join('');
+}
+
+function filterTokens(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = MOCK_TOKENS.filter(t=>t.name.toLowerCase().includes(q)||t.symbol.toLowerCase().includes(q));
+  renderTokenGrid(filtered);
+}
+
+// ═══════════════════════════════════════════════
+//  TOKEN DETAIL
+// ═══════════════════════════════════════════════
+let currentTradeMode = 'buy';
+
+function openDetail(idx){
+  const t = MOCK_TOKENS[idx];
+  showPage('detail');
+  document.getElementById('detailContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
+      <div class="token-img" style="width:56px;height:56px;font-size:32px">${t.img}</div>
+      <div><h1 style="font-size:28px;font-weight:900">${t.name}</h1><div class="symbol" style="font-size:14px">$${t.symbol}</div></div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:24px;font-weight:900;color:var(--neon);font-family:'JetBrains Mono',monospace">${t.price.toFixed(5)} SOL</div>
+        <div style="font-size:13px;color:var(--neon)">+${(Math.random()*200).toFixed(1)}%</div>
+      </div>
+    </div>
+    <div class="detail-layout">
+      <div>
+        <div class="chart-placeholder">
+          <div class="chart-line">
+            <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+              <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,255,136,.3)"/><stop offset="100%" stop-color="rgba(0,255,136,0)"/></linearGradient></defs>
+              <path d="M0,100 Q50,95 80,80 T160,50 T240,60 T320,20 T400,10" fill="none" stroke="var(--neon)" stroke-width="2.5"/>
+              <path d="M0,100 Q50,95 80,80 T160,50 T240,60 T320,20 T400,10 L400,120 L0,120 Z" fill="url(#cg)"/>
+            </svg>
+          </div>
+          <div style="position:absolute;top:16px;left:16px;display:flex;gap:8px">
+            ${['1m','5m','15m','1h','4h','1d'].map(p=>`<button class="slippage-btn${p==='15m'?' active':''}" style="font-size:11px;padding:5px 10px">${p}</button>`).join('')}
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="info-item"><div class="label">Curve Type</div><div class="val" style="text-transform:capitalize">${t.curve}</div></div>
+          <div class="info-item"><div class="label">Creator</div><div class="val">${t.creator}</div></div>
+          <div class="info-item"><div class="label">Supply</div><div class="val">${t.supply}</div></div>
+          <div class="info-item"><div class="label">Reserve</div><div class="val">${t.reserve}</div></div>
+          <div class="info-item"><div class="label">Holders</div><div class="val" style="color:var(--neon2)">${t.holders.toLocaleString()}</div></div>
+          <div class="info-item"><div class="label">Anti-Snipe</div><div class="val" style="color:${t.antiSnipe?'var(--neon)':'var(--pink)'}">${t.antiSnipe?'Active ✓':'Disabled'}</div></div>
+        </div>
+        <div class="trade-history">
+          <h3>Recent Trades</h3>
+          <div class="trade-row header"><div>Type</div><div>Amount</div><div>Tokens</div><div>Time</div></div>
+          ${MOCK_TRADES.map(tr=>`<div class="trade-row"><div class="trade-type ${tr.type}">${tr.type.toUpperCase()}</div><div>${tr.amount}</div><div>${tr.tokens}</div><div style="color:var(--text3)">${tr.time}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="trade-panel">
+        <div class="card">
+          <div class="trade-tabs">
+            <button class="trade-tab active-buy" onclick="setTradeMode('buy',this)">Buy</button>
+            <button class="trade-tab" onclick="setTradeMode('sell',this)">Sell</button>
+          </div>
+          <div style="margin-top:16px">
+            <label style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px">Amount</label>
+            <div class="amount-input" style="margin-top:6px">
+              <input type="number" placeholder="0.00" step="0.01" id="tradeAmount">
+              <span class="suffix" id="tradeSuffix">SOL</span>
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <label style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:block">Slippage</label>
+            <div class="slippage-row">
+              ${['0.5%','1%','2%','5%'].map((s,i)=>`<button class="slippage-btn${i===1?' active':''}" onclick="this.parentNode.querySelectorAll('.slippage-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${s}</button>`).join('')}
+            </div>
+          </div>
+          <div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text3)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>You receive (est.)</span><span style="color:var(--text);font-family:'JetBrains Mono',monospace" id="estReceive">—</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Price impact</span><span style="color:var(--orange)">~0.12%</span></div>
+          </div>
+          <button class="exec-trade buy-btn" id="execTradeBtn" onclick="executeTrade()" style="margin-top:16px">Buy $${t.symbol}</button>
+        </div>
+        <div class="card" style="text-align:center;padding:16px">
+          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Market Cap</div>
+          <div style="font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace">$${fmt(t.mcap)}</div>
+          <div class="migration-bar" style="margin-top:12px"><div class="fill" style="width:${t.migration}%"></div></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${t.migration}% to Raydium migration</div>
+        </div>
+      </div>
+    </div>
+  `;
+  currentTradeMode = 'buy';
+}
+
+function setTradeMode(mode, el){
+  currentTradeMode = mode;
+  const tabs = el.parentNode.querySelectorAll('.trade-tab');
+  tabs.forEach(t=>{t.classList.remove('active-buy','active-sell')});
+  el.classList.add(mode==='buy'?'active-buy':'active-sell');
+  const btn = document.getElementById('execTradeBtn');
+  const suffix = document.getElementById('tradeSuffix');
+  if(mode==='buy'){
+    btn.className='exec-trade buy-btn';btn.textContent='Buy';suffix.textContent='SOL';
+  } else {
+    btn.className='exec-trade sell-btn';btn.textContent='Sell';suffix.textContent='Tokens';
+  }
+}
+
+function executeTrade(){
+  if(!walletConnected){toast('Connect wallet first!');return;}
+  const amt = document.getElementById('tradeAmount').value;
+  if(!amt||amt<=0){toast('Enter an amount');return;}
+  toast(`${currentTradeMode==='buy'?'Bought':'Sold'} successfully! 🎉`);
+}
+
+// ═══════════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════════
+function renderLeaderboards(){
+  const sorted = [...MOCK_TOKENS].sort((a,b)=>b.vol-a.vol);
+  document.getElementById('lb-tokens').innerHTML = `
+    <table class="lb-table"><thead><tr><th>#</th><th>Token</th><th>Price</th><th>Market Cap</th><th>Volume (24h)</th><th>Migration</th></tr></thead><tbody>
+    ${sorted.map((t,i)=>`<tr>
+      <td><span class="rank rank-${i<3?i+1:''}">${i+1}</span></td>
+      <td><div class="lb-token"><div class="lb-avatar" style="display:flex;align-items:center;justify-content:center;font-size:18px">${t.img}</div><div><div style="font-weight:700">${t.name}</div><div style="font-size:11px;color:var(--neon);font-family:'JetBrains Mono',monospace">$${t.symbol}</div></div></div></td>
+      <td style="font-family:'JetBrains Mono',monospace">${t.price.toFixed(5)}</td>
+      <td style="font-family:'JetBrains Mono',monospace">$${fmt(t.mcap)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">$${fmt(t.vol)}</td>
+      <td><div class="migration-bar" style="width:100px;display:inline-block;vertical-align:middle"><div class="fill" style="width:${t.migration}%"></div></div> <span style="font-size:12px;color:var(--text2)">${t.migration}%</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+
+  const csorted = [...MOCK_CREATORS].sort((a,b)=>b.volume-a.volume);
+  document.getElementById('lb-creators').innerHTML = `
+    <table class="lb-table"><thead><tr><th>#</th><th>Creator</th><th>Launches</th><th>Total Volume</th></tr></thead><tbody>
+    ${csorted.map((c,i)=>`<tr>
+      <td><span class="rank rank-${i<3?i+1:''}">${i+1}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace">${c.addr}</td>
+      <td style="font-weight:700">${c.launches}</td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">$${fmt(c.volume)}</td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function switchLbTab(el, id){
+  el.parentNode.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('lb-tokens').style.display = id==='lb-tokens'?'block':'none';
+  document.getElementById('lb-creators').style.display = id==='lb-creators'?'block':'none';
+}
+
+// ═══════════════════════════════════════════════
+//  PORTFOLIO
+// ═══════════════════════════════════════════════
+function renderPortfolio(){
+  const holdings = MOCK_TOKENS.slice(0,4);
+  const totalVal = holdings.reduce((s,t)=>s+(Math.random()*5+0.5),0);
+  document.getElementById('portfolioSummary').innerHTML = `
+    <div class="card summary-card"><div class="big">${totalVal.toFixed(2)} SOL</div><div class="desc">Total Value</div></div>
+    <div class="card summary-card"><div class="big">${holdings.length}</div><div class="desc">Tokens Held</div></div>
+    <div class="card summary-card"><div class="big" style="background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">+${(Math.random()*50+5).toFixed(1)}%</div><div class="desc">Total PnL</div></div>
+  `;
+  document.getElementById('holdingsTable').innerHTML = `
+    <thead><tr><th>Token</th><th>Balance</th><th>Value</th><th>PnL</th></tr></thead><tbody>
+    ${holdings.map(t=>{
+      const val = (Math.random()*5+0.2).toFixed(2);
+      const pnl = (Math.random()*200-50).toFixed(1);
+      return `<tr>
+        <td><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${t.img}</span><div><div style="font-weight:700">${t.name}</div><div style="font-size:11px;color:var(--neon);font-family:'JetBrains Mono',monospace">$${t.symbol}</div></div></div></td>
+        <td style="font-family:'JetBrains Mono',monospace">${(Math.random()*50000+1000).toFixed(0)}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${val} SOL</td>
+        <td class="${pnl>0?'pnl-pos':'pnl-neg'}" style="font-weight:700;font-family:'JetBrains Mono',monospace">${pnl>0?'+':''}${pnl}%</td>
+      </tr>`;
+    }).join('')}
+    </tbody>`;
+}
+
+// ═══════════════════════════════════════════════
+//  LAUNCH HANDLER
+// ═══════════════════════════════════════════════
+function handleLaunch(e){
+  e.preventDefault();
+  if(!walletConnected){toast('Connect wallet first!');return;}
+  const name = document.getElementById('tokenName').value;
+  const symbol = document.getElementById('tokenSymbol').value;
+  MOCK_TOKENS.unshift({
+    name, symbol, img:'🚀',
+    price: 0.00001, mcap: 1000, vol: 0, migration: 0,
+    creator: '7xKq..3mFz', time: 0,
+    curve: document.getElementById('curveType').value,
+    supply: '1B', reserve: '0 SOL', holders: 1, antiSnipe: true
+  });
+  toast(`$${symbol} launched! 🚀`);
+  renderTokenGrid(MOCK_TOKENS);
+  renderLeaderboards();
+  e.target.reset();
+  setTimeout(()=>showPage('explore'),800);
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+function toast(msg){
+  const t = document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// ═══════════════════════════════════════════════
+//  PARTICLES
+// ═══════════════════════════════════════════════
+function initParticles(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<30;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    const size = Math.random()*3+1;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*5}s`;
+    c.appendChild(p);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderTokenGrid(MOCK_TOKENS);
+renderLeaderboards();
+renderPortfolio();
+initParticles();
+</script>
+</body>
+</html>
