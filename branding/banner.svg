@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="50%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <filter id="neonGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="100%" stop-color="#00ffcc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Grid lines (cyberpunk) -->
+  <g stroke="#00ff8815" stroke-width="1">
+    <line x1="0" y1="100" x2="1500" y2="100"/>
+    <line x1="0" y1="200" x2="1500" y2="200"/>
+    <line x1="0" y1="300" x2="1500" y2="300"/>
+    <line x1="0" y1="400" x2="1500" y2="400"/>
+    <line x1="300" y1="0" x2="300" y2="500"/>
+    <line x1="600" y1="0" x2="600" y2="500"/>
+    <line x1="900" y1="0" x2="900" y2="500"/>
+    <line x1="1200" y1="0" x2="1200" y2="500"/>
+  </g>
+
+  <!-- Diagonal accent lines -->
+  <line x1="0" y1="500" x2="400" y2="0" stroke="#00ff8820" stroke-width="2"/>
+  <line x1="1100" y1="500" x2="1500" y2="0" stroke="#00ff8820" stroke-width="2"/>
+
+  <!-- Glow orbs -->
+  <circle cx="200" cy="250" r="150" fill="#00ff8808" filter="url(#softGlow)"/>
+  <circle cx="1300" cy="250" r="150" fill="#00ffcc08" filter="url(#softGlow)"/>
+
+  <!-- Horizontal neon line -->
+  <line x1="100" y1="340" x2="1400" y2="340" stroke="#00ff88" stroke-width="1" opacity="0.3" filter="url(#neonGlow)"/>
+
+  <!-- Main title -->
+  <text x="750" y="230" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="120" font-weight="900" fill="url(#greenGrad)" filter="url(#neonGlow)" letter-spacing="8">SEND IT</text>
+
+  <!-- Rocket emoji substitute -->
+  <g transform="translate(1080, 155) scale(0.8)" filter="url(#neonGlow)">
+    <path d="M30 0 C35 0 50 30 50 60 L50 75 L10 75 L10 60 C10 30 25 0 30 0Z" fill="#00ffcc"/>
+    <rect x="10" y="60" width="40" height="20" rx="3" fill="#00ff88"/>
+    <path d="M10 70 L0 90 L15 80Z" fill="#00ff88" opacity="0.7"/>
+    <path d="M50 70 L60 90 L45 80Z" fill="#00ff88" opacity="0.7"/>
+    <ellipse cx="30" cy="92" rx="8" ry="14" fill="#ff6600" opacity="0.8"/>
+    <ellipse cx="30" cy="90" rx="5" ry="10" fill="#ffcc00" opacity="0.8"/>
+  </g>
+
+  <!-- Tagline -->
+  <text x="750" y="300" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" fill="#00ff88" opacity="0.8" letter-spacing="6" filter="url(#neonGlow)">THE FAIREST TOKEN LAUNCHPAD ON SOLANA</text>
+
+  <!-- Bottom accent dots -->
+  <circle cx="680" cy="380" r="4" fill="#00ff88" opacity="0.5"/>
+  <circle cx="720" cy="380" r="4" fill="#00ff88" opacity="0.7"/>
+  <circle cx="750" cy="380" r="5" fill="#00ff88" opacity="1" filter="url(#neonGlow)"/>
+  <circle cx="780" cy="380" r="4" fill="#00ff88" opacity="0.7"/>
+  <circle cx="820" cy="380" r="4" fill="#00ff88" opacity="0.5"/>
+
+  <!-- Corner accents -->
+  <path d="M0 0 L80 0 L80 4 L4 4 L4 80 L0 80Z" fill="#00ff88" opacity="0.4"/>
+  <path d="M1500 0 L1420 0 L1420 4 L1496 4 L1496 80 L1500 80Z" fill="#00ff88" opacity="0.4"/>
+  <path d="M0 500 L80 500 L80 496 L4 496 L4 420 L0 420Z" fill="#00ff88" opacity="0.4"/>
+  <path d="M1500 500 L1420 500 L1420 496 L1496 496 L1496 420 L1500 420Z" fill="#00ff88" opacity="0.4"/>
+</svg>

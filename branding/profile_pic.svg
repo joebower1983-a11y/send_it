@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="rocketGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="100%" stop-color="#00ffcc"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg)" stroke="#00ff88" stroke-width="4" filter="url(#glow)"/>
+  <!-- Outer ring glow -->
+  <circle cx="200" cy="200" r="185" fill="none" stroke="#00ff8833" stroke-width="2"/>
+  <!-- Rocket body -->
+  <g filter="url(#glow)" transform="translate(200,200) rotate(-30) translate(-200,-200)">
+    <!-- Rocket main body -->
+    <path d="M200 80 C215 80 240 140 240 220 L240 260 C240 270 230 280 220 280 L180 280 C170 280 160 270 160 260 L160 220 C160 140 185 80 200 80Z" fill="url(#rocketGrad)" opacity="0.95"/>
+    <!-- Rocket nose cone -->
+    <path d="M200 60 C210 60 230 100 230 130 L170 130 C170 100 190 60 200 60Z" fill="#00ffcc"/>
+    <!-- Window -->
+    <circle cx="200" cy="180" r="30" fill="#0d0d1a" stroke="#00ff88" stroke-width="3"/>
+    <!-- S letter inside window -->
+    <text x="200" y="193" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="38" font-weight="900" fill="#00ff88" filter="url(#glow)">S</text>
+    <!-- Left fin -->
+    <path d="M160 240 L130 290 L160 280Z" fill="#00ff88" opacity="0.8"/>
+    <!-- Right fin -->
+    <path d="M240 240 L270 290 L240 280Z" fill="#00ff88" opacity="0.8"/>
+    <!-- Flame -->
+    <ellipse cx="200" cy="300" rx="20" ry="35" fill="#ff6600" opacity="0.9"/>
+    <ellipse cx="200" cy="295" rx="12" ry="25" fill="#ffcc00" opacity="0.9"/>
+    <ellipse cx="200" cy="290" rx="6" ry="15" fill="#ffffff" opacity="0.8"/>
+  </g>
+</svg>
