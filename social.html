@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Social Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0f1117;--bg2:#151820;--bg3:#1c1f2e;--bg4:#252838;
+--neon:#00e87b;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,232,123,.3);
+--radius:12px;--radius2:8px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden;background-image:
+  linear-gradient(rgba(0,232,123,.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,232,123,.03) 1px,transparent 1px);
+  background-size:60px 60px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg2);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
+input:focus,select:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#0f1117,#1a2332,#0f1117);padding:10px 16px;text-align:center;font-weight:800;font-size:14px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 20px rgba(0,232,123,.2);border-bottom:1px solid rgba(0,232,123,.3);animation:bannerPulse 3s ease-in-out infinite}
+@keyframes bannerPulse{0%,100%{box-shadow:0 2px 20px rgba(0,232,123,.2)}50%{box-shadow:0 2px 30px rgba(0,232,123,.4)}}
+
+#app{display:flex;flex-direction:column;min-height:100vh;padding-top:40px}
+
+header{position:sticky;top:40px;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,232,123,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{color:var(--neon);text-shadow:0 0 20px rgba(0,232,123,.4)}
+.logo-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{filter:drop-shadow(0 0 6px rgba(0,232,123,.4))}50%{filter:drop-shadow(0 0 14px rgba(0,232,123,.7))}}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+
+nav{position:sticky;top:104px;z-index:99;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,232,123,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
+.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px;position:relative;white-space:nowrap}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--neon);background:rgba(0,255,136,.08)}
+.nav-item.active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--neon);border-radius:1px}
+
+main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
+.card:hover{border-color:rgba(0,255,136,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
+
+/* Hero */
+.hero{text-align:center;padding:48px 24px 32px}
+.hero h1{font-size:48px;font-weight:900;background:linear-gradient(135deg,var(--neon),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:16px}
+@media(max-width:480px){.hero h1{font-size:32px}}
+
+/* Section headers */
+.section-title{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title i{color:var(--neon);font-size:18px}
+
+/* Grid layouts */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* Chat */
+.chat-container{display:flex;flex-direction:column;height:420px}
+.chat-rooms{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.chat-room{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;background:var(--bg);color:var(--text2);cursor:pointer;transition:.2s}
+.chat-room.active{background:rgba(0,232,123,.12);color:var(--neon);border:1px solid rgba(0,232,123,.3)}
+.chat-room:hover{color:var(--text)}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg);border-radius:var(--radius2);margin-bottom:12px}
+.chat-msg{display:flex;flex-direction:column;gap:2px}
+.chat-msg .msg-header{display:flex;align-items:center;gap:8px;font-size:12px}
+.chat-msg .msg-user{font-weight:700;color:var(--neon)}
+.chat-msg .msg-time{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px}
+.chat-msg .msg-text{font-size:14px;color:var(--text);padding-left:0}
+.chat-msg .msg-tip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,136,0,.12);color:var(--orange);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:2px;width:fit-content}
+.chat-input-row{display:flex;gap:8px}
+.chat-input-row input{flex:1}
+.chat-send-btn{padding:12px 20px;border-radius:var(--radius2);background:linear-gradient(135deg,var(--neon),#00cc66);color:#000;font-weight:700;font-size:13px;white-space:nowrap}
+.chat-send-btn:hover{box-shadow:var(--glow)}
+.tip-btn{padding:12px 16px;border-radius:var(--radius2);background:rgba(255,136,0,.15);color:var(--orange);font-weight:700;font-size:13px;border:1px solid rgba(255,136,0,.3);white-space:nowrap}
+.tip-btn:hover{background:rgba(255,136,0,.25)}
+
+/* Airdrops */
+.airdrop-card{background:var(--bg3);border-radius:var(--radius);padding:16px;border:1px solid rgba(255,255,255,.04)}
+.airdrop-card h4{font-size:15px;font-weight:700;margin-bottom:4px}
+.airdrop-card .airdrop-desc{font-size:12px;color:var(--text2);margin-bottom:12px}
+.airdrop-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.airdrop-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--neon),var(--purple));transition:width .5s}
+.airdrop-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:10px}
+.airdrop-countdown{font-family:'JetBrains Mono',monospace;color:var(--pink);font-weight:700;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.claim-btn{padding:10px 20px;border-radius:var(--radius2);background:linear-gradient(135deg,var(--neon),#00cc66);color:#000;font-weight:700;font-size:13px;width:100%;transition:.3s}
+.claim-btn:hover{box-shadow:var(--glow);transform:translateY(-1px)}
+.claim-btn.claimed{background:var(--bg4);color:var(--text3);cursor:default}
+
+/* Battle Pass */
+.bp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.bp-season{font-size:14px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.bp-level{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:900;color:var(--neon)}
+.xp-bar{height:12px;background:var(--bg);border-radius:6px;overflow:hidden;margin-bottom:8px}
+.xp-bar .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--purple),var(--pink));transition:width .5s}
+.xp-label{font-size:11px;color:var(--text3);margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.rewards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.reward-item{background:var(--bg);border-radius:var(--radius2);padding:12px 8px;text-align:center;border:1px solid rgba(255,255,255,.04);position:relative;transition:.2s}
+.reward-item.unlocked{border-color:rgba(0,232,123,.3);background:rgba(0,232,123,.05)}
+.reward-item.locked{opacity:.5}
+.reward-item .reward-icon{font-size:24px;margin-bottom:4px}
+.reward-item .reward-lvl{font-size:10px;color:var(--text3);font-weight:700}
+.reward-item .reward-name{font-size:11px;font-weight:600;margin-top:2px}
+.reward-item .lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3)}
+
+/* Daily Check-in */
+.checkin-card{text-align:center;padding:28px 20px}
+.checkin-streak{font-size:48px;margin-bottom:4px}
+.checkin-streak-num{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:900;color:var(--orange)}
+.checkin-label{font-size:13px;color:var(--text2);margin-bottom:12px}
+.tier-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.tier-bronze{background:rgba(205,127,50,.15);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
+.tier-silver{background:rgba(192,192,192,.15);color:#c0c0c0;border:1px solid rgba(192,192,192,.3)}
+.tier-gold{background:rgba(255,215,0,.15);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
+.tier-diamond{background:rgba(185,242,255,.15);color:#b9f2ff;border:1px solid rgba(185,242,255,.3)}
+.multiplier{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--neon);margin-bottom:16px}
+.checkin-btn{padding:16px 40px;border-radius:var(--radius);font-size:18px;font-weight:900;color:#000;background:linear-gradient(135deg,var(--orange),#ff6600);transition:.3s;text-transform:uppercase;letter-spacing:2px}
+.checkin-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,136,0,.4)}
+
+/* Achievements */
+.achievement{background:var(--bg3);border-radius:var(--radius2);padding:14px;display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.04);transition:.2s}
+.achievement.earned{border-color:rgba(0,232,123,.25)}
+.achievement.unearned{opacity:.55}
+.achievement .ach-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.achievement.earned .ach-icon{background:rgba(0,232,123,.12)}
+.achievement.unearned .ach-icon{background:var(--bg4)}
+.achievement .ach-info h4{font-size:14px;font-weight:700}
+.achievement .ach-info p{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* Token Videos */
+.video-featured{background:var(--bg);border-radius:var(--radius);height:260px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;position:relative;overflow:hidden}
+.video-featured::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px)}
+.video-featured i{font-size:48px;color:var(--text3)}
+.video-actions{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.vote-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius2);font-size:13px;font-weight:700;background:var(--bg3);color:var(--text2);transition:.2s}
+.vote-btn:hover{color:var(--text)}
+.vote-btn.up:hover{color:var(--neon)}
+.vote-btn.down:hover{color:var(--pink)}
+.vote-count{font-family:'JetBrains Mono',monospace}
+.submit-video-btn{margin-left:auto;padding:10px 20px;border-radius:var(--radius2);background:rgba(168,85,247,.15);color:var(--purple);font-weight:700;font-size:13px;border:1px solid rgba(168,85,247,.3);transition:.2s}
+.submit-video-btn:hover{background:rgba(168,85,247,.25)}
+
+/* Utility */
+.mb-20{margin-bottom:20px}
+.mb-32{margin-bottom:32px}
+.gap-16{gap:16px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="testnet-banner"><span>⚡ Devnet Testnet — Not Real Funds ⚡</span></div>
+
+  <header>
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🚀</div>
+      <div>Send<span class="dot">.</span><span>it</span></div>
+    </a>
+    <button class="wallet-btn"><i class="fas fa-wallet"></i>&nbsp; Connect Wallet</button>
+  </header>
+
+  <nav>
+    <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launchpad</a>
+    <a href="staking.html" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+    <a href="trading.html" class="nav-item"><i class="fas fa-chart-line"></i> Trading</a>
+    <a href="social.html" class="nav-item active"><i class="fas fa-users"></i> Social</a>
+    <a href="lending.html" class="nav-item"><i class="fas fa-hand-holding-usd"></i> Lending</a>
+    <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
+  </nav>
+
+  <main>
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Social Hub</h1>
+      <p>Chat, earn, compete & connect with the Send.it community</p>
+    </div>
+
+    <!-- Daily Check-in + Live Chat -->
+    <div class="grid-2 mb-32">
+      <!-- Daily Check-in -->
+      <div class="card checkin-card">
+        <div class="section-title" style="justify-content:center"><i class="fas fa-fire"></i> Daily Check-in</div>
+        <div class="checkin-streak">🔥</div>
+        <div class="checkin-streak-num">12</div>
+        <div class="checkin-label">Day Streak</div>
+        <div class="tier-badge tier-gold"><i class="fas fa-crown"></i> Gold Tier</div><br>
+        <div class="multiplier">2.4x Multiplier</div>
+        <button class="checkin-btn">✅ Check In Today</button>
+      </div>
+
+      <!-- Live Chat -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-comments"></i> Live Chat</div>
+        <div class="chat-container">
+          <div class="chat-rooms">
+            <div class="chat-room active">🌍 General</div>
+            <div class="chat-room">📈 Trading</div>
+            <div class="chat-room">🎨 NFTs</div>
+            <div class="chat-room">🐋 Whale Lounge</div>
+          </div>
+          <div class="chat-messages">
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">SolMaxi.sol</span><span class="msg-time">14:23</span></div><div class="msg-text">Just aped into $SEND, LFG 🚀</div></div>
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">DegenQueen</span><span class="msg-time">14:24</span></div><div class="msg-text">That new launchpad is insane fr</div></div>
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">WhaleAlert</span><span class="msg-time">14:25</span></div><div class="msg-text">100 SOL buy just hit 👀</div><div class="msg-tip"><i class="fas fa-bolt"></i> Tipped 0.5 SOL</div></div>
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">CryptoChef</span><span class="msg-time">14:26</span></div><div class="msg-text">Anyone staking? APY is juicy rn</div></div>
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">NightOwl</span><span class="msg-time">14:27</span></div><div class="msg-text">Battle pass rewards this season are 🔥</div></div>
+            <div class="chat-msg"><div class="msg-header"><span class="msg-user">SolMaxi.sol</span><span class="msg-time">14:28</span></div><div class="msg-text">GM fam ☀️</div></div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" placeholder="Type a message...">
+            <button class="tip-btn"><i class="fas fa-bolt"></i> Tip</button>
+            <button class="chat-send-btn"><i class="fas fa-paper-plane"></i> Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Airdrops -->
+    <div class="section-title"><i class="fas fa-parachute-box"></i> Active Airdrops</div>
+    <div class="grid-3 mb-32">
+      <div class="airdrop-card">
+        <h4>🎁 $SEND Early Adopter Drop</h4>
+        <div class="airdrop-desc">Rewarding our earliest community members with bonus tokens</div>
+        <div class="airdrop-bar"><div class="fill" style="width:72%"></div></div>
+        <div class="airdrop-meta"><span>7,200 / 10,000 claimed</span><span>72%</span></div>
+        <div class="airdrop-countdown"><i class="fas fa-clock"></i> 2d 14h 32m remaining</div>
+        <button class="claim-btn">🎉 Claim 500 $SEND</button>
+      </div>
+      <div class="airdrop-card">
+        <h4>💎 Diamond Hands Reward</h4>
+        <div class="airdrop-desc">Hold $SEND for 30+ days and earn bonus allocation</div>
+        <div class="airdrop-bar"><div class="fill" style="width:45%"></div></div>
+        <div class="airdrop-meta"><span>2,250 / 5,000 claimed</span><span>45%</span></div>
+        <div class="airdrop-countdown"><i class="fas fa-clock"></i> 5d 8h 15m remaining</div>
+        <button class="claim-btn">🎉 Claim 1,200 $SEND</button>
+      </div>
+      <div class="airdrop-card">
+        <h4>🏆 Trading Volume Bonus</h4>
+        <div class="airdrop-desc">Trade $10k+ volume this week for exclusive rewards</div>
+        <div class="airdrop-bar"><div class="fill" style="width:91%"></div></div>
+        <div class="airdrop-meta"><span>4,550 / 5,000 claimed</span><span>91%</span></div>
+        <div class="airdrop-countdown"><i class="fas fa-clock"></i> 0d 6h 44m remaining</div>
+        <button class="claim-btn claimed">✅ Already Claimed</button>
+      </div>
+    </div>
+
+    <!-- Battle Pass -->
+    <div class="card mb-32">
+      <div class="section-title"><i class="fas fa-shield-halved"></i> Battle Pass</div>
+      <div class="bp-header">
+        <div class="bp-season">Season 2 — Solana Summer</div>
+        <div class="bp-level">Level 14</div>
+      </div>
+      <div class="xp-bar"><div class="fill" style="width:67%"></div></div>
+      <div class="xp-label">6,700 / 10,000 XP to Level 15</div>
+      <div class="rewards-grid">
+        <div class="reward-item unlocked"><div class="reward-icon">🎨</div><div class="reward-lvl">Lv 1</div><div class="reward-name">Profile Frame</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">💰</div><div class="reward-lvl">Lv 3</div><div class="reward-name">100 $SEND</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">🏷️</div><div class="reward-lvl">Lv 5</div><div class="reward-name">Custom Tag</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">⚡</div><div class="reward-lvl">Lv 7</div><div class="reward-name">XP Boost</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">🎭</div><div class="reward-lvl">Lv 10</div><div class="reward-name">Rare Avatar</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">💎</div><div class="reward-lvl">Lv 12</div><div class="reward-name">500 $SEND</div></div>
+        <div class="reward-item unlocked"><div class="reward-icon">🔥</div><div class="reward-lvl">Lv 14</div><div class="reward-name">Fire Emoji</div></div>
+        <div class="reward-item locked"><div class="reward-icon">🏆</div><div class="reward-lvl">Lv 16</div><div class="reward-name">Trophy NFT</div><div class="lock-overlay"><i class="fas fa-lock"></i></div></div>
+        <div class="reward-item locked"><div class="reward-icon">👑</div><div class="reward-lvl">Lv 20</div><div class="reward-name">Crown Badge</div><div class="lock-overlay"><i class="fas fa-lock"></i></div></div>
+        <div class="reward-item locked"><div class="reward-icon">🌟</div><div class="reward-lvl">Lv 25</div><div class="reward-name">1,000 $SEND</div><div class="lock-overlay"><i class="fas fa-lock"></i></div></div>
+        <div class="reward-item locked"><div class="reward-icon">🚀</div><div class="reward-lvl">Lv 30</div><div class="reward-name">Legendary NFT</div><div class="lock-overlay"><i class="fas fa-lock"></i></div></div>
+        <div class="reward-item locked"><div class="reward-icon">💫</div><div class="reward-lvl">Lv 50</div><div class="reward-name">OG Status</div><div class="lock-overlay"><i class="fas fa-lock"></i></div></div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section-title"><i class="fas fa-trophy"></i> Achievements</div>
+    <div class="grid-3 mb-32">
+      <div class="achievement earned"><div class="ach-icon">🚀</div><div class="ach-info"><h4>First Launch</h4><p>Launch your first token on Send.it</p></div></div>
+      <div class="achievement earned"><div class="ach-icon">💰</div><div class="ach-info"><h4>Paper Hands</h4><p>Make your first trade on the platform</p></div></div>
+      <div class="achievement earned"><div class="ach-icon">🔥</div><div class="ach-info"><h4>Streak Master</h4><p>Maintain a 7-day check-in streak</p></div></div>
+      <div class="achievement earned"><div class="ach-icon">🐋</div><div class="ach-info"><h4>Whale Watcher</h4><p>Hold 10,000+ $SEND tokens</p></div></div>
+      <div class="achievement earned"><div class="ach-icon">💬</div><div class="ach-info"><h4>Social Butterfly</h4><p>Send 100 messages in chat</p></div></div>
+      <div class="achievement unearned"><div class="ach-icon">👑</div><div class="ach-info"><h4>Diamond Hands</h4><p>Hold $SEND for 90 consecutive days</p></div></div>
+      <div class="achievement unearned"><div class="ach-icon">⚡</div><div class="ach-info"><h4>Speed Demon</h4><p>Execute 50 trades in a single day</p></div></div>
+      <div class="achievement unearned"><div class="ach-icon">🎯</div><div class="ach-info"><h4>Sharpshooter</h4><p>Pick 5 tokens that 10x in value</p></div></div>
+      <div class="achievement unearned"><div class="ach-icon">🏆</div><div class="ach-info"><h4>Top Trader</h4><p>Reach #1 on the weekly leaderboard</p></div></div>
+    </div>
+
+    <!-- Token Videos -->
+    <div class="card mb-32">
+      <div class="section-title"><i class="fas fa-video"></i> Token Videos</div>
+      <div class="video-featured"><i class="fas fa-play-circle"></i></div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">🎬 $SEND Token Analysis — Why This Could 100x</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">by CryptoChef • 2.4k views • 3 hours ago</div>
+      <div class="video-actions">
+        <button class="vote-btn up"><i class="fas fa-thumbs-up"></i> <span class="vote-count">342</span></button>
+        <button class="vote-btn down"><i class="fas fa-thumbs-down"></i> <span class="vote-count">12</span></button>
+        <button class="submit-video-btn"><i class="fas fa-upload"></i> Submit Video</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="text-align:center;padding:24px;color:var(--text3);font-size:12px;border-top:1px solid rgba(255,255,255,.04)">
+    <div>Send.it — Built on Solana ⚡</div>
+    <div style="margin-top:4px">© 2025 Send.it Protocol. All rights reserved.</div>
+  </footer>
+</div>
+</body>
+</html>
