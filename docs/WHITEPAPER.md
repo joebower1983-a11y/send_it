@@ -1,8 +1,8 @@
-# Send.it — Whitepaper v1.0
+# Send.it — Whitepaper v2.0
 
-### A Fair, Secure, Community-First Token Launchpad on Solana
+### The Complete DeFi, Social, and Governance Platform for Token Launches on Solana
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Date:** February 2026
 **Status:** Draft
 
@@ -16,26 +16,61 @@
 4. [Bonding Curve Mechanics](#4-bonding-curve-mechanics)
 5. [Anti-Snipe System](#5-anti-snipe-system)
 6. [Rug Protection](#6-rug-protection)
-7. [Creator Economy](#7-creator-economy)
-8. [SolForge Integration](#8-solforge-integration)
-9. [Auto-Migration to Raydium](#9-auto-migration-to-raydium)
-10. [Tokenomics & Fee Architecture](#10-tokenomics--fee-architecture)
-11. [Security Architecture](#11-security-architecture)
-12. [Competitive Analysis](#12-competitive-analysis)
-13. [Roadmap](#13-roadmap)
-14. [Conclusion](#14-conclusion)
+7. [Auto-Migration to Raydium](#7-auto-migration-to-raydium)
+8. [DeFi Suite](#8-defi-suite)
+   - 8.1 [Staking](#81-staking)
+   - 8.2 [Lending](#82-lending)
+   - 8.3 [Limit Orders](#83-limit-orders)
+   - 8.4 [Prediction Markets](#84-prediction-markets)
+   - 8.5 [Perpetuals](#85-perpetuals)
+9. [Social & Growth](#9-social--growth)
+   - 9.1 [Live Chat](#91-live-chat)
+   - 9.2 [Token Chat](#92-token-chat)
+   - 9.3 [Airdrops](#93-airdrops)
+   - 9.4 [Daily Rewards](#94-daily-rewards)
+   - 9.5 [Seasons & Battle Pass](#95-seasons--battle-pass)
+   - 9.6 [Token Videos](#96-token-videos)
+   - 9.7 [Referrals](#97-referrals)
+   - 9.8 [Copy Trading](#98-copy-trading)
+10. [Creator Tools](#10-creator-tools)
+    - 10.1 [Creator Dashboard](#101-creator-dashboard)
+    - 10.2 [Share Cards](#102-share-cards)
+    - 10.3 [Custom Pages](#103-custom-pages)
+    - 10.4 [Achievements](#104-achievements)
+11. [Governance & Analytics](#11-governance--analytics)
+    - 11.1 [Voting](#111-voting)
+    - 11.2 [Reputation](#112-reputation)
+    - 11.3 [Premium Listings](#113-premium-listings)
+    - 11.4 [Analytics](#114-analytics)
+    - 11.5 [Price Alerts](#115-price-alerts)
+    - 11.6 [Holder Rewards](#116-holder-rewards)
+    - 11.7 [Bridge](#117-bridge)
+    - 11.8 [Raffle](#118-raffle)
+12. [Revenue Model & Fee Architecture](#12-revenue-model--fee-architecture)
+13. [SolForge Integration](#13-solforge-integration)
+14. [Security Architecture](#14-security-architecture)
+15. [Competitive Analysis](#15-competitive-analysis)
+16. [Roadmap](#16-roadmap)
+17. [Conclusion](#17-conclusion)
 
 ---
 
 ## 1. Abstract
 
-The Solana memecoin ecosystem has exploded in volume, yet the infrastructure supporting token creation and early-stage price discovery remains fundamentally broken. Platforms like pump.fun democratized token launches but introduced a new class of problems: rampant bot sniping, zero creator incentives, extractive fee models that return no value to participants, and a complete absence of rug-pull protection.
+Send.it began as a fair-launch token launchpad on Solana. It has evolved into a **comprehensive DeFi, social, and governance platform** — the most feature-complete token ecosystem ever built on a single Solana program.
 
-**Send.it** is a next-generation token launchpad built on Solana that reimagines the entire launch lifecycle. By combining configurable bonding curves, a deterministic anti-snipe system, on-chain rug protection via liquidity locking and creator vesting, and a creator revenue-sharing economy, Send.it aligns incentives across all participants — creators, early buyers, and the broader community.
+Version 1.0 introduced configurable bonding curves, anti-snipe protection, rug protection, and the SolForge burn mechanism. **Version 2.0** expands the protocol with **25+ on-chain modules** spanning:
 
-Platform fees flow into the **SolForge** vault, powering an auto-burn deflationary flywheel that returns value to the ecosystem rather than extracting it. When a token's bonding curve reaches its migration threshold, liquidity is autonomously migrated to Raydium with LP tokens locked — no human intervention, no trust assumptions.
+- **DeFi Suite** — Staking, lending, limit orders, prediction markets, and perpetual futures
+- **Social & Growth** — Live chat, airdrops, daily rewards, seasons/battle pass, token videos, referrals, and copy trading
+- **Creator Tools** — Analytics dashboards, share cards, custom pages, and achievements
+- **Governance & Analytics** — On-chain voting, reputation scoring, premium listings, whale tracking, price alerts, holder rewards, cross-chain bridge, and raffles
 
-Send.it doesn't just compete with pump.fun. It replaces the extractive launchpad model with one that is fair, secure, and economically sustainable for everyone involved.
+Every module is implemented as on-chain Solana program instructions with PDA-based state management, permissionless cranks, and deterministic execution. No off-chain dependencies. No trust assumptions.
+
+Send.it's **three-stream revenue model** — 1% platform fee, 1% creator fee, and configurable holder rewards fee — ensures that value flows to every participant: the platform, the creator, and the community.
+
+This is no longer a launchpad. It is a **protocol**.
 
 ---
 
@@ -43,72 +78,54 @@ Send.it doesn't just compete with pump.fun. It replaces the extractive launchpad
 
 ### 2.1 The Current Landscape
 
-The Solana token launchpad market processes billions of dollars in volume monthly. pump.fun alone has facilitated the creation of millions of tokens. Yet the infrastructure powering this activity suffers from deep structural flaws that harm the majority of participants while enriching a narrow class of sophisticated actors.
+The Solana memecoin market processes billions of dollars monthly. Platforms like pump.fun democratized token creation but remain single-purpose launchpads with extractive economics. Tokens that graduate to DEXs lose all platform infrastructure — no staking, no governance, no social layer, no analytics. Creators have zero ongoing tools. Communities have zero engagement mechanisms.
 
 ### 2.2 Bot Sniping & MEV Extraction
 
-On pump.fun, token launches are immediately visible on-chain. Automated bots monitor the mempool and program logs, executing buy transactions within the same block (or even the same transaction bundle) as the token creation. This means:
+Automated bots capture 30–70% of initial supply on platforms without anti-snipe protection. Retail participants enter at inflated prices and absorb the dump. No existing launchpad provides on-chain, mandatory anti-snipe enforcement.
 
-- **Bots capture 30–70% of the initial supply** before any human participant can react.
-- **Retail buyers enter at an inflated price**, having already been front-run.
-- **Bot operators dump on the community** within minutes, extracting value and crashing the price.
+### 2.3 Post-Graduation Void
 
-There is no launch delay, no buy cap, and no snipe window. The playing field is structurally tilted toward automated actors with Jito bundle access and custom RPC infrastructure.
+When a token migrates to Raydium, it enters a vacuum:
 
-### 2.3 Rug Pulls & Creator Abandonment
+- **No staking** — holders cannot earn yield
+- **No lending** — tokens cannot be used as collateral
+- **No limit orders** — users must manually monitor prices
+- **No governance** — communities cannot vote on proposals
+- **No social features** — engagement dies after launch hype fades
+- **No creator tools** — creators lose all analytics and customization
 
-pump.fun provides zero on-chain guarantees against rug pulls:
+This "post-graduation void" is why 99% of launched tokens fade into irrelevance within days.
 
-- **No liquidity locking** — creators (or anyone who accumulates supply early) can dump at any time.
-- **No creator vesting** — there is no mechanism to ensure creators maintain long-term alignment with their token's success.
-- **No emergency controls** — if a vulnerability is discovered or a malicious actor gains outsized supply, there is no circuit breaker.
+### 2.4 Extractive Fee Models
 
-The result: the vast majority of pump.fun tokens go to zero within hours, and the platform's reputation suffers from a "casino" perception that discourages serious creators.
+pump.fun charges a 1% fee with 100% flowing to the platform. Zero to creators. Zero to holders. Zero burned. Pure extraction.
 
-### 2.4 Zero Creator Incentives
+### 2.5 No Reputation or Quality Signals
 
-On pump.fun, creators receive nothing beyond the tokens they purchase on their own curve. There is no revenue share, no ongoing royalty, and no mechanism to reward creators who build genuine communities. This creates a perverse incentive structure where the optimal creator strategy is to launch, hype, dump, and repeat — because there is no economic benefit to building something lasting.
-
-### 2.5 Extractive Fee Model
-
-pump.fun charges a 1% trading fee on every transaction on the bonding curve, plus a migration fee. These fees flow entirely to the platform operator. None of this value is returned to:
-
-- Token creators
-- Token holders
-- The broader Solana ecosystem
-
-This is a pure extraction model. The platform captures value; participants lose it.
-
-### 2.6 Poor User Experience
-
-- No configurable bonding curves (one-size-fits-all pricing)
-- No visibility into bot activity or snipe metrics
-- No creator dashboard or analytics
-- No mobile-first design
-- Limited social integration
+There is no on-chain mechanism to distinguish reputable creators from serial rug-pullers. No achievement system, no reputation scoring, no accountability.
 
 ---
 
 ## 3. Solution Overview
 
-Send.it addresses every failure mode identified above through six interlocking systems:
+Send.it addresses the complete token lifecycle — from creation through graduation to long-term community sustainability — through 25+ interlocking on-chain modules:
 
-| System | Problem Solved | Mechanism |
-|--------|---------------|-----------|
-| **Configurable Bonding Curves** | One-size-fits-all pricing | Linear, exponential, and sigmoid curves with creator-set parameters |
-| **Anti-Snipe System** | Bot front-running | Launch delay window, per-wallet max buy limits, snipe detection |
-| **Rug Protection** | Creator dumps, liquidity pulls | Liquidity locking, creator token vesting schedules, emergency pause |
-| **Creator Economy** | Zero creator incentives | Revenue sharing from trading fees, milestone rewards |
-| **SolForge Integration** | Extractive fee model | Fees flow to SolForge vault, auto-burn SOL, deflationary flywheel |
-| **Auto-Migration** | Manual/failed migrations | Autonomous Raydium migration at threshold, LP locking |
+| Category | Modules | Problems Solved |
+|----------|---------|-----------------|
+| **Launch** | Bonding curves, anti-snipe, rug protection | Unfair launches, bot front-running, rug pulls |
+| **DeFi** | Staking, lending, limit orders, prediction markets, perpetuals | Post-graduation void, no yield, no advanced trading |
+| **Social** | Live chat, token chat, airdrops, daily rewards, seasons, videos, referrals, copy trading | No engagement, no retention, no growth loops |
+| **Creator** | Dashboard, share cards, custom pages, achievements | No creator tools, no analytics, no customization |
+| **Governance** | Voting, reputation, premium, analytics, price alerts, holder rewards, bridge, raffle | No accountability, no governance, no cross-chain |
 
 ### 3.1 Design Principles
 
-1. **Fairness by default** — Every launch includes anti-snipe and rug protection. These are not optional add-ons.
-2. **Creator alignment** — Creators earn ongoing revenue, incentivizing long-term community building.
-3. **Value return** — Platform fees are recycled into ecosystem value via SolForge burns, not extracted.
-4. **Trustless execution** — All critical operations (migration, locking, vesting) are enforced on-chain via PDAs with no admin override.
-5. **Progressive decentralization** — Governance transitions from team multisig to DAO over the roadmap.
+1. **On-chain by default** — Every module is implemented as Solana program instructions with PDA state. No off-chain servers required for core functionality.
+2. **Permissionless cranks** — Critical operations (limit order fills, funding rate updates, analytics refreshes) can be triggered by anyone, incentivized by small bounties.
+3. **Composable PDAs** — All state is stored in deterministic Program Derived Addresses with documented seed patterns, enabling third-party integration.
+4. **Three-stream revenue** — Platform, creator, and holder fee streams align all participants.
+5. **Progressive decentralization** — From team multisig → DAO governance → fully immutable protocol.
 
 ---
 
@@ -116,17 +133,9 @@ Send.it addresses every failure mode identified above through six interlocking s
 
 ### 4.1 Overview
 
-A bonding curve is a mathematical function that determines the price of a token as a function of its circulating supply. Send.it implements three curve types, each suited to different launch dynamics. Creators select their curve type and parameters at token creation time; once set, the curve is immutable.
-
-All curves share a common interface:
-
-- **`get_price(supply)`** — returns the instantaneous price at a given supply level
-- **`get_cost(supply, amount)`** — returns the total cost to purchase `amount` tokens starting from `supply`
-- **`get_return(supply, amount)`** — returns the SOL received for selling `amount` tokens starting from `supply`
+Send.it implements three configurable bonding curve types: linear, exponential, and sigmoid. Creators select their curve type and parameters at token creation time; once set, the curve is immutable.
 
 ### 4.2 Linear Bonding Curve
-
-The simplest model. Price increases linearly with supply.
 
 **Price function:**
 
@@ -134,34 +143,15 @@ The simplest model. Price increases linearly with supply.
 P(s) = P₀ + k · s
 ```
 
-Where:
-- `P(s)` = price at supply `s`
-- `P₀` = initial price (base price floor, in SOL per token)
-- `k` = slope coefficient (rate of price increase per token)
-- `s` = current circulating supply
-
-**Cost to purchase `Δs` tokens starting from supply `s`:**
+**Cost to purchase Δs tokens starting from supply s:**
 
 ```
-C(s, Δs) = ∫[s to s+Δs] (P₀ + k·x) dx
-         = P₀ · Δs + k/2 · [(s + Δs)² − s²]
-         = P₀ · Δs + k/2 · Δs · (2s + Δs)
+C(s, Δs) = P₀ · Δs + k/2 · Δs · (2s + Δs)
 ```
 
-**Example parameters:**
-- `P₀ = 0.000001 SOL` (initial price)
-- `k = 0.0000000001` (slope)
-- Total supply cap: `1,000,000,000` tokens
-- Migration threshold: `800,000,000` tokens sold
-
-**Characteristics:**
-- Predictable, easy to reason about
-- Steady price appreciation rewards early participants proportionally
-- Best suited for community tokens where gradual, predictable growth is desired
+Where `P₀` is the initial price and `k` is the slope coefficient.
 
 ### 4.3 Exponential Bonding Curve
-
-Price grows exponentially with supply, rewarding early participants more aggressively.
 
 **Price function:**
 
@@ -169,35 +159,15 @@ Price grows exponentially with supply, rewarding early participants more aggress
 P(s) = P₀ · e^(k · s)
 ```
 
-Where:
-- `P₀` = initial price
-- `k` = growth rate constant
-- `e` = Euler's number (≈ 2.71828)
-
-**Cost to purchase `Δs` tokens starting from supply `s`:**
+**Cost to purchase Δs tokens:**
 
 ```
-C(s, Δs) = ∫[s to s+Δs] P₀ · e^(k·x) dx
-         = (P₀ / k) · [e^(k·(s+Δs)) − e^(k·s)]
-         = (P₀ / k) · e^(k·s) · [e^(k·Δs) − 1]
+C(s, Δs) = (P₀ / k) · e^(k·s) · [e^(k·Δs) − 1]
 ```
 
-**Example parameters:**
-- `P₀ = 0.0000001 SOL`
-- `k = 0.00000002`
-- Migration threshold: when curve reserve reaches `85 SOL`
+Computed on-chain using fixed-point Taylor series approximation truncated at 12 terms, providing precision to 10⁻¹².
 
-**Characteristics:**
-- Strong early-buyer advantage
-- Rapid price acceleration as supply increases
-- Higher risk/reward profile
-- Best suited for hype-driven launches where early conviction should be rewarded
-
-**On-chain implementation note:** Exponential functions are computed using fixed-point arithmetic with a Taylor series approximation truncated at 12 terms, providing precision to 10⁻¹² within the operational supply range.
-
-### 4.4 Sigmoid Bonding Curve
-
-An S-shaped curve that combines a slow start, rapid middle growth, and a price ceiling. This is the **recommended default** for most launches.
+### 4.4 Sigmoid Bonding Curve (Recommended Default)
 
 **Price function:**
 
@@ -205,124 +175,69 @@ An S-shaped curve that combines a slow start, rapid middle growth, and a price c
 P(s) = P_max / (1 + e^(-k · (s − s_mid)))
 ```
 
-Where:
-- `P_max` = maximum (asymptotic) price
-- `k` = steepness of the transition
-- `s_mid` = supply midpoint (inflection point where growth is fastest)
-
-**Cost to purchase `Δs` tokens (numerical integration):**
-
-```
-C(s, Δs) = ∫[s to s+Δs] P_max / (1 + e^(-k·(x − s_mid))) dx
-         = (P_max / k) · [ln(1 + e^(k·(s+Δs − s_mid))) − ln(1 + e^(k·(s − s_mid)))]
-```
-
-This has a closed-form solution using the softplus function: `softplus(x) = ln(1 + eˣ)`.
+**Cost to purchase Δs tokens (closed-form via softplus):**
 
 ```
 C(s, Δs) = (P_max / k) · [softplus(k·(s+Δs − s_mid)) − softplus(k·(s − s_mid))]
 ```
 
-**Example parameters:**
-- `P_max = 0.001 SOL`
-- `k = 0.00000005`
-- `s_mid = 500,000,000`
-- Migration threshold: `s = 900,000,000` or reserve = `100 SOL` (whichever first)
+Where `softplus(x) = ln(1 + eˣ)`.
 
-**Characteristics:**
-- Natural price ceiling prevents extreme overvaluation on the curve
-- Slow start gives community time to discover the token organically
-- Rapid middle phase rewards participation during the growth phase
-- Flattening top reduces late-buyer risk
-- Best suited for tokens intending genuine community building with sustainable economics
+The sigmoid curve provides a natural price ceiling, slow organic start, rapid growth phase, and flattening top that reduces late-buyer risk.
 
-### 4.5 Price Discovery & Reserve Mechanics
+### 4.5 Reserve Mechanics & Buy/Sell Flow
 
-All bonding curves operate as **Automated Market Makers (AMMs)** with a single-asset reserve (SOL). The curve contract holds the SOL reserve, and the token supply is minted/burned on buy/sell.
+All curves operate as single-asset AMMs with SOL reserves:
 
-**Buy flow:**
-1. User sends SOL to the curve PDA
-2. Contract computes tokens receivable via `get_return(current_supply, sol_amount)`
-3. Tokens are minted to the buyer
-4. Platform fee is deducted from the SOL input before curve calculation
+- **Buy:** User sends SOL → fee deducted → tokens minted from curve → SOL added to reserve
+- **Sell:** User sends tokens → tokens burned → SOL returned from reserve → fee deducted
 
-**Sell flow:**
-1. User sends tokens to the curve PDA
-2. Contract computes SOL receivable via `get_cost(current_supply - amount, amount)` (inverse)
-3. Tokens are burned
-4. SOL (minus fee) is transferred to the seller
+### 4.6 Migration Threshold
 
-### 4.6 Migration Threshold Logic
+Each token has a configurable migration trigger:
 
-Each token has a **migration threshold** — the condition that triggers autonomous migration to Raydium. Creators configure this at launch as one of:
+| Type | Trigger | Example |
+|------|---------|---------|
+| Supply-based | Target % of supply sold | 80% of 1B tokens |
+| Reserve-based | SOL reserve target | Reserve hits 85 SOL |
+| Hybrid | Whichever first | 80% supply OR 85 SOL |
 
-| Threshold Type | Trigger Condition | Example |
-|---------------|-------------------|---------|
-| **Supply-based** | A target percentage of max supply is sold | 80% of 1B tokens sold |
-| **Reserve-based** | The SOL reserve in the curve reaches a target | Reserve hits 85 SOL |
-| **Hybrid** | Whichever condition is met first | 80% supply OR 85 SOL reserve |
-
-When the threshold is met, the next transaction triggers the migration instruction (see [Section 9](#9-auto-migration-to-raydium)). A small migration bounty (0.1 SOL) is paid to the wallet that submits the migration transaction, incentivizing timely execution.
+A 0.1 SOL migration bounty incentivizes timely execution.
 
 ---
 
 ## 5. Anti-Snipe System
 
-### 5.1 The Sniping Problem
+Send.it enforces a **three-layer anti-snipe system** on-chain:
 
-In a standard launch, the token creation transaction and the first buy transactions can land in the same Solana slot (400ms). Bots with Jito bundle access or priority fee optimization can execute buys within milliseconds of token creation, capturing the lowest prices on the curve before any human participant.
-
-### 5.2 Send.it's Anti-Snipe Architecture
-
-Send.it implements a **three-layer anti-snipe system** that is enforced on-chain and cannot be bypassed:
-
-#### Layer 1: Launch Delay Window
-
-When a token is created, trading does not begin immediately. A configurable **launch delay** is enforced:
+### Layer 1: Launch Delay Window
 
 ```
 trading_enabled_slot = creation_slot + delay_slots
 ```
 
-- **Default delay:** 15 slots (~6 seconds)
-- **Creator-configurable range:** 10–150 slots (~4–60 seconds)
-- **Enforcement:** The `buy` instruction checks `Clock::slot >= trading_enabled_slot` and rejects all purchases before this threshold.
+- Default: 15 slots (~6 seconds). Creator-configurable: 10–150 slots.
+- The `buy` instruction rejects all purchases before `trading_enabled_slot`.
+- Transactions submitted during the delay are effectively batch-auctioned.
 
-During the delay window, the token is visible on the Send.it frontend, allowing users to prepare their buy transactions. All transactions submitted during the delay are queued and processed in the first eligible slot — effectively converting a speed race into a **batch auction**.
-
-#### Layer 2: Max Buy Limits (Snipe Window)
-
-For a configurable period after trading opens, **per-wallet buy limits** are enforced:
+### Layer 2: Max Buy Limits (Snipe Window)
 
 ```
 if current_slot < trading_enabled_slot + snipe_window_slots:
     assert wallet_total_purchased <= max_buy_during_snipe
 ```
 
-- **Default snipe window:** 50 slots (~20 seconds)
-- **Default max buy:** 2% of total supply
-- **Creator-configurable:** window duration (25–250 slots), max buy (0.5%–5% of supply)
+- Default window: 50 slots (~20 seconds). Default max buy: 2% of supply.
+- Creator-configurable: window 25–250 slots, max buy 0.5%–5%.
 
-This prevents any single wallet (bot or human) from capturing an outsized portion of supply during the critical early period.
+### Layer 3: Snipe Detection & Flagging
 
-#### Layer 3: Snipe Detection & Flagging
-
-Transactions that execute within the first 5 slots of trading being enabled are flagged as **"snipe transactions"** in the event logs. The Send.it frontend displays:
-
-- A snipe indicator on the token's page showing what percentage of supply was acquired in the snipe window
-- Per-wallet snipe flags visible to all users
-- A "snipe score" (0–100) rating how fairly the launch was distributed
-
-This transparency doesn't prevent sniping outright (the max buy limit handles that) but creates **social accountability** — communities can see exactly who sniped and how much.
-
-### 5.3 Combined Effect
+Transactions within the first 5 slots are flagged with on-chain event logs. The frontend displays snipe percentages, per-wallet flags, and a fairness score (0–100).
 
 | Without Anti-Snipe (pump.fun) | With Send.it Anti-Snipe |
 |-------------------------------|------------------------|
-| Bots capture 30–70% of supply in first slot | Max 2% per wallet in snipe window |
-| Retail enters at 5–50x the initial price | Retail enters at or near initial price |
-| Price dumps within minutes as bots exit | Organic price discovery over hours/days |
-| Creator reputation damaged by "bot launch" perception | Transparent, fair launch with public snipe metrics |
+| Bots capture 30–70% in first slot | Max 2% per wallet in snipe window |
+| Retail enters at 5–50x initial price | Retail enters at or near initial price |
 
 ---
 
@@ -330,514 +245,1188 @@ This transparency doesn't prevent sniping outright (the max buy limit handles th
 
 ### 6.1 Liquidity Locking
 
-When a token migrates to Raydium (see [Section 9](#9-auto-migration-to-raydium)), the LP tokens representing the liquidity position are **locked in a PDA** controlled by the Send.it program. No human actor — not the creator, not the Send.it team — can withdraw these LP tokens.
+Post-migration LP tokens are locked in a PDA with no admin override:
 
-**Lock parameters:**
-- **Minimum lock duration:** 180 days (enforced on-chain)
-- **Default lock duration:** 365 days
-- **Creator-configurable:** 180 days to permanent (irrevocable)
-- **Unlock mechanism:** After the lock period, LP tokens are released to a community-governed multisig (initially Send.it DAO, transitioning to token-specific governance)
-
-**On-chain enforcement:**
-
-```rust
-pub fn unlock_lp(ctx: Context<UnlockLp>) -> Result<()> {
-    let lock = &ctx.accounts.lp_lock;
-    let clock = Clock::get()?;
-    require!(
-        clock.unix_timestamp >= lock.unlock_timestamp,
-        SendItError::LpStillLocked
-    );
-    // Transfer LP tokens to designated recipient
-    ...
-}
-```
+- **Minimum lock:** 180 days (enforced on-chain)
+- **Default:** 365 days. Creator-configurable up to permanent.
+- The PDA derivation is deterministic — even program upgrades cannot bypass existing locks.
 
 ### 6.2 Creator Token Vesting
 
-Creators may optionally allocate themselves a portion of the token supply (up to a platform-enforced maximum of 5%). This allocation is subject to a **mandatory vesting schedule**:
+Creator allocations (max 5% of supply) are subject to mandatory vesting:
 
 ```
 vested_amount(t) = allocation · min(1, (t − cliff) / vesting_duration)
 ```
 
-Where:
-- `t` = current time
-- `cliff` = minimum time before any tokens vest (default: 30 days)
-- `vesting_duration` = total vesting period after cliff (default: 180 days)
-- `allocation` = creator's total token allocation
+- **Cliff:** 30–90 days (minimum enforced)
+- **Vesting:** 90–365 days linear unlock after cliff
 
-**Vesting parameters:**
-- **Cliff:** 30–90 days (creator-configurable, minimum enforced)
-- **Vesting duration:** 90–365 days (linear unlock after cliff)
-- **Maximum allocation:** 5% of total supply
-
-Tokens that have not yet vested are held in a PDA and cannot be transferred, sold, or delegated.
+Unvested tokens are held in a PDA and cannot be transferred, sold, or delegated.
 
 ### 6.3 Emergency Pause
 
-In extreme circumstances (e.g., a discovered exploit, evidence of coordinated manipulation), trading on a bonding curve can be paused. The pause mechanism is designed with strict constraints to prevent abuse:
+A circuit-breaker mechanism with strict constraints:
 
-- **Who can pause:** Only the Send.it program authority (initially a 3-of-5 team multisig, transitioning to DAO governance)
-- **Pause duration:** Maximum 72 hours per pause event
-- **Cooldown:** Minimum 7 days between pause events for the same token
-- **Transparency:** All pause events emit on-chain events with a reason code
-- **Auto-resume:** Trading automatically resumes after the pause duration expires, even if no explicit resume transaction is submitted
-
-The emergency pause is a **circuit breaker**, not a kill switch. It cannot be used to permanently halt trading or extract funds.
+- **Who:** 3-of-5 team multisig (transitioning to DAO)
+- **Duration:** Maximum 72 hours per pause event
+- **Cooldown:** Minimum 7 days between pauses
+- **Auto-resume:** Trading automatically resumes after pause duration
 
 ---
 
-## 7. Creator Economy
+## 7. Auto-Migration to Raydium
 
-### 7.1 The Creator Revenue Model
+When the migration threshold is met, migration executes atomically via CPI:
 
-Send.it introduces a paradigm shift: **creators earn ongoing revenue from their token's trading activity.** This aligns creator incentives with long-term community health rather than short-term extraction.
+1. **Curve freeze** — Trading permanently disabled, state enters `Migrated`
+2. **Reserve calculation** — Creator bonus (0.5%) and migration bounty (0.1 SOL) deducted
+3. **Token mint** — Remaining supply minted to migration PDA
+4. **Raydium pool creation** — CPI to Raydium `initialize` with matching terminal price
+5. **LP token locking** — LP tokens transferred to lock PDA
 
-**Revenue sources for creators:**
-
-| Source | Creator Share | Mechanism |
-|--------|-------------|-----------|
-| Bonding curve trading fees | 40% of the 1% fee | Accumulated in PDA, claimable |
-| Post-migration Raydium trading | 0% (standard AMM) | N/A — creators benefit via token appreciation |
-| Migration event | 0.5% of final reserve | One-time payout at migration |
-
-### 7.2 Fee Accumulation & Claiming
-
-Every buy and sell transaction on the bonding curve generates a 1% fee. This fee is split:
-
-```
-total_fee = transaction_amount × 0.01
-
-creator_share  = total_fee × 0.40  (40%)
-solforge_share = total_fee × 0.50  (50%)
-platform_ops   = total_fee × 0.10  (10%)
-```
-
-The creator's share accumulates in a PDA associated with their token. Creators can claim accumulated fees at any time via the `claim_creator_fees` instruction.
-
-### 7.3 Migration Bonus
-
-When a token successfully migrates to Raydium, the creator receives a one-time bonus:
-
-```
-migration_bonus = final_curve_reserve × 0.005
-```
-
-For a token that migrates with an 85 SOL reserve, this is **0.425 SOL**. This incentivizes creators to build tokens that reach the migration threshold.
-
-### 7.4 Economic Impact
-
-Consider a token that generates 500 SOL in total trading volume on its bonding curve:
-
-```
-Total fees generated:     500 × 0.01 = 5.0 SOL
-Creator earnings:         5.0 × 0.40 = 2.0 SOL
-Migration bonus (85 SOL): 85  × 0.005 = 0.425 SOL
-Total creator revenue:                  2.425 SOL
-```
-
-This transforms token creation from a zero-sum pump-and-dump game into a **sustainable creative economy** where builders are rewarded for creating tokens that people want to trade.
-
----
-
-## 8. SolForge Integration
-
-### 8.1 Overview
-
-**SolForge** is Send.it's value-return mechanism. Rather than platform fees being extracted to a team wallet, they flow into the SolForge vault — an on-chain program that autonomously burns SOL, creating a deflationary flywheel that benefits the entire Solana ecosystem.
-
-### 8.2 Fee Flow Architecture
-
-```
-User Transaction (Buy/Sell on Bonding Curve)
-    │
-    ├── 1% Fee Deducted
-    │       │
-    │       ├── 40% → Creator Revenue PDA
-    │       ├── 50% → SolForge Vault PDA
-    │       └── 10% → Platform Operations Wallet
-    │
-    └── Remaining 99% → Bonding Curve Reserve
-```
-
-### 8.3 The SolForge Vault
-
-The SolForge vault is a PDA that accumulates SOL from platform fees. When the vault balance exceeds a **burn threshold** (initially 10 SOL), anyone can invoke the `forge_burn` instruction:
-
-```rust
-pub fn forge_burn(ctx: Context<ForgeBurn>) -> Result<()> {
-    let vault = &ctx.accounts.solforge_vault;
-    require!(
-        vault.lamports() >= BURN_THRESHOLD,
-        SendItError::BelowBurnThreshold
-    );
-
-    let burn_amount = vault.lamports();
-
-    // Transfer SOL to the system program's burn address
-    // (transferring to an address with no private key = permanent burn)
-    **vault.try_borrow_mut_lamports()? -= burn_amount;
-    **ctx.accounts.burn_sink.try_borrow_mut_lamports()? += burn_amount;
-
-    emit!(ForgeBurnEvent {
-        amount: burn_amount,
-        total_burned: ctx.accounts.forge_state.total_burned + burn_amount,
-        timestamp: Clock::get()?.unix_timestamp,
-    });
-
-    Ok(())
-}
-```
-
-### 8.4 Deflationary Flywheel
-
-The SolForge mechanism creates a positive feedback loop:
-
-```
-More tokens launched on Send.it
-    → More trading volume
-        → More fees to SolForge vault
-            → More SOL burned
-                → SOL becomes scarcer
-                    → SOL value appreciates
-                        → Send.it launches become more valuable
-                            → More tokens launched on Send.it
-```
-
-### 8.5 Burn Metrics & Transparency
-
-All burn events are logged on-chain and displayed on the Send.it dashboard:
-
-- **Total SOL burned** (lifetime)
-- **SOL burned this epoch** (rolling 2-day window)
-- **Burn rate** (SOL/hour, SOL/day)
-- **Equivalent USD value burned**
-- **Leaderboard** of tokens whose trading fees contributed most to burns
-
-The `forge_burn` instruction is **permissionless** — anyone can call it when the threshold is met, and a small bounty (0.01 SOL) is paid to the caller to incentivize timely execution.
-
----
-
-## 9. Auto-Migration to Raydium
-
-### 9.1 Migration Trigger
-
-When a token's bonding curve reaches its configured migration threshold (see [Section 4.6](#46-migration-threshold-logic)), the next transaction triggers the migration process. Migration is **atomic** — it executes in a single transaction via Cross-Program Invocation (CPI) to the Raydium AMM program.
-
-### 9.2 Migration Process
-
-**Step-by-step:**
-
-1. **Threshold check:** The program verifies the migration condition is met.
-2. **Curve freeze:** Trading on the bonding curve is permanently disabled. The curve enters a `Migrated` state.
-3. **Reserve calculation:** The total SOL reserve in the curve is computed. The creator's migration bonus (0.5%) and migration bounty (0.1 SOL) are deducted.
-4. **Token mint:** The remaining unminted supply (up to the supply cap) is minted to the migration PDA.
-5. **Raydium pool creation:** A CPI call to Raydium's `initialize` instruction creates a new liquidity pool with:
-   - **Base token:** The migrating token
-   - **Quote token:** SOL (wrapped)
-   - **Initial price:** Set to match the bonding curve's final price at migration
-   - **Initial liquidity:** All remaining SOL reserve + all remaining tokens
-6. **LP token locking:** The LP tokens received from Raydium are transferred to the LP lock PDA (see [Section 6.1](#61-liquidity-locking)).
-7. **Event emission:** A `MigrationComplete` event is emitted with pool address, initial price, LP lock details.
-
-### 9.3 Price Continuity
-
-The Raydium pool is initialized at the bonding curve's terminal price to ensure **no price discontinuity** at migration:
+**Price continuity guarantee:**
 
 ```
 raydium_initial_price = P(s_migration)
 ```
 
-Where `s_migration` is the supply at the moment of migration. This means:
-- Holders are not diluted
-- There is no arbitrage gap between the curve price and the DEX price
-- Trading continues seamlessly on Raydium
+No price discontinuity, no dilution, no arbitrage gap.
 
-### 9.4 LP Token Locking
+**Failed migration handling:** Curve remains in `MigrationPending` state with normal trading. Any subsequent transaction re-attempts migration. A `retry_migration` instruction is available for anyone to call.
 
-LP tokens are locked per the parameters set at token creation:
+---
+
+## 8. DeFi Suite
+
+### 8.1 Staking
+
+Send.it provides on-chain staking pools for graduated tokens, enabling holders to earn yield by locking their tokens.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `StakePool` | `["stake_pool", mint]` | Global pool state: total staked, reward rate, reward accumulator |
+| `UserStake` | `["user_stake", mint, user]` | Per-user staked amount, pending rewards, reward checkpoint |
+| `StakeVault` | `["stake_vault", mint]` | Token custody PDA |
+
+**Reward Accumulator Model:**
+
+Staking rewards use a time-weighted `reward_per_token` accumulator — the same pattern used by Synthetix and major DeFi protocols:
 
 ```
-LpLock {
-    mint: token_mint,
-    lp_mint: raydium_lp_mint,
-    amount: lp_token_amount,
-    lock_timestamp: migration_timestamp,
-    unlock_timestamp: migration_timestamp + lock_duration,
-    recipient: dao_multisig,  // or permanent lock
+reward_per_token_stored += (elapsed_seconds × reward_rate) / total_staked
+```
+
+Per-user pending rewards are calculated as:
+
+```
+pending = user_staked × (reward_per_token_stored − user_reward_per_token_paid) / PRECISION
+```
+
+Where `PRECISION = 10¹²` ensures no rounding loss for practical amounts.
+
+**Instructions:**
+- `create_stake_pool(reward_rate)` — Creator initializes pool for a graduated token
+- `stake_tokens(amount)` — User deposits tokens, rewards auto-settled
+- `unstake_tokens(amount)` — User withdraws tokens + settles rewards
+- `claim_staking_rewards()` — Claim accumulated rewards without unstaking
+
+**Properties:**
+- Reward distribution is **O(1)** regardless of participant count
+- No lock-up period — users can unstake at any time
+- Reward rate is configurable by the pool creator
+
+---
+
+### 8.2 Lending
+
+A peer-to-pool lending protocol that enables users to deposit SOL for interest and borrow SOL against token collateral.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `LendingPool` | `["lending_pool", collateral_mint]` | Pool parameters: LTV, interest rate, total deposits/borrows |
+| `UserLendPosition` | `["user_lend_position", collateral_mint, user]` | Per-user deposits, borrows, collateral, accrued interest |
+| `LendingSolVault` | `["lending_sol_vault", collateral_mint]` | SOL custody PDA |
+| `LendingTokenVault` | `["lending_token_vault", collateral_mint]` | Collateral token custody PDA |
+
+**Interest Model:**
+
+Simple interest accrued per-second:
+
+```
+interest = principal × rate_bps × elapsed_seconds / (10,000 × 31,536,000)
+```
+
+Where `rate_bps` is the annual interest rate in basis points (e.g., 500 = 5% APR).
+
+**Loan-to-Value (LTV) and Liquidation:**
+
+- **LTV ratio** — Configurable (e.g., 5000 bps = 50%). Borrow amount cannot exceed `collateral_value × ltv_ratio / 10,000`.
+- **Liquidation threshold** — When total debt exceeds `collateral_value × liquidation_threshold / 10,000`, the position becomes liquidatable.
+- **Liquidation** — Permissionless: any user can repay the debt and seize the collateral.
+
+**Instructions:**
+- `create_lending_pool(interest_rate_bps, ltv_ratio, liquidation_threshold_bps)` — Authority creates pool
+- `deposit_sol(amount)` — Lender deposits SOL to earn interest
+- `borrow_against_tokens(collateral_amount, borrow_amount)` — Borrower locks tokens, receives SOL
+- `repay(amount)` — Interest paid first, then principal
+- `withdraw(amount)` — Lender withdraws deposited SOL
+- `liquidate()` — Liquidator repays debt, seizes collateral
+
+---
+
+### 8.3 Limit Orders
+
+On-chain limit orders against the bonding curve, with per-order PDA state and a permissionless fill crank.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `LimitOrder` | `["limit_order", mint, owner, order_index_bytes]` | Order state: side, price target, amount, status |
+| `UserOrderCounter` | `["order_counter", mint, owner]` | Tracks active count and next index |
+| `OrderVault` / `SolEscrow` | `["order_vault", ...]` | Escrowed tokens (sell) or SOL (buy) |
+
+**Constraints:**
+- **Maximum 50 active orders** per user per token (`MAX_ACTIVE_ORDERS = 50`)
+- Price targets are stored as `u128` scaled by `PRECISION = 10¹²`
+- Funds are escrowed on placement and returned on cancellation
+
+**Fill Mechanism:**
+
+The `fill_limit_orders` instruction is **permissionless** — any wallet can call it as a crank. The instruction reads the current bonding curve price and fills orders whose targets are met:
+
+```
+Buy order fills when:  current_price ≤ price_target
+Sell order fills when: current_price ≥ price_target
+```
+
+In production, the crank reads the curve account on-chain for trustless price verification and executes the trade via CPI to the bonding curve's buy/sell instructions.
+
+**Instructions:**
+- `place_limit_order(side, price_target, amount)` — Places order + escrows funds
+- `cancel_limit_order()` — Cancels + returns escrowed funds
+- `fill_limit_orders(current_price)` — Permissionless crank
+
+---
+
+### 8.4 Prediction Markets
+
+Binary prediction markets where users bet on which of two tokens will graduate first.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `PredictionMarket` | `["prediction_market", market_index_bytes]` | Dual pools (Token A vs Token B), deadline, resolution state |
+| `UserBet` | `["user_bet", market_key, user]` | Per-user bet side and amount |
+| `PredictionVault` | `["prediction_vault", market_index_bytes]` | SOL custody for the bet pool |
+
+**Mechanics:**
+
+1. **Creation** — Anyone creates a market specifying two token mints and a deadline
+2. **Betting** — Users wager SOL on Token A or Token B graduating first. Bets close at deadline.
+3. **Resolution** — Permissionless after deadline. Checks which token's `TokenLaunch.graduated` field is true.
+4. **Claiming** — Winners receive proportional share of the total pool:
+
+```
+winnings = user_bet_amount × total_pool / winning_pool
+```
+
+**Constraints:**
+- Deadline must be in the future at creation
+- Tokens must be different
+- Neither token graduated → market cannot resolve (funds remain until one graduates)
+- Both graduated → first to graduate wins (timestamp comparison in production)
+
+---
+
+### 8.5 Perpetuals
+
+A full-featured perpetual futures engine for graduated tokens, featuring leveraged trading up to 20x, an on-chain order book, funding rate mechanism, insurance fund, and circuit breakers.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `PerpMarket` | `["perp_market", token_mint]` | Market config, OI, funding state, TWAP, mark/index prices |
+| `OrderBook` | `["order_book", market]` | Bid/ask arrays with price-time priority |
+| `UserMarginAccount` | `["margin_account", owner]` | Cross-margin collateral and realized PnL |
+| `Position` | `["position", market, owner, ...]` | Individual position: side, size, entry price, leverage, funding checkpoint |
+| `InsuranceFund` | `["insurance_fund", market]` | Absorbs losses from liquidations with insufficient collateral |
+
+**Leverage and Margin:**
+
+```
+required_collateral = notional / leverage
+notional = size × price / PRECISION
+```
+
+- **Maximum leverage:** 20x
+- **Maintenance margin:** 2.5% (configurable)
+- **Liquidation price (long):** entry_price × (1 − 1/leverage + maintenance_margin)
+- **Liquidation price (short):** entry_price × (1 + 1/leverage − maintenance_margin)
+
+**Margin Ratio:**
+
+```
+margin_ratio = (collateral + unrealized_pnl) / notional
+```
+
+Position is liquidatable when `margin_ratio < maintenance_margin`.
+
+**Unrealized PnL:**
+
+```
+Long PnL:  (mark_price − entry_price) × size / PRECISION
+Short PnL: (entry_price − mark_price) × size / PRECISION
+```
+
+**Funding Rate:**
+
+Updated hourly via permissionless crank:
+
+```
+funding_rate = clamp((mark_price − index_price) / index_price, −0.1%, +0.1%)
+```
+
+- Positive rate → longs pay shorts
+- Negative rate → shorts pay longs
+- Cumulative funding is tracked globally; per-position settlement on modification
+
+**Order Book:**
+
+- Bids sorted descending (best bid first), asks sorted ascending (best ask first)
+- Maximum 256 orders per side
+- Price-time priority matching
+- Self-trade prevention (newer order removed)
+- TWAP updated on each fill from the last 60 samples within a 1-hour window
+
+**Circuit Breakers:**
+
+```
+|price − index_price| / index_price ≤ 10%
+```
+
+All position opens, closes, and order placements are rejected if the mark price deviates more than 10% from the oracle index price.
+
+**Fee Distribution:**
+- 30% → Insurance fund
+- 20% → SolForge vault (burn)
+- 50% → Protocol revenue
+
+**Instructions:**
+- `initialize_perp_market(...)` — Create market for graduated token
+- `create_margin_account()` — User creates cross-margin account
+- `deposit_collateral(amount)` / `withdraw_collateral(amount)`
+- `open_position(side, size, leverage, collateral)` — Open leveraged position
+- `close_position()` — Close entire position, settle PnL
+- `increase_position(size, collateral)` — Add to existing position (weighted avg entry)
+- `decrease_position(size)` — Partial close
+- `place_order(side, type, price, size)` — Limit or market order
+- `cancel_order(order_id)`
+- `match_orders(max_matches)` — Permissionless crank
+- `update_funding_rate()` — Permissionless crank (hourly)
+- `liquidate_position(size)` — Full or partial liquidation
+- `update_oracle_price(price)` — Permissionless crank (reads Raydium pool)
+
+---
+
+## 9. Social & Growth
+
+### 9.1 Live Chat
+
+Real-time on-chain chat rooms tied to token launches with creator moderation and SOL tipping.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `ChatRoom` | `["chat_room", token_mint]` | Room state: message count, active flag, slowmode config |
+| `LiveMessage` | `["live_message", chat_room, message_index_bytes]` | Individual message: author, text (max 200 chars), timestamp, tips received |
+| `UserChatState` | `["user_chat_state", chat_room, user]` | Per-user rate-limit tracker |
+
+**Features:**
+- **Slowmode** — Configurable 0–300 second cooldown between messages per user
+- **SOL tips** — Users can attach SOL tips to messages, transferred directly to the token creator
+- **Moderation** — Creator or platform authority can toggle slowmode and close the room
+- **On-chain indexing** — Sequential message indices enable efficient on-chain pagination
+
+---
+
+### 9.2 Token Chat
+
+A persistent, community-driven discussion board for any token mint. Separate from Live Chat, Token Chat is designed for longer-form discussion with likes and soft-deletion.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `ChatState` | `["chat_state", token_mint]` | Next message index counter |
+| `ChatMessage` | `["chat_message", token_mint, index_bytes]` | Message text (max 280 chars), author, likes, soft-delete flag |
+
+**Features:**
+- Messages up to 280 characters
+- Like counter per message (permissionless — any signer can like)
+- Soft deletion by author only (text cleared, `deleted` flag set)
+- Sequential indexing for efficient on-chain/off-chain pagination
+
+---
+
+### 9.3 Airdrops
+
+Merkle-proof-based airdrop campaigns with on-chain vault deposits, claim verification, and post-deadline cancellation.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `AirdropCampaign` | `["airdrop_campaign", creator, campaign_id_bytes]` | Campaign config: merkle root, total amount, max recipients, deadline |
+| `AirdropClaim` | `["airdrop_claim", campaign, claimant]` | Receipt PDA proving claim (prevents double-claim) |
+| `AirdropVault` | `["airdrop_vault", campaign_id_bytes]` | SPL token vault holding airdrop tokens |
+
+**Workflow:**
+
+1. **Create campaign** — Creator deposits tokens into the vault PDA, sets merkle root (computed off-chain from a snapshot), max recipients, and deadline
+2. **Claim** — User provides `(amount, proof)`. On-chain verification:
+   ```
+   leaf = keccak256(claimant_pubkey || amount)
+   for node in proof:
+       if leaf ≤ node: leaf = keccak256(leaf || node)
+       else:           leaf = keccak256(node || leaf)
+   assert leaf == merkle_root
+   ```
+3. **Cancel** — After deadline, creator can reclaim remaining tokens from the vault
+
+**Security:**
+- Claim receipt PDA prevents double-claiming (account initialization fails if PDA already exists)
+- Vault authority is the vault PDA itself (self-custody via seeds)
+- Deadline enforcement prevents premature cancellation
+
+---
+
+### 9.4 Daily Rewards
+
+A streak-based engagement system with five reward tiers, daily check-ins, and volume-based trading rewards.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `DailyRewardsConfig` | `["daily_rewards_config"]` | Global config: points per check-in, streak multiplier, points per SOL traded |
+| `UserDailyRewards` | `["user_daily_rewards", user]` | Per-user state: streak, total points, tier, redemption history |
+
+**Reward Tiers:**
+
+| Tier | Points Required | Benefits |
+|------|----------------|----------|
+| **Bronze** | 0–99 | Base rewards |
+| **Silver** | 100–499 | Enhanced rewards |
+| **Gold** | 500–1,999 | Priority features |
+| **Platinum** | 2,000–9,999 | Premium access |
+| **Diamond** | 10,000+ | Maximum benefits |
+
+**Streak Mechanics:**
+
+```
+multiplier = min(100 + streak_multiplier_bps × current_streak, 300)  // capped at 3x
+points_awarded = base_points × multiplier / 100
+```
+
+- Consecutive daily check-ins increment the streak
+- Missing a day resets the streak to 1
+- Longest streak is tracked for achievement purposes
+
+**Volume Rewards:**
+
+Trading activity generates points proportional to SOL volume:
+
+```
+points = (trade_lamports × points_per_trade_sol) / 1,000,000,000
+```
+
+**Redemption:** Points can be redeemed for fee discounts, priority access, or other platform benefits.
+
+---
+
+### 9.5 Seasons & Battle Pass
+
+Time-bounded competitive seasons with XP progression, leveling, per-level rewards, and achievement tracking via bitflags.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `Season` | `["season", season_number_bytes]` | Season config: start/end time, total participants, prize pool |
+| `SeasonPass` | `["season_pass", season_key, user]` | Per-user: XP, level, trade stats, achievements bitflags, reward claim mask |
+| `SeasonReward` | `["season_reward", season_key, level_bytes]` | Per-level reward definition: min XP, reward type, amount |
+
+**XP Sources:**
+
+| Source | XP Awarded |
+|--------|-----------|
+| `TradeVolume` | Per-trade, proportional to volume |
+| `TokenLaunch` | One-time per launch |
+| `HoldDuration` | For diamond-hands holding |
+| `Referral` | Per successful referral |
+
+**Leveling Formula:**
+
+```
+level = floor(sqrt(xp / 100))
+```
+
+**Achievement Bitflags:**
+
+```
+FIRST_TRADE       = 1 << 0    // First trade completed
+10_TRADES         = 1 << 1    // 10 trades
+100_TRADES        = 1 << 2    // 100 trades
+LAUNCH_TOKEN      = 1 << 3    // Launched a token
+1_SOL_VOLUME      = 1 << 4    // 1 SOL cumulative volume
+10_SOL_VOLUME     = 1 << 5    // 10 SOL volume
+100_SOL_VOLUME    = 1 << 6    // 100 SOL volume
+REFERRAL_5        = 1 << 7    // Referred 5 users
+DIAMOND_HANDS     = 1 << 8    // Held >7 days
+STREAK_7          = 1 << 9    // 7-day login streak
+```
+
+Achievements are checked and awarded on every XP recording. Bitflag storage means O(1) lookup and no additional accounts.
+
+**Reward Types:** Lamports (SOL prizes from funded pool), fee discounts, priority access, badge NFTs.
+
+**Reward Claims:** A 64-bit `rewards_claimed_mask` tracks which levels have been claimed, supporting up to 64 level-gated rewards per season.
+
+---
+
+### 9.6 Token Videos
+
+Video pitch PDAs for token creators — one per token mint with community upvote/downvote.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `TokenVideo` | `["token_video", token_mint]` | Video URL (200 chars), thumbnail (200 chars), description (500 chars), vote counts |
+| `UserVideoVote` | `["user_video_vote", token_mint, voter]` | One vote per user per token (prevents vote manipulation) |
+
+**Features:**
+- Creator sets/updates video URL, thumbnail, and description
+- Community members can upvote or downvote (one vote per user, enforced by PDA existence)
+- Platform authority or creator can remove videos
+- Vote counts are stored on the `TokenVideo` account for efficient frontend rendering
+
+---
+
+### 9.7 Referrals
+
+A referral system where users earn a share of platform fees generated by traders they referred.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `ReferralConfig` | `["referral_config"]` | Global config: referral fee bps, treasury |
+| `ReferralAccount` | `["referral", user]` | Per-user: referrer link, total referred, earnings, claimable balance |
+| `ReferralVault` | `["referral_vault"]` | SOL vault holding unclaimed referral rewards |
+
+**Economics:**
+- Default referral fee: **25% of the platform fee** (`2500 bps`)
+- Referrer's share is calculated on each trade and deposited into the vault
+- Referrers can claim accumulated rewards at any time
+- Self-referral prevention enforced on-chain
+- Referral chain is one level (no multi-level)
+
+**Instructions:**
+- `initialize_referral_config(referral_fee_bps)` — Set global referral parameters
+- `register_referral()` — Create referral account, optionally linking a referrer
+- `credit_referral_reward(platform_fee_lamports)` — Called via CPI during trades
+- `claim_referral_rewards()` — Withdraw accumulated SOL from vault
+
+---
+
+### 9.8 Copy Trading
+
+Users can follow top traders and automatically mirror their positions with configurable allocation limits.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `TraderProfile` | `["trader_profile", trader]` | Trader stats: PnL, total trades, win rate, follower count |
+| `CopyPosition` | `["copy_position", follower, leader]` | Follow relationship: max allocation, used allocation, copy PnL |
+
+**Mechanics:**
+
+```
+follower_trade_amount = leader_trade_amount × (follower_max_allocation / leader_total_balance)
+```
+
+- **Max 10,000 followers** per leader
+- **Minimum 0.1 SOL** allocation per follow
+- Win rate tracked in basis points: `(winning_trades × 10,000) / total_trades`
+- PnL scaled proportionally for followers
+- Used allocation tracked to prevent over-deployment
+
+**Instructions:**
+- `create_trader_profile()` — Register as a copyable trader
+- `follow_trader(max_allocation)` — Follow a trader with SOL allocation cap
+- `unfollow_trader()` — Stop copying
+- `execute_copy_trade(...)` — Crank or leader triggers proportional copy
+
+---
+
+## 10. Creator Tools
+
+### 10.1 Creator Dashboard
+
+On-chain analytics PDAs that aggregate creator performance across all their tokens.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `CreatorAnalytics` | `["creator_analytics", creator]` | Aggregate stats: total launches, volume, fees earned, holder count, best token, avg graduation time |
+| `TokenAnalyticsSnapshot` | `["token_analytics_snapshot", token_mint]` | Per-token rolling 168-slot (7-day) hourly arrays for volume and holder growth |
+
+**Rolling Arrays:**
+
+The `TokenAnalyticsSnapshot` stores two parallel `Vec<u64>` and `Vec<i32>` of length 168 (one week of hourly data). A `current_slot` cursor wraps around:
+
+```
+index = current_slot % 168
+hourly_volume[index] = latest_volume
+holder_growth[index] = latest_delta
+current_slot += 1
+```
+
+This provides a 7-day rolling chart without any off-chain infrastructure.
+
+**Update Mechanism:** Permissionless crank — anyone can call `update_creator_analytics()` with computed values.
+
+---
+
+### 10.2 Share Cards
+
+Auto-generated embed cards for social sharing, stored as one PDA per token mint.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `ShareCard` | `["share_card", token_mint]` | Token name, symbol, price, market cap, 24h volume, holder count, migration progress (bps) |
+
+**Fields:**
+- `token_name` (max 32 bytes), `symbol` (max 10 bytes)
+- `current_price`, `market_cap`, `volume_24h` (all in lamports)
+- `holder_count` (u32)
+- `migration_progress_bps` (0–10,000)
+- `last_updated` timestamp
+
+Updated via permissionless crank after trades. The frontend renders these into shareable card images.
+
+---
+
+### 10.3 Custom Pages
+
+Tiered customization for token landing pages with on-chain state and SOL-denominated pricing.
+
+**Tiers:**
+
+| Tier | Price | Features |
+|------|-------|----------|
+| **Basic** | Free | Theme color only (#RRGGBB) |
+| **Pro** | 0.1 SOL | + Header image URL (256 chars), long description (2,000 chars) |
+| **Ultra** | 0.5 SOL | + Social links (JSON, 512 chars), custom CSS hash (64 chars) |
+
+**PDA:** `["custom_page", token_mint]`
+
+- Tier fees paid to platform vault; upgrading pays the difference
+- Downgrading is free (no refund)
+- Creator-only access enforced via `TokenLaunch.creator` check
+- Reset instruction returns page to Basic defaults
+
+---
+
+### 10.4 Achievements
+
+On-chain achievement badges stored as bitflags, with a permissionless crank for evaluation.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `AchievementConfig` | `["achievement_config"]` | Global user counter (for early adopter tracking) |
+| `UserAchievements` | `["user_achievements", user]` | Per-user: badges bitflags, trade count, total volume, tokens launched, hold start |
+
+**Badge Definitions:**
+
+| Badge | Bitflag | Condition |
+|-------|---------|-----------|
+| `FIRST_LAUNCH` | `1 << 0` | Launched at least 1 token |
+| `DIAMOND_HANDS` | `1 << 1` | Held a token for 30+ days |
+| `WHALE_STATUS` | `1 << 2` | >10 SOL cumulative volume |
+| `DEGEN_100` | `1 << 3` | 100+ trades completed |
+| `EARLY_ADOPTER` | `1 << 4` | Among first 1,000 users |
+
+**Evaluation:** The `record_activity()` and `check_and_award()` instructions update stats and evaluate badge conditions. Newly awarded badges emit `AchievementUnlocked` events.
+
+---
+
+## 11. Governance & Analytics
+
+### 11.1 Voting
+
+Token-weighted on-chain governance for community proposals.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `Proposal` | `["proposal", token_mint, proposal_id_bytes]` | Title, description, up to 8 options, start/end time, quorum, vote tallies |
+| `UserVote` | `["user_vote", proposal, voter]` | Per-user vote record: option index, weight, timestamp |
+
+**Mechanics:**
+- Vote weight = voter's token balance at time of voting (read from SPL token account)
+- Maximum 8 options per proposal
+- Quorum enforcement: proposal passes only if `total_votes ≥ quorum`
+- Time-gated: voting only valid between `start_time` and `end_time`
+- Permissionless finalization after `end_time`
+- One vote per user per proposal (PDA initialization prevents double-voting)
+
+**Proposal Lifecycle:** `Active` → `Passed` (quorum met) or `Rejected` (quorum not met) → can also be `Cancelled` by creator.
+
+---
+
+### 11.2 Reputation
+
+On-chain reputation scoring powered by the FairScale oracle, with tiered fee discounts and vesting multipliers.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `ReputationConfig` | `["reputation_config"]` | Scoring thresholds, fee discount bps per tier, oracle authority |
+| `ReputationAttestation` | `["reputation", wallet]` | Per-wallet: FairScore (0–100), tier, last update, attesting oracle |
+
+**Reputation Tiers and Fee Discounts:**
+
+| Tier | Score Range | Fee Discount |
+|------|------------|-------------|
+| Unscored | — | 0% |
+| Bronze | 0–29 | 0% |
+| Silver | 30–59 | 5% |
+| Gold | 60–79 | 10% |
+| Platinum | 80–100 | 20% |
+
+**Launch Gating:**
+- Standard launch requires FairScore ≥ 30
+- Premium launch requires FairScore ≥ 60
+
+**Vesting Multiplier:** Creators with FairScore below the `strict_vesting_threshold` (default 40) are subject to **2x vesting duration**, protecting communities from low-reputation actors.
+
+---
+
+### 11.3 Premium Listings
+
+Paid promotional placements for tokens, with hourly pricing and three tiers.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `PremiumConfig` | `["premium_config"]` | Per-tier hourly prices, treasury address |
+| `PremiumListing` | `["premium_listing", token_mint]` | Listing state: tier, start time, duration, amount paid, active flag |
+
+**Tiers:**
+
+| Tier | Placement | Pricing |
+|------|-----------|---------|
+| **Promoted** | "Promoted" section | Configurable per-hour |
+| **Featured** | Homepage carousel | Configurable per-hour |
+| **Spotlight** | Banner placement | Configurable per-hour |
+
+- Maximum 30 days (720 hours) per purchase
+- Extending an active listing appends duration
+- Automatic expiration via `check_premium_status()` crank
+- SOL paid to treasury address
+
+---
+
+### 11.4 Analytics
+
+Deep on-chain analytics for every token, including hourly volume/holder snapshots, whale tracking, and top holder distribution.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `TokenAnalytics` | `["token_analytics", token_mint]` | Total volume, trades, holder count, 168-slot hourly ring buffers, 50-entry whale transaction log |
+| `WhaleTracker` | `["whale_tracker", token_mint]` | Top 20 holders by balance, insertion-sorted |
+
+**Features:**
+- **Hourly snapshots** — 168-slot (7 days) ring buffers for volume and holder count
+- **Whale alerts** — Transactions ≥ 1 SOL are logged with trader address, amount, direction, and timestamp. Emitted as `WhaleAlert` events.
+- **Top 20 holders** — Maintained via insertion sort on every trade. Smallest holder is evicted when a larger new holder appears.
+- **Permissionless crank** — `update_analytics()` can be called by anyone, ensuring data freshness without platform dependency.
+
+---
+
+### 11.5 Price Alerts
+
+On-chain price alert subscriptions with a permissionless check-and-trigger crank.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `AlertSubscription` | `["alert", owner, token_mint, alert_id_bytes]` | Target price, direction (above/below), active flag, trigger timestamp |
+
+**Mechanics:**
+- Users create alerts specifying a target price and direction
+- `check_alerts(current_price)` is a permissionless crank that triggers matching alerts
+- Triggered alerts emit `AlertTriggered` events (consumed by off-chain notification services)
+- Alerts are one-shot: deactivated after triggering
+- Cancellation available at any time by the owner
+
+---
+
+### 11.6 Holder Rewards
+
+Automatic fee redistribution to token holders, proportional to their holdings, using a reward-per-token accumulator identical to the staking model.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `RewardPool` | `["reward_pool", mint]` | Global state: reward_per_token_stored, total eligible supply, reward_fee_bps, min hold time |
+| `UserRewardState` | `["user_reward", mint, user]` | Per-user: reward checkpoint, earned rewards, balance, hold timestamp, auto-compound flag |
+| `RewardVault` | `["reward_vault", mint]` | SOL vault holding accumulated rewards |
+
+**Reward Accumulation:**
+
+On every trade, a configurable `reward_fee_bps` portion of the platform fee is directed to the reward pool:
+
+```
+reward_per_token_stored += (reward_amount × 10¹²) / total_supply_eligible
+```
+
+Per-user pending rewards:
+
+```
+pending = user_balance × (reward_per_token_stored − user_reward_per_token_paid) / 10¹²
+```
+
+**Features:**
+- **Configurable fee** — `reward_fee_bps` set per token (e.g., 5000 = 50% of platform fee)
+- **Minimum hold time** — Optional cooldown before claiming (prevents flash-loan exploits)
+- **Auto-compound** — Users can toggle auto-compound, which reinvests SOL rewards back into the bonding curve
+- **Balance tracking** — `update_user_reward_state(new_balance)` must be called before any balance change to correctly settle pending rewards
+
+**Instructions:**
+- `initialize_reward_pool(reward_fee_bps, min_hold_seconds)` — Create pool for a token
+- `accrue_rewards(reward_amount)` — Called during trade fee distribution
+- `update_user_reward_state(new_balance)` — Called on every trade
+- `claim_holder_rewards()` — Claim accumulated SOL (or auto-compound)
+- `toggle_auto_compound(enabled)` — Toggle reinvestment
+
+---
+
+### 11.7 Bridge
+
+Cross-chain token bridging via Wormhole integration, with per-chain fee configuration and request lifecycle management.
+
+**Architecture:**
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `BridgeConfig` | `["bridge_config"]` | Supported chains (up to 10), Wormhole addresses, fee collector, pause flag |
+| `BridgeRequest` | `["bridge_req", user, nonce_bytes]` | Per-request: amount, fee, destination chain/address, status, Wormhole sequence |
+| `Vault` | `["vault", token_mint]` | Token custody during bridge |
+
+**Lifecycle:**
+1. **Initiate** — User locks tokens in vault, fee deducted and sent to fee vault. Status: `Pending`
+2. **Confirm** — Authority verifies Wormhole VAA, marks `Completed`, records sequence number
+3. **Cancel** — User can cancel after 24-hour expiry (`BRIDGE_EXPIRY_SECONDS = 86,400`), tokens refunded
+
+**Per-Chain Configuration:**
+
+```rust
+ChainInfo {
+    chain_id: u16,      // Wormhole chain ID
+    fee_bps: u16,       // e.g., 50 = 0.5%
+    min_amount: u64,    // minimum bridge amount
+    enabled: bool,
 }
 ```
 
-The lock is enforced by the Send.it program and is **not upgradeable** — even a program upgrade cannot bypass the lock logic because the PDA derivation and authority checks are deterministic.
-
-### 9.5 Failed Migration Handling
-
-If the migration CPI fails (e.g., Raydium program is temporarily unavailable), the curve does **not** freeze. It remains in a `MigrationPending` state where:
-- Trading continues normally on the bonding curve
-- Any subsequent transaction will re-attempt migration
-- A manual `retry_migration` instruction is available for anyone to call
+Maximum 10 supported chains. Each with independent fee and minimum amount configuration.
 
 ---
 
-## 10. Tokenomics & Fee Architecture
+### 11.8 Raffle
 
-### 10.1 Platform Fee Structure
+On-chain token raffles tied to token launches, with SOL ticket pricing and deterministic winner selection.
 
-| Event | Fee | Distribution |
-|-------|-----|-------------|
-| Token creation | 0.05 SOL (flat) | 100% → Platform Operations |
-| Buy on bonding curve | 1% of SOL input | 40% Creator / 50% SolForge / 10% Ops |
-| Sell on bonding curve | 1% of SOL output | 40% Creator / 50% SolForge / 10% Ops |
-| Migration event | 0.5% of reserve | Creator bonus |
-| Migration bounty | 0.1 SOL (flat) | Caller of migration tx |
+**Architecture:**
 
-### 10.2 Value Flow Diagram
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `Raffle` | `["raffle", token_mint]` | Raffle config: ticket price, max tickets (up to 10,000), winner count (up to 100), draw time, randomness seed |
+| `RaffleTicket` | `["raffle_ticket", raffle, buyer, ticket_index_bytes]` | Per-ticket: owner, sequential index, winner flag, claim flag |
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     USER TRANSACTION                     │
-│                    (Buy or Sell on Curve)                 │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                    1% Fee Deducted
-                         │
-           ┌─────────────┼─────────────┐
-           │             │             │
-        40% Fee       50% Fee       10% Fee
-           │             │             │
-           ▼             ▼             ▼
-    ┌──────────┐  ┌───────────┐  ┌──────────┐
-    │ Creator  │  │ SolForge  │  │ Platform │
-    │ Revenue  │  │  Vault    │  │   Ops    │
-    │   PDA    │  │   PDA     │  │  Wallet  │
-    └──────────┘  └─────┬─────┘  └──────────┘
-                        │
-                   Auto-Burn
-                   (when threshold met)
-                        │
-                        ▼
-                  ┌───────────┐
-                  │  🔥 BURN  │
-                  │  ADDRESS  │
-                  └───────────┘
+**Lifecycle:**
+1. **Create** — Creator allocates tokens from launch vault to raffle vault, sets ticket price and draw time
+2. **Buy tickets** — Users pay SOL (sent to creator). Ticket index incremented.
+3. **Draw** — Permissionless after `draw_time`. Uses SlotHashes sysvar for randomness seed.
+4. **Claim** — Ticket holders check if their ticket is a winner, claim tokens.
 
-    ┌─────────────────────────────────────────┐
-    │           MIGRATION EVENT                │
-    │                                          │
-    │  Reserve ──┬── 99.5% → Raydium Pool     │
-    │            └── 0.5%  → Creator Bonus     │
-    │                                          │
-    │  LP Tokens ──→ Lock PDA (180–365 days)   │
-    └─────────────────────────────────────────┘
-```
-
-### 10.3 Burn Mechanics — Projected Impact
-
-Assuming monthly platform volume of **100,000 SOL** in bonding curve trades:
+**Winner Determination (Deterministic):**
 
 ```
-Monthly fees collected:        100,000 × 0.01 = 1,000 SOL
-SolForge allocation (50%):     1,000 × 0.50   = 500 SOL burned/month
-Creator payouts (40%):         1,000 × 0.40   = 400 SOL to creators
-Platform operations (10%):     1,000 × 0.10   = 100 SOL for operations
-
-Annual burn rate:              500 × 12 = 6,000 SOL/year
+for i in 0..winner_count:
+    mixed = seed × 6,364,136,223,846,793,005 + i × 1,442,695,040,888,963,407
+    index = mixed % sold_tickets
+    // collision resolution: walk forward to find unused slot
 ```
 
-At scale (1,000,000 SOL monthly volume): **60,000 SOL burned annually.**
-
-### 10.4 No Native Token (Initially)
-
-Send.it does **not** launch with a native governance token. This is intentional:
-
-- Avoids regulatory ambiguity
-- Prevents the platform from becoming a speculative vehicle itself
-- Forces the team to generate revenue from actual platform usage
-- A governance token may be introduced in Phase 5 (see Roadmap) via community vote
+This is fully deterministic from the randomness seed — anyone can independently verify winners off-chain.
 
 ---
 
-## 11. Security Architecture
+## 12. Revenue Model & Fee Architecture
 
-### 11.1 Program Derived Addresses (PDAs)
+### 12.1 Three-Stream Revenue
 
-All critical state in Send.it is held in PDAs — deterministic addresses derived from the program ID and seed values. No private key exists for these addresses, meaning no human actor can directly sign transactions on their behalf.
+Send.it's fee architecture directs value to three parties on every trade:
 
-**Key PDAs:**
+| Stream | Rate | Recipient | Mechanism |
+|--------|------|-----------|-----------|
+| **Platform Fee** | 1% | Platform operations + SolForge burn | Split: 50% SolForge, 10% ops, (40% was creator in v1 — see below) |
+| **Creator Fee** | 1% | Token creator | Accumulated in creator PDA, claimable |
+| **Holder Rewards** | Configurable | Token holders | `reward_fee_bps` portion of platform fee → RewardPool |
 
-| PDA | Seeds | Purpose |
-|-----|-------|---------|
-| `curve_state` | `["curve", token_mint]` | Bonding curve state, reserve balance, supply tracking |
-| `creator_fees` | `["creator_fees", token_mint]` | Accumulated creator fee revenue |
-| `solforge_vault` | `["solforge"]` | Global SolForge burn vault |
-| `lp_lock` | `["lp_lock", token_mint]` | Locked LP tokens post-migration |
-| `vesting` | `["vesting", token_mint, creator]` | Creator token vesting schedule |
-| `snipe_config` | `["snipe", token_mint]` | Anti-snipe parameters for each token |
+### 12.2 Fee Flow Diagram
 
-### 11.2 Authority Constraints
+```
+┌─────────────────────────────────────────────────────┐
+│              USER TRANSACTION (Buy/Sell)             │
+└───────────────────────┬─────────────────────────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          │             │             │
+       1% Fee       1% Fee     reward_fee_bps
+       (Platform)   (Creator)   (Holder Rewards)
+          │             │             │
+    ┌─────┴─────┐       ▼             ▼
+    │           │  ┌──────────┐  ┌──────────────┐
+    │           │  │ Creator  │  │ RewardPool   │
+    │           │  │ Revenue  │  │ Vault PDA    │
+    │           │  │   PDA    │  │ (per-token)  │
+    │           │  └──────────┘  └──────────────┘
+    ▼           ▼
+┌────────┐ ┌──────────┐
+│SolForge│ │ Platform │
+│ Vault  │ │   Ops    │
+│  PDA   │ │  Wallet  │
+└───┬────┘ └──────────┘
+    │
+    ▼
+┌─────────┐
+│ 🔥 BURN │
+└─────────┘
+```
 
-The Send.it program has a single **upgrade authority** (initially a 3-of-5 team multisig). Critical constraints:
+### 12.3 Additional Revenue Streams
 
-- **Mint authority** for each token is the `curve_state` PDA — the program itself controls minting, not any human.
-- **Freeze authority** is set to `None` at token creation — no one can freeze token accounts.
-- **LP lock PDA** has no admin override — even a program upgrade cannot change the unlock timestamp of an existing lock (the data is immutable once written).
+| Source | Fee | Destination |
+|--------|-----|-------------|
+| Token creation | 0.05 SOL flat | Platform ops |
+| Migration bounty | 0.1 SOL flat | Migration tx submitter |
+| Migration bonus | 0.5% of reserve | Token creator |
+| Custom page tiers | 0–0.5 SOL | Platform vault |
+| Premium listings | Hourly rate | Treasury |
+| Raffle tickets | SOL per ticket | Token creator |
+| Bridge fees | Per-chain bps | Fee collector |
+| Perpetuals trading | Maker/taker fees | 30% insurance + 20% SolForge + 50% protocol |
+| Referral share | 25% of platform fee | Referrer |
 
-### 11.3 Timelock Governance
+### 12.4 Projected Economics
 
-All program upgrades are subject to a **48-hour timelock**:
+At 100,000 SOL monthly bonding curve volume:
 
-1. Upgrade is proposed via the multisig
-2. Proposal is published on-chain with the new program hash
-3. 48-hour countdown begins
-4. Anyone can inspect the proposed bytecode during the timelock
-5. After 48 hours, the upgrade can be executed
-6. If the multisig does not execute within 7 days, the proposal expires
+```
+Platform fees (1%):            1,000 SOL
+  → SolForge burn (50%):         500 SOL/month
+  → Operations (10%):            100 SOL/month
+  → Referral pool (up to 25%):   250 SOL/month
 
-**Emergency bypass:** A 4-of-5 multisig threshold can execute an emergency upgrade with a reduced 6-hour timelock. This is reserved for critical security patches.
+Creator fees (1%):             1,000 SOL to creators
 
-### 11.4 Audit Considerations
+Holder reward pools:           Configurable per token
 
-**Pre-launch audit scope:**
+Annual burn rate (at scale):   6,000+ SOL/year
+```
 
-- Bonding curve math (overflow, precision, rounding attacks)
-- Fee calculation and distribution correctness
-- Anti-snipe enforcement (slot-based timing, max buy limits)
-- Migration CPI safety (Raydium interaction, LP token handling)
-- PDA derivation correctness (no seed collision attacks)
-- Vesting and locking logic (no early unlock paths)
-- Reentrancy guards (CPI callback safety)
-- Integer overflow/underflow in all arithmetic operations
+### 12.5 No Native Token (Initially)
 
-**Planned audit partners:** (To be confirmed pre-launch)
-- Primary: Tier-1 Solana audit firm (e.g., OtterSec, Neodyme, Sec3)
-- Secondary: Independent review by community security researchers via bug bounty
+Send.it does not launch with a governance token. This avoids regulatory ambiguity, prevents the platform from becoming a speculative vehicle, and forces revenue from actual usage. A governance token may be introduced via community vote in Phase 3.
 
-**Bug bounty program:** Launching at mainnet deployment with rewards up to 50,000 USDC for critical vulnerabilities.
+---
 
-### 11.5 Immutability Guarantees
+## 13. SolForge Integration
 
-Once a token's bonding curve is created, the following parameters are **immutable** (stored in the PDA, no update instruction exists):
+### 13.1 Overview
 
-- Curve type and parameters (P₀, k, P_max, s_mid)
+SolForge is Send.it's deflationary value-return mechanism. Platform fees flow into the SolForge vault PDA (`["solforge"]`), which autonomously burns SOL when a threshold is met.
+
+### 13.2 Burn Mechanics
+
+The `forge_burn` instruction is **permissionless** — anyone can call it when the vault balance exceeds 10 SOL:
+
+```rust
+pub fn forge_burn(ctx: Context<ForgeBurn>) -> Result<()> {
+    let vault = &ctx.accounts.solforge_vault;
+    require!(vault.lamports() >= BURN_THRESHOLD, SendItError::BelowBurnThreshold);
+    let burn_amount = vault.lamports();
+    **vault.try_borrow_mut_lamports()? -= burn_amount;
+    **ctx.accounts.burn_sink.try_borrow_mut_lamports()? += burn_amount;
+    emit!(ForgeBurnEvent { amount: burn_amount, ... });
+    Ok(())
+}
+```
+
+A 0.01 SOL bounty is paid to the caller to incentivize timely execution.
+
+### 13.3 Deflationary Flywheel
+
+```
+More tokens launched → More volume → More fees → More SOL burned
+→ SOL scarcer → SOL value up → Launches more valuable → More tokens launched
+```
+
+### 13.4 Transparency
+
+All burn events are logged on-chain with total burned, epoch burns, and rate metrics. The SolForge dashboard displays burn leaderboards showing which tokens' trading fees contributed most.
+
+---
+
+## 14. Security Architecture
+
+### 14.1 Program Derived Addresses (PDAs)
+
+All critical state is held in PDAs. Complete PDA seed reference:
+
+| PDA | Seeds | Module |
+|-----|-------|--------|
+| `curve_state` | `["curve", token_mint]` | Bonding curve |
+| `creator_fees` | `["creator_fees", token_mint]` | Creator economy |
+| `solforge_vault` | `["solforge"]` | SolForge |
+| `lp_lock` | `["lp_lock", token_mint]` | LP locking |
+| `vesting` | `["vesting", token_mint, creator]` | Creator vesting |
+| `snipe_config` | `["snipe", token_mint]` | Anti-snipe |
+| `stake_pool` | `["stake_pool", mint]` | Staking |
+| `user_stake` | `["user_stake", mint, user]` | Staking |
+| `lending_pool` | `["lending_pool", collateral_mint]` | Lending |
+| `limit_order` | `["limit_order", mint, owner, index]` | Limit orders |
+| `prediction_market` | `["prediction_market", market_index]` | Predictions |
+| `perp_market` | `["perp_market", token_mint]` | Perpetuals |
+| `margin_account` | `["margin_account", owner]` | Perpetuals |
+| `chat_room` | `["chat_room", token_mint]` | Live chat |
+| `chat_state` | `["chat_state", token_mint]` | Token chat |
+| `airdrop_campaign` | `["airdrop_campaign", creator, campaign_id]` | Airdrops |
+| `daily_rewards_config` | `["daily_rewards_config"]` | Daily rewards |
+| `season` | `["season", season_number]` | Seasons |
+| `season_pass` | `["season_pass", season, user]` | Seasons |
+| `token_video` | `["token_video", token_mint]` | Token videos |
+| `referral` | `["referral", user]` | Referrals |
+| `trader_profile` | `["trader_profile", trader]` | Copy trading |
+| `creator_analytics` | `["creator_analytics", creator]` | Creator dashboard |
+| `share_card` | `["share_card", token_mint]` | Share cards |
+| `custom_page` | `["custom_page", token_mint]` | Custom pages |
+| `user_achievements` | `["user_achievements", user]` | Achievements |
+| `proposal` | `["proposal", token_mint, proposal_id]` | Voting |
+| `reputation` | `["reputation", wallet]` | Reputation |
+| `premium_listing` | `["premium_listing", token_mint]` | Premium |
+| `token_analytics` | `["token_analytics", token_mint]` | Analytics |
+| `alert` | `["alert", owner, token_mint, alert_id]` | Price alerts |
+| `reward_pool` | `["reward_pool", mint]` | Holder rewards |
+| `bridge_config` | `["bridge_config"]` | Bridge |
+| `raffle` | `["raffle", token_mint]` | Raffle |
+
+### 14.2 Authority Constraints
+
+- **Mint authority** for each token is the `curve_state` PDA
+- **Freeze authority** set to `None` at creation
+- **LP lock PDA** has no admin override — immutable once written
+- **Program upgrade authority** — 3-of-5 team multisig with 48-hour timelock
+
+### 14.3 Immutability Guarantees
+
+Once created, these parameters cannot be modified:
+- Curve type and parameters
 - Migration threshold
 - Anti-snipe configuration
 - LP lock duration
 - Creator vesting schedule
 - Maximum supply
 
-This eliminates an entire class of admin-key attacks where parameters are changed post-launch to benefit insiders.
+### 14.4 Audit Considerations
+
+**Scope** (expanded for v2.0):
+
+- All v1.0 scope (bonding curve math, fee distribution, anti-snipe, migration CPI, PDA correctness, vesting/locking, reentrancy, integer overflow)
+- Staking reward accumulator precision and rounding
+- Lending interest accrual and liquidation logic
+- Limit order escrow custody and crank fill safety
+- Prediction market resolution correctness
+- Perpetuals: leverage calculations, funding rate, liquidation price, order book matching, insurance fund solvency
+- Merkle proof verification in airdrops
+- Raffle randomness quality and winner determination fairness
+- Cross-module interactions and composability risks
+
+**Bug bounty:** Up to 50,000 USDC for critical vulnerabilities at mainnet deployment.
 
 ---
 
-## 12. Competitive Analysis
+## 15. Competitive Analysis
 
-### 12.1 Send.it vs pump.fun
+### 15.1 Send.it vs pump.fun
 
-| Feature | pump.fun | Send.it |
-|---------|----------|---------|
-| **Bonding curve options** | Single fixed curve | Linear, exponential, sigmoid (configurable) |
-| **Anti-snipe protection** | None | 3-layer system (delay, max buy, detection) |
-| **Rug protection** | None | Liquidity locking, creator vesting, emergency pause |
-| **Creator revenue** | 0% | 40% of trading fees + migration bonus |
-| **Fee model** | 100% extracted to platform | 50% burned (SolForge), 40% to creators, 10% ops |
-| **LP token handling** | Burned (no recovery) | Locked with configurable duration |
-| **Migration** | Automatic to Raydium | Automatic to Raydium with price continuity guarantee |
-| **Governance** | Centralized | Multisig → DAO transition with timelock |
-| **Transparency** | Minimal | Full on-chain event logging, snipe metrics, burn dashboard |
-| **Token creation cost** | ~0.02 SOL | 0.05 SOL |
+| Feature | pump.fun | Send.it v2.0 |
+|---------|----------|-------------|
+| **Bonding curves** | Single fixed | 3 configurable types |
+| **Anti-snipe** | None | 3-layer on-chain |
+| **Rug protection** | None | LP locking + creator vesting + emergency pause |
+| **Creator revenue** | 0% | 1% of all trades |
+| **Holder rewards** | None | Configurable fee redistribution |
+| **Post-graduation DeFi** | None | Staking, lending, limit orders, perps |
+| **Prediction markets** | None | ✅ On-chain |
+| **Social features** | None | Live chat, token chat, videos, referrals |
+| **Engagement system** | None | Daily rewards, seasons, achievements |
+| **Copy trading** | None | ✅ On-chain |
+| **Governance** | None | Token-weighted voting |
+| **Reputation** | None | FairScore oracle + tiered benefits |
+| **Analytics** | Minimal | 7-day rolling charts, whale tracking, top 20 holders |
+| **Creator tools** | None | Dashboard, share cards, custom pages |
+| **Airdrops** | None | Merkle-proof campaigns |
+| **Bridge** | None | Wormhole cross-chain |
+| **Fee model** | 100% extracted | 50% burned, 1% creator, holder rewards |
+| **Modules** | 1 | 25+ |
 
-### 12.2 Send.it vs Other Launchpads
+### 15.2 Send.it vs Other Platforms
 
-| Feature | Send.it | Moonshot | DAOS.fun | Believe |
-|---------|---------|----------|----------|---------|
-| **Chain** | Solana | Multi-chain | Solana | Solana |
-| **Anti-snipe** | ✅ On-chain | ❌ | ❌ | ❌ |
-| **Creator revenue share** | ✅ 40% | ❌ | Partial | ❌ |
-| **Configurable curves** | ✅ 3 types | ❌ | ❌ | ❌ |
-| **Liquidity locking** | ✅ On-chain | Varies | ✅ | Varies |
-| **SOL burn mechanism** | ✅ SolForge | ❌ | ❌ | ❌ |
-| **Open source** | Planned Phase 4 | ❌ | ❌ | ❌ |
+| Feature | Send.it v2.0 | Moonshot | DAOS.fun | Believe | bonk.fun |
+|---------|-------------|----------|----------|---------|----------|
+| **Chain** | Solana | Multi-chain | Solana | Solana | Solana |
+| **Anti-snipe** | ✅ On-chain | ❌ | ❌ | ❌ | ❌ |
+| **DeFi suite** | ✅ 5 modules | ❌ | ❌ | ❌ | ❌ |
+| **Social suite** | ✅ 8 modules | ❌ | ❌ | ❌ | ❌ |
+| **Creator tools** | ✅ 4 modules | ❌ | ❌ | ❌ | ❌ |
+| **Governance** | ✅ On-chain | ❌ | ❌ | ❌ | ❌ |
+| **Perpetuals** | ✅ Full engine | ❌ | ❌ | ❌ | ❌ |
+| **Reputation** | ✅ Oracle-based | ❌ | ❌ | ❌ | ❌ |
+| **SOL burn** | ✅ SolForge | ❌ | ❌ | ❌ | ❌ |
+| **Open source** | Planned | ❌ | ❌ | ❌ | ❌ |
 
-### 12.3 Competitive Moats
+### 15.3 Competitive Moats
 
-1. **Anti-snipe is on-chain and mandatory** — cannot be bypassed via custom RPC or bundles
-2. **Creator economy creates network effects** — successful creators attract users, who attract more creators
-3. **SolForge burn creates ecosystem alignment** — Solana community benefits from Send.it's success
-4. **Configurable curves attract sophisticated creators** — projects with specific tokenomic needs choose Send.it
-5. **Transparency dashboard builds trust** — public snipe metrics, burn stats, and creator earnings create accountability
+1. **25+ on-chain modules** — No competitor offers more than 2–3 features. Send.it is a protocol, not a launchpad.
+2. **Three-stream revenue** — Creator fees + holder rewards + burn create alignment impossible to replicate with extractive models.
+3. **Post-graduation infrastructure** — Staking, lending, perps, governance keep communities engaged long after launch.
+4. **Network effects compound** — Each new module (referrals, copy trading, seasons) creates a new retention and acquisition loop.
+5. **Permissionless cranks** — No off-chain dependency for critical operations. The protocol runs itself.
+6. **Reputation gating** — On-chain accountability raises launch quality ecosystem-wide.
 
 ---
 
-## 13. Roadmap
+## 16. Roadmap
 
-### Phase 1: Foundation (Months 1–2)
+### Q1 2026: Foundation & Core DeFi
 
-- [ ] Core bonding curve program (linear, exponential, sigmoid)
-- [ ] Buy/sell instructions with fee distribution
-- [ ] Anti-snipe system (all 3 layers)
-- [ ] Creator fee accumulation and claiming
+- [x] Core bonding curve program (linear, exponential, sigmoid)
+- [x] Anti-snipe system (3 layers)
+- [x] Rug protection (LP locking, vesting, emergency pause)
+- [x] Auto-migration to Raydium
+- [x] SolForge vault and burn mechanism
+- [x] Creator fee accumulation and claiming
+- [x] Staking module
+- [x] Lending module
+- [x] Limit orders module
+- [x] Prediction markets module
+- [x] Perpetuals engine (order book, funding, liquidations)
 - [ ] Devnet deployment and internal testing
-- [ ] Security audit engagement
+- [ ] Security audit engagement (Tier-1 firm)
 
-### Phase 2: Launch (Months 3–4)
+### Q2 2026: Social & Growth Layer
 
-- [ ] Auto-migration to Raydium with LP locking
-- [ ] SolForge vault and burn mechanism
-- [ ] Creator vesting system
-- [ ] Emergency pause mechanism
-- [ ] Frontend MVP (create, buy, sell, discover)
+- [x] Live chat & token chat modules
+- [x] Airdrops (Merkle-proof campaigns)
+- [x] Daily rewards & streak system
+- [x] Seasons & battle pass
+- [x] Token videos with voting
+- [x] Referral system
+- [x] Copy trading
+- [x] Achievements system
 - [ ] Security audit completion
 - [ ] Mainnet-beta deployment (limited access)
+- [ ] Frontend MVP (all 25+ modules)
 
-### Phase 3: Growth (Months 5–7)
+### Q3 2026: Creator Tools & Governance
 
+- [x] Creator dashboard analytics
+- [x] Share cards
+- [x] Custom pages (tiered)
+- [x] On-chain voting
+- [x] Reputation (FairScore integration)
+- [x] Premium listings
+- [x] Analytics & whale tracking
+- [x] Price alerts
+- [x] Holder rewards
+- [x] Bridge (Wormhole)
+- [x] Raffle system
 - [ ] Public mainnet launch
-- [ ] Creator dashboard (analytics, revenue tracking)
-- [ ] Snipe transparency dashboard
-- [ ] SolForge burn leaderboard
 - [ ] Mobile-responsive frontend
 - [ ] API for third-party integrations
-- [ ] Social features (comments, follows, notifications)
 - [ ] Bug bounty program launch
 
-### Phase 4: Ecosystem (Months 8–12)
+### Q4 2026: Ecosystem & Decentralization
 
 - [ ] Open-source the Solana program
-- [ ] SDK for programmatic token creation
-- [ ] Multi-curve strategies (creator-defined custom curves via config)
-- [ ] Referral system for creators
-- [ ] Integration with Solana wallets (Phantom, Backpack deep links)
-- [ ] Telegram bot for trading
-- [ ] Advanced analytics (whale tracking, volume trends)
-
-### Phase 5: Decentralization (Months 13–18)
-
+- [ ] SDK for programmatic integration
+- [ ] Telegram/Discord bots for trading
+- [ ] Advanced analytics (cross-token correlation, volume trends)
 - [ ] Governance token proposal and community vote
-- [ ] Transition program upgrade authority from multisig to DAO
-- [ ] Community-governed parameter changes (fee rates, thresholds)
-- [ ] Decentralized creator verification system
-- [ ] Cross-chain exploration (migration paths to EVM launchpads)
-
-### Phase 6: Full Autonomy (Months 19–24)
-
-- [ ] Fully immutable core program (no upgrade authority)
-- [ ] DAO-governed treasury and operations
-- [ ] Community-developed frontend alternatives
+- [ ] Begin transition of upgrade authority from multisig to DAO
+- [ ] Community-governed parameter changes
 - [ ] Plugin system for custom bonding curve formulas
-- [ ] Send.it as a public good — self-sustaining protocol with no central operator
+- [ ] Multi-chain expansion exploration
 
 ---
 
-## 14. Conclusion
+## 17. Conclusion
 
-The token launchpad market on Solana is massive, growing, and fundamentally underserved. pump.fun proved the demand but built an extractive system that harms creators, enriches bots, and returns zero value to the ecosystem.
+Send.it v2.0 represents a paradigm shift in what a token launch platform can be. Where pump.fun offers a single function — create and trade on a curve — Send.it delivers **25+ on-chain modules** spanning the entire lifecycle of a token community.
 
-Send.it is the answer. By combining **configurable bonding curves** for flexible price discovery, a **deterministic anti-snipe system** that levels the playing field, **on-chain rug protection** that makes trust assumptions unnecessary, a **creator revenue model** that rewards builders, and the **SolForge burn mechanism** that returns value to the Solana ecosystem, Send.it creates a launchpad where every participant's incentives are aligned.
+**For creators:** Revenue sharing, analytics dashboards, custom pages, share cards, airdrops, raffles, and reputation-gated launches provide the tools to build something lasting.
 
-This is not an incremental improvement. It is a structural redesign of how tokens are created, priced, and graduated to open markets.
+**For traders:** Limit orders, perpetual futures, copy trading, prediction markets, and price alerts deliver the sophistication of a full exchange within the launchpad ecosystem.
 
-**Fair launches. Protected liquidity. Rewarded creators. Burned SOL.**
+**For holders:** Staking yield, lending, holder reward redistribution, and governance voting transform passive bags into active participation.
+
+**For communities:** Live chat, token chat, daily rewards, seasons, achievements, and referrals create engagement loops that sustain interest long after launch hype fades.
+
+**For the ecosystem:** SolForge burns return value to Solana. Reputation scoring raises launch quality. Open-source plans ensure the protocol becomes a public good.
+
+Every module is on-chain. Every critical operation is permissionless. Every fee stream benefits participants, not just the platform.
+
+This is not a launchpad. It is the **infrastructure layer for token communities on Solana**.
+
+**Fair launches. Protected liquidity. Rewarded creators. Engaged communities. Burned SOL.**
 
 **Send it.** 🚀
 
