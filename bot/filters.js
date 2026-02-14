@@ -24,7 +24,9 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
+
+  "/shill": `📣 *Copy \\& paste this everywhere:*\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\n🚀 Send\\.it — The fairest token launchpad on Solana\n\n✅ No insiders \\| No presales \\| Anti\\-snipe\n✅ 29 on\\-chain modules \\| 13k\\+ lines of Rust\n✅ Auto Raydium migration\n✅ Creator rewards \\+ holder rewards\n\n📋 CA: F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n🐦 twitter\\.com/SendItSolana420\n💬 t\\.me/\\+Xw4E2sJ0Z3Q5ZDYx\n💎 discord\\.gg/vKRTyG85\n📈 pump\\.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\nSend it\\! 🔥`,
 
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
@@ -192,20 +194,24 @@ async function handleNewMember(msg) {
     const name = member.first_name || "New member";
     const captcha = generateCaptcha();
     
-    // Send captcha challenge FIRST (before restricting, so they can see it)
+    // Send captcha challenge (plain text to avoid MarkdownV2 escaping issues)
+    const threadId = msg.message_thread_id || undefined;
+    const sendBody = {
+      chat_id: chatId,
+      text: `👋 Welcome ${name}!\n\n🔒 To verify you're human, solve this:\n\nWhat is ${captcha.question} ?\n\nJust type the number in chat within 3 minutes.`,
+    };
+    if (threadId) sendBody.message_thread_id = threadId;
+    
     const res = await fetch(`${BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: `👋 Welcome ${name}\\!\n\n🔒 To verify you're human, solve this:\n\n*What is ${captcha.question.replace('+', '\\+')} \\?*\n\nJust type the number in chat within 2 minutes\\.`,
-        parse_mode: "MarkdownV2"
-      })
+      body: JSON.stringify(sendBody)
     });
     const data = await res.json();
     const captchaMsgId = data.ok ? data.result.message_id : null;
+    if (!data.ok) console.error("Captcha send failed:", JSON.stringify(data));
     
-    // Set timeout to kick if not solved in 60s
+    // Set timeout to kick if not solved in 3 minutes
     const timeout = setTimeout(async () => {
       if (pendingCaptcha.has(userId)) {
         pendingCaptcha.delete(userId);
@@ -225,9 +231,9 @@ async function handleNewMember(msg) {
           console.log(`Kicked ${name} (${userId}) - captcha timeout`);
         } catch (e) {}
       }
-    }, 120000);
+    }, 180000);
     
-    pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout });
+    pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout, threadId });
     console.log(`Captcha sent to ${name} (${userId}): ${captcha.question} = ${captcha.answer}`);
   }
 }
@@ -274,14 +280,17 @@ async function checkCaptchaAnswer(msg) {
     } catch (e) {}
     
     // Welcome them
+    const welcomeBody = {
+      chat_id: chatId,
+      text: `✅ Verified! Welcome to Send.it, ${msg.from.first_name || "anon"}! 🚀\n\nType /filters to see available commands.`
+    };
+    if (pendingCaptcha.get(userId)?.threadId || msg.message_thread_id) {
+      welcomeBody.message_thread_id = msg.message_thread_id;
+    }
     const welcomeRes = await fetch(`${BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: `✅ *Verified\\!* Welcome to Send\\.it, ${(msg.from.first_name || "anon").replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\\! 🚀\n\nType /filters to see available commands\\.`,
-        parse_mode: "MarkdownV2"
-      })
+      body: JSON.stringify(welcomeBody)
     });
     
     console.log(`${msg.from.first_name} (${userId}) passed captcha`);
@@ -371,6 +380,66 @@ async function poll() {
           }
         } else {
           await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "↩️ Reply to a user to add/remove them as raid leader.", reply_to_message_id: msg.message_id}) });
+        }
+        continue;
+      }
+      
+      // Role commands (mod only) — promotes user as admin with custom title & minimal perms
+      if (text.startsWith("/shiller") || text.startsWith("/unshiller") || text.startsWith("/fundraiser") || text.startsWith("/unfundraiser") || text.startsWith("/pm") || text.startsWith("/unpm")) {
+        const cmd = text.split(" ")[0].toLowerCase();
+        let isAdmin = isMod(msg.from.id);
+        if (!isAdmin) {
+          try {
+            const adminRes = await fetch(`${BASE}/getChatMember`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, user_id: msg.from.id}) });
+            const adminData = await adminRes.json();
+            isAdmin = adminData.ok && ["creator", "administrator"].includes(adminData.result?.status);
+          } catch (e) {}
+        }
+        if (!isAdmin) {
+          await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) });
+        } else if (!msg.reply_to_message) {
+          await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "↩️ Reply to a user to assign/remove Shiller role.", reply_to_message_id: msg.message_id}) });
+        } else {
+          const targetId = msg.reply_to_message.from.id;
+          const targetName = msg.reply_to_message.from.first_name || "User";
+          const roleTitle = cmd === "/shiller" ? "Shiller 📣" : cmd === "/fundraiser" ? "Fundraiser 💰" : cmd === "/pm" ? "Project Manager 📋" : null;
+          const isAssign = cmd === "/shiller" || cmd === "/fundraiser" || cmd === "/pm";
+          if (isAssign && roleTitle) {
+            const res = await fetch(`${BASE}/promoteChatMember`, {
+              method: "POST", headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({
+                chat_id: chatId, user_id: targetId,
+                can_manage_chat: false, can_delete_messages: false, can_manage_video_chats: false,
+                can_restrict_members: false, can_promote_members: false, can_change_info: false,
+                can_invite_users: true, can_pin_messages: false, can_post_stories: false,
+                can_edit_stories: false, can_delete_stories: false
+              })
+            });
+            if (res.ok) {
+              await fetch(`${BASE}/setChatAdministratorCustomTitle`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ chat_id: chatId, user_id: targetId, custom_title: roleTitle })
+              });
+              await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `${roleTitle} ${targetName} is now a ${roleTitle.split(" ")[0]}!`}) });
+              console.log(`${roleTitle} role given to ${targetName} (${targetId})`);
+            } else {
+              await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "❌ Failed — make sure the bot has promote permissions.", reply_to_message_id: msg.message_id}) });
+            }
+          } else {
+            // /unshiller or /unfundraiser — demote back to regular member
+            await fetch(`${BASE}/promoteChatMember`, {
+              method: "POST", headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({
+                chat_id: chatId, user_id: targetId,
+                can_manage_chat: false, can_delete_messages: false, can_manage_video_chats: false,
+                can_restrict_members: false, can_promote_members: false, can_change_info: false,
+                can_invite_users: false, can_pin_messages: false, can_post_stories: false,
+                can_edit_stories: false, can_delete_stories: false
+              })
+            });
+            await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `❌ ${targetName} is no longer a Shiller.`}) });
+            console.log(`Shiller role removed from ${targetName} (${targetId})`);
+          }
         }
         continue;
       }
