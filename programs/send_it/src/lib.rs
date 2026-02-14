@@ -2,6 +2,32 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo, Burn};
 use anchor_spl::associated_token::AssociatedToken;
 
+pub mod achievements;
+pub mod airdrops;
+pub mod analytics;
+pub mod bridge;
+pub mod copy_trading;
+pub mod creator_dashboard;
+pub mod custom_pages;
+pub mod daily_rewards;
+pub mod holder_rewards;
+pub mod lending;
+pub mod limit_orders;
+pub mod live_chat;
+pub mod perps;
+pub mod prediction_market;
+pub mod premium;
+pub mod price_alerts;
+pub mod raffle;
+pub mod referral;
+pub mod reputation;
+pub mod seasons;
+pub mod share_cards;
+pub mod staking;
+pub mod token_chat;
+pub mod token_videos;
+pub mod voting;
+
 declare_id!("SendiTLaunchPad111111111111111111111111111");
 
 // ============================================================================
