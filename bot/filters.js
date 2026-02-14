@@ -40,6 +40,152 @@ const SPAM_PATTERNS = [
   /bit\.ly|tinyurl/i,
 ];
 
+// Captcha system for new members
+const pendingCaptcha = new Map(); // userId -> { chatId, msgId, answer, timeout, joinMsgId }
+
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 10) + 1;
+  const b = Math.floor(Math.random() * 10) + 1;
+  return { question: `${a} + ${b}`, answer: String(a + b) };
+}
+
+async function handleNewMember(msg) {
+  const chatId = msg.chat.id;
+  for (const member of msg.new_chat_members || []) {
+    if (member.is_bot) continue;
+    
+    const userId = member.id;
+    const name = member.first_name || "New member";
+    const captcha = generateCaptcha();
+    
+    // Restrict user until they solve captcha
+    try {
+      await fetch(`${BASE}/restrictChatMember`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          user_id: userId,
+          permissions: {
+            can_send_messages: false,
+            can_send_audios: false,
+            can_send_documents: false,
+            can_send_photos: false,
+            can_send_videos: false,
+            can_send_video_notes: false,
+            can_send_voice_notes: false,
+            can_send_polls: false,
+            can_send_other_messages: false,
+            can_add_web_page_previews: false,
+            can_invite_users: false
+          }
+        })
+      });
+    } catch (e) {}
+    
+    // Send captcha challenge
+    const res = await fetch(`${BASE}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `👋 Welcome ${name}\\!\n\n🔒 To verify you're human, solve this:\n\n*What is ${captcha.question.replace('+', '\\+')} \\?*\n\nReply with the answer within 60 seconds or you'll be removed\\.`,
+        parse_mode: "MarkdownV2"
+      })
+    });
+    const data = await res.json();
+    const captchaMsgId = data.ok ? data.result.message_id : null;
+    
+    // Set timeout to kick if not solved in 60s
+    const timeout = setTimeout(async () => {
+      if (pendingCaptcha.has(userId)) {
+        pendingCaptcha.delete(userId);
+        try {
+          await fetch(`${BASE}/banChatMember`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, user_id: userId, until_date: Math.floor(Date.now()/1000) + 60 })
+          });
+          if (captchaMsgId) {
+            await fetch(`${BASE}/deleteMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, message_id: captchaMsgId })
+            });
+          }
+          console.log(`Kicked ${name} (${userId}) - captcha timeout`);
+        } catch (e) {}
+      }
+    }, 60000);
+    
+    pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout });
+    console.log(`Captcha sent to ${name} (${userId}): ${captcha.question} = ${captcha.answer}`);
+  }
+}
+
+async function checkCaptchaAnswer(msg) {
+  const userId = msg.from.id;
+  if (!pendingCaptcha.has(userId)) return false;
+  
+  const { chatId, msgId, answer, timeout } = pendingCaptcha.get(userId);
+  const text = msg.text.trim();
+  
+  if (text === answer) {
+    // Correct - unrestrict user
+    pendingCaptcha.delete(userId);
+    clearTimeout(timeout);
+    
+    // Restore permissions
+    await fetch(`${BASE}/restrictChatMember`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        user_id: userId,
+        permissions: {
+          can_send_messages: true,
+          can_send_audios: false,
+          can_send_documents: false,
+          can_send_photos: true,
+          can_send_videos: false,
+          can_send_video_notes: false,
+          can_send_voice_notes: false,
+          can_send_polls: false,
+          can_send_other_messages: true,
+          can_add_web_page_previews: true,
+          can_invite_users: true
+        }
+      })
+    });
+    
+    // Delete captcha message and answer
+    try {
+      if (msgId) await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msgId}) });
+      await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msg.message_id}) });
+    } catch (e) {}
+    
+    // Welcome them
+    const welcomeRes = await fetch(`${BASE}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `✅ *Verified\\!* Welcome to Send\\.it, ${(msg.from.first_name || "anon").replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\\! 🚀\n\nType /filters to see available commands\\.`,
+        parse_mode: "MarkdownV2"
+      })
+    });
+    
+    console.log(`${msg.from.first_name} (${userId}) passed captcha`);
+    return true;
+  } else {
+    // Wrong answer - delete their message, let them try again
+    try {
+      await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msg.message_id}) });
+    } catch (e) {}
+    return true;
+  }
+}
+
 let offset = 0;
 
 async function poll() {
@@ -52,7 +198,21 @@ async function poll() {
     for (const update of data.result) {
       offset = update.update_id + 1;
       const msg = update.message;
-      if (!msg || !msg.text) continue;
+      if (!msg) continue;
+      
+      // Handle new members
+      if (msg.new_chat_members && msg.new_chat_members.length > 0) {
+        await handleNewMember(msg);
+        continue;
+      }
+      
+      if (!msg.text) continue;
+      
+      // Check captcha answers first
+      if (pendingCaptcha.has(msg.from?.id)) {
+        await checkCaptchaAnswer(msg);
+        continue;
+      }
       
       const text = msg.text.trim();
       const chatId = msg.chat.id;
