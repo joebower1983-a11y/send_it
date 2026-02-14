@@ -24,7 +24,7 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
 
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
@@ -52,6 +52,125 @@ function isMod(userId) {
   return botMods.has(userId) || isOwner(userId);
 }
 
+// Raid system
+const activeRaids = [];
+const raidHistory = [];
+
+// Raid commands
+async function handleRaidCommand(msg, chatId, text) {
+  const parts = text.split(" ");
+  const sub = parts[1]?.toLowerCase();
+  
+  if (sub === "start" && parts[2]) {
+    // Only admins/mods can start raids
+    if (!isMod(msg.from.id)) {
+      const adminRes = await fetch(`${BASE}/getChatMember`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, user_id: msg.from.id}) });
+      const adminData = await adminRes.json();
+      if (!adminData.ok || !["creator", "administrator"].includes(adminData.result?.status)) {
+        await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Only admins/mods can start raids.", reply_to_message_id: msg.message_id}) });
+        return;
+      }
+    }
+    
+    const url = parts[2];
+    const duration = parseInt(parts[3]) || 15; // minutes, default 15
+    const raid = {
+      id: activeRaids.length + raidHistory.length + 1,
+      url,
+      startedBy: msg.from.first_name || "Admin",
+      startedAt: Date.now(),
+      endsAt: Date.now() + (duration * 60 * 1000),
+      participants: new Set(),
+      duration
+    };
+    activeRaids.push(raid);
+    
+    const actions = url.includes("twitter.com") || url.includes("x.com") 
+      ? "Like ❤️, Retweet 🔄, Comment 💬" 
+      : url.includes("t.me") 
+      ? "Join & React 🔥" 
+      : "Engage & Support 🚀";
+    
+    await fetch(`${BASE}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `🚨 *RAID TIME\\!* 🚨\n\n🔗 Target: ${url.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\n\n📋 *Actions:* ${actions.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\n\n⏰ Duration: ${duration} minutes\n👤 Started by: ${raid.startedBy.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\n\nType /raids done when you've completed the raid\\!`,
+        parse_mode: "MarkdownV2"
+      })
+    });
+    
+    // Auto-end raid after duration
+    setTimeout(() => {
+      const idx = activeRaids.findIndex(r => r.id === raid.id);
+      if (idx !== -1) {
+        const ended = activeRaids.splice(idx, 1)[0];
+        ended.participantCount = ended.participants.size;
+        raidHistory.push(ended);
+        fetch(`${BASE}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `✅ Raid #${ended.id} ended\\!\n\n🔗 ${ended.url.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\n👥 Participants: ${ended.participantCount}\n\nGreat work team\\! 🔥`,
+            parse_mode: "MarkdownV2"
+          })
+        });
+      }
+    }, duration * 60 * 1000);
+    
+    console.log(`Raid #${raid.id} started by ${raid.startedBy}: ${url}`);
+    
+  } else if (sub === "done") {
+    if (activeRaids.length === 0) {
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No active raids right now.", reply_to_message_id: msg.message_id}) });
+    } else {
+      const raid = activeRaids[activeRaids.length - 1];
+      raid.participants.add(msg.from.id);
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `✅ ${msg.from.first_name} completed the raid! (${raid.participants.size} total)`, reply_to_message_id: msg.message_id}) });
+    }
+    
+  } else if (sub === "history") {
+    if (raidHistory.length === 0) {
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No past raids yet.", reply_to_message_id: msg.message_id}) });
+    } else {
+      const last5 = raidHistory.slice(-5).reverse();
+      const lines = last5.map(r => `#${r.id} — ${r.participantCount} raiders — ${r.url}`);
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `📜 Recent Raids:\n\n${lines.join("\n")}`, reply_to_message_id: msg.message_id}) });
+    }
+    
+  } else {
+    // Show active raids or help
+    if (activeRaids.length > 0) {
+      const raid = activeRaids[activeRaids.length - 1];
+      const minsLeft = Math.max(0, Math.round((raid.endsAt - Date.now()) / 60000));
+      await fetch(`${BASE}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `🚨 *Active Raid*\n\n🔗 ${raid.url.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')}\n⏰ ${minsLeft} min remaining\n👥 ${raid.participants.size} raiders\n\nType /raids done when complete\\!`,
+          parse_mode: "MarkdownV2"
+        })
+      });
+    } else {
+      await fetch(`${BASE}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `🚨 *Raid Commands*\n\n/raids — Show active raid\n/raids start \\<url\\> \\[minutes\\] — Start a raid\n/raids done — Mark raid as complete\n/raids history — Past raids\n\nExample: /raids start https://x\\.com/tweet 15`,
+          parse_mode: "MarkdownV2"
+        })
+      });
+    }
+  }
+}
+
+// Whitelisted users (skip captcha)
+const captchaWhitelist = new Set([6260568591]); // Shun
+
 // Captcha system for new members
 const pendingCaptcha = new Map(); // userId -> { chatId, msgId, answer, timeout, joinMsgId }
 
@@ -64,7 +183,7 @@ function generateCaptcha() {
 async function handleNewMember(msg) {
   const chatId = msg.chat.id;
   for (const member of msg.new_chat_members || []) {
-    if (member.is_bot) continue;
+    if (member.is_bot || captchaWhitelist.has(member.id)) continue;
     
     const userId = member.id;
     const name = member.first_name || "New member";
@@ -203,6 +322,12 @@ async function poll() {
       
       const text = msg.text.trim();
       const chatId = msg.chat.id;
+      
+      // Raid commands
+      if (text.startsWith("/raids") || text === "/raid") {
+        await handleRaidCommand(msg, chatId, text === "/raid" ? "/raids" : text);
+        continue;
+      }
       
       // Show user ID
       if (text.startsWith("/myid")) {
