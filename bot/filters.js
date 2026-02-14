@@ -286,7 +286,8 @@ async function poll() {
             isAdmin = adminData.ok && ["creator", "administrator"].includes(adminData.result?.status);
           } catch (e) {}
         }
-          
+        
+        try {
           if (!isAdmin) {
             await fetch(`${BASE}/sendMessage`, {
               method: "POST",
