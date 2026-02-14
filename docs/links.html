@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it | Links</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #0a0a1a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #fff;
+    padding: 40px 20px;
+  }
+  .avatar {
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00ffa3, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 30px rgba(0,255,163,0.3);
+  }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #00ffa3, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .tagline {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .ca {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #00ffa3;
+    margin-bottom: 32px;
+    cursor: pointer;
+    transition: background 0.2s;
+    max-width: 100%;
+    word-break: break-all;
+    text-align: center;
+  }
+  .ca:hover { background: rgba(0,255,163,0.1); }
+  .ca::after { content: ' 📋'; }
+  .links { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .link:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: #00ffa3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,255,163,0.15);
+  }
+  .link .icon { font-size: 22px; width: 28px; text-align: center; }
+  .divider {
+    width: 100%; max-width: 400px;
+    text-align: center;
+    color: #444;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 16px 0;
+    position: relative;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: #333;
+  }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+  .stats {
+    display: flex; gap: 24px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #00ffa3;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .footer {
+    margin-top: 40px;
+    color: #333;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="avatar">🚀</div>
+<h1>Send.it</h1>
+<p class="tagline">The fairest token launchpad on Solana</p>
+
+<div class="ca" onclick="navigator.clipboard.writeText('F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump').then(()=>this.textContent='Copied! ✅').catch(()=>{})">
+  F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump
+</div>
+
+<div class="links">
+  <a class="link" href="https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank">
+    <span class="icon">💊</span> Buy on Pump.fun
+  </a>
+  <a class="link" href="https://dexscreener.com/solana/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank">
+    <span class="icon">📈</span> DexScreener Chart
+  </a>
+  <a class="link" href="https://send-it-seven-sigma.vercel.app" target="_blank">
+    <span class="icon">🌐</span> Website
+  </a>
+  <a class="link" href="https://twitter.com/SendItSolana420" target="_blank">
+    <span class="icon">🐦</span> Twitter / X
+  </a>
+  <a class="link" href="https://t.me/+Xw4E2sJ0Z3Q5ZDYx" target="_blank">
+    <span class="icon">💬</span> Telegram
+  </a>
+  <a class="link" href="https://discord.gg/vKRTyG85" target="_blank">
+    <span class="icon">💎</span> Discord
+  </a>
+
+  <div class="divider">build</div>
+
+  <a class="link" href="https://github.com/joebower1983-a11y/send_it" target="_blank">
+    <span class="icon">📦</span> GitHub
+  </a>
+  <a class="link" href="https://joebower1983-a11y.github.io/send_it/pitch-deck.html" target="_blank">
+    <span class="icon">📄</span> Pitch Deck
+  </a>
+  <a class="link" href="https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md" target="_blank">
+    <span class="icon">📜</span> Whitepaper v2.0
+  </a>
+</div>
+
+<div class="stats">
+  <div><div class="stat-num">29</div><div class="stat-label">Modules</div></div>
+  <div><div class="stat-num">13k+</div><div class="stat-label">Lines of Rust</div></div>
+  <div><div class="stat-num">12</div><div class="stat-label">Frontend Pages</div></div>
+</div>
+
+<p class="footer">No insiders. No presales. Just send it. 🚀</p>
+
+</body>
+</html>
