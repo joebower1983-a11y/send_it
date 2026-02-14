@@ -24,7 +24,7 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n/raider — Give Raider ⚔️ badge \\(reply\\)\n/unraider — Remove Raider badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
 
   "/shill": `📣 *Copy \\& paste this everywhere:*\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\n🚀 Send\\.it — The fairest token launchpad on Solana\n\n✅ No insiders \\| No presales \\| Anti\\-snipe\n✅ 29 on\\-chain modules \\| 13k\\+ lines of Rust\n✅ Auto Raydium migration\n✅ Creator rewards \\+ holder rewards\n\n📋 CA: F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n🐦 twitter\\.com/SendItSolana420\n💬 t\\.me/\\+Xw4E2sJ0Z3Q5ZDYx\n💎 discord\\.gg/vKRTyG85\n📈 pump\\.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\nSend it\\! 🔥`,
 
@@ -385,7 +385,7 @@ async function poll() {
       }
       
       // Role commands (mod only) — promotes user as admin with custom title & minimal perms
-      if (text.startsWith("/shiller") || text.startsWith("/unshiller") || text.startsWith("/fundraiser") || text.startsWith("/unfundraiser") || text.startsWith("/pm") || text.startsWith("/unpm")) {
+      if (text.startsWith("/shiller") || text.startsWith("/unshiller") || text.startsWith("/fundraiser") || text.startsWith("/unfundraiser") || text.startsWith("/pm") || text.startsWith("/unpm") || text.startsWith("/raider") || text.startsWith("/unraider")) {
         const cmd = text.split(" ")[0].toLowerCase();
         let isAdmin = isMod(msg.from.id);
         if (!isAdmin) {
@@ -402,8 +402,8 @@ async function poll() {
         } else {
           const targetId = msg.reply_to_message.from.id;
           const targetName = msg.reply_to_message.from.first_name || "User";
-          const roleTitle = cmd === "/shiller" ? "Shiller 📣" : cmd === "/fundraiser" ? "Fundraiser 💰" : cmd === "/pm" ? "Project Manager 📋" : null;
-          const isAssign = cmd === "/shiller" || cmd === "/fundraiser" || cmd === "/pm";
+          const roleTitle = cmd === "/shiller" ? "Shiller 📣" : cmd === "/fundraiser" ? "Fundraiser 💰" : cmd === "/pm" ? "Project Manager 📋" : cmd === "/raider" ? "Raider ⚔️" : null;
+          const isAssign = cmd === "/shiller" || cmd === "/fundraiser" || cmd === "/pm" || cmd === "/raider";
           if (isAssign && roleTitle) {
             const res = await fetch(`${BASE}/promoteChatMember`, {
               method: "POST", headers: {"Content-Type":"application/json"},
