@@ -22,6 +22,8 @@ const responses = {
 
   "/whitepaper": `📄 *Send\\.it Whitepaper v2\\.0*\n\nRead the full whitepaper covering all 29 modules:\n[View on GitHub](https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md)`,
 
+  "/filters": `🤖 *Bot Commands*\n\n/price — Token price \\& stats\n/links — Official links\n/tokeninfo — Contract \\& fee info\n/rules — Group rules\n/website — Send\\.it website\n/chart — Price charts\n/buy — How to buy SENDIT\n/socials — Social media links\n/whitepaper — Read the whitepaper\n/roadmap — Project roadmap\n/filters — This list`,
+
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
 
