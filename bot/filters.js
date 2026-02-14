@@ -24,7 +24,7 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n/price — Token price \\& stats\n/ca — Contract address\n/links — Official links\n/tokeninfo — Contract \\& fee info\n/rules — Group rules\n/website — Send\\.it website\n/chart — Price charts\n/buy — How to buy SENDIT\n/socials — Social media links\n/whitepaper — Read the whitepaper\n/roadmap — Project roadmap\n/filters — This list`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)`,
 
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
@@ -216,6 +216,101 @@ async function poll() {
       
       const text = msg.text.trim();
       const chatId = msg.chat.id;
+      
+      // Mod commands (admin only)
+      if (text.startsWith("/warn") || text.startsWith("/mute") || text.startsWith("/unmute") || text.startsWith("/ban") || text.startsWith("/unban")) {
+        // Check if sender is admin
+        try {
+          const adminRes = await fetch(`${BASE}/getChatMember`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, user_id: msg.from.id })
+          });
+          const adminData = await adminRes.json();
+          const isAdmin = adminData.ok && ["creator", "administrator"].includes(adminData.result?.status);
+          
+          if (!isAdmin) {
+            await fetch(`${BASE}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, text: "⛔ Admin only command.", reply_to_message_id: msg.message_id })
+            });
+          } else if (msg.reply_to_message) {
+            const targetUser = msg.reply_to_message.from;
+            const targetId = targetUser.id;
+            const targetName = targetUser.first_name || "User";
+            const cmd = text.split(" ")[0].toLowerCase();
+            
+            if (cmd === "/warn") {
+              await fetch(`${BASE}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: `⚠️ ${targetName} has been warned. Next offense = mute.`, reply_to_message_id: msg.reply_to_message.message_id })
+              });
+            } else if (cmd === "/mute") {
+              const duration = parseInt(text.split(" ")[1]) || 60; // minutes, default 1hr
+              await fetch(`${BASE}/restrictChatMember`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: chatId, user_id: targetId,
+                  until_date: Math.floor(Date.now()/1000) + (duration * 60),
+                  permissions: { can_send_messages: false, can_send_audios: false, can_send_documents: false, can_send_photos: false, can_send_videos: false, can_send_video_notes: false, can_send_voice_notes: false, can_send_polls: false, can_send_other_messages: false, can_add_web_page_previews: false }
+                })
+              });
+              await fetch(`${BASE}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: `🔇 ${targetName} muted for ${duration} minutes.` })
+              });
+            } else if (cmd === "/unmute") {
+              await fetch(`${BASE}/restrictChatMember`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: chatId, user_id: targetId,
+                  permissions: { can_send_messages: true, can_send_photos: true, can_send_other_messages: true, can_add_web_page_previews: true, can_invite_users: true }
+                })
+              });
+              await fetch(`${BASE}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: `🔊 ${targetName} has been unmuted.` })
+              });
+            } else if (cmd === "/ban") {
+              await fetch(`${BASE}/banChatMember`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, user_id: targetId })
+              });
+              await fetch(`${BASE}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: `🚫 ${targetName} has been banned.` })
+              });
+            } else if (cmd === "/unban") {
+              await fetch(`${BASE}/unbanChatMember`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, user_id: targetId, only_if_banned: true })
+              });
+              await fetch(`${BASE}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text: `✅ ${targetName} has been unbanned.` })
+              });
+            }
+            console.log(`Mod action: ${cmd} on ${targetName} by ${msg.from.username || msg.from.id}`);
+          } else {
+            await fetch(`${BASE}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, text: "↩️ Reply to a message to use mod commands.", reply_to_message_id: msg.message_id })
+            });
+          }
+        } catch (e) { console.error("Mod error:", e.message); }
+        continue;
+      }
       
       // Check for spam
       if (SPAM_PATTERNS.some(p => p.test(text))) {
