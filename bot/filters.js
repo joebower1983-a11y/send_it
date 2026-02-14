@@ -24,7 +24,7 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
 
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
@@ -39,6 +39,18 @@ const SPAM_PATTERNS = [
   /t\.me\/(?!.*SendIt)/i, // other telegram links
   /bit\.ly|tinyurl/i,
 ];
+
+// Bot moderators (can use mod commands without being Telegram admin)
+const botMods = new Set();
+const OWNER_IDS = [7920028061]; // Joe's Telegram ID
+
+function isOwner(userId) {
+  return OWNER_IDS.includes(userId);
+}
+
+function isMod(userId) {
+  return botMods.has(userId) || isOwner(userId);
+}
 
 // Captcha system for new members
 const pendingCaptcha = new Map(); // userId -> { chatId, msgId, answer, timeout, joinMsgId }
@@ -217,17 +229,63 @@ async function poll() {
       const text = msg.text.trim();
       const chatId = msg.chat.id;
       
-      // Mod commands (admin only)
-      if (text.startsWith("/warn") || text.startsWith("/mute") || text.startsWith("/unmute") || text.startsWith("/ban") || text.startsWith("/unban")) {
-        // Check if sender is admin
-        try {
-          const adminRes = await fetch(`${BASE}/getChatMember`, {
+      // Mod management (owner only)
+      if (text.startsWith("/addmod") || text.startsWith("/removemod") || text.startsWith("/modlist")) {
+        const cmd = text.split(" ")[0].toLowerCase();
+        
+        if (cmd === "/modlist") {
+          const modNames = [];
+          for (const modId of botMods) {
+            try {
+              const r = await fetch(`${BASE}/getChatMember`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, user_id: modId}) });
+              const d = await r.json();
+              modNames.push(d.ok ? `• ${d.result.user.first_name} (${modId})` : `• ${modId}`);
+            } catch (e) { modNames.push(`• ${modId}`); }
+          }
+          await fetch(`${BASE}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: chatId, user_id: msg.from.id })
+            body: JSON.stringify({ chat_id: chatId, text: modNames.length ? `🛡️ Bot Moderators:\n${modNames.join("\n")}` : "🛡️ No bot moderators set. Use /addmod (reply to user) to add one.", reply_to_message_id: msg.message_id })
           });
-          const adminData = await adminRes.json();
-          const isAdmin = adminData.ok && ["creator", "administrator"].includes(adminData.result?.status);
+        } else if (!isOwner(msg.from.id)) {
+          await fetch(`${BASE}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, text: "⛔ Owner only command.", reply_to_message_id: msg.message_id })
+          });
+        } else if (msg.reply_to_message) {
+          const targetId = msg.reply_to_message.from.id;
+          const targetName = msg.reply_to_message.from.first_name || "User";
+          if (cmd === "/addmod") {
+            botMods.add(targetId);
+            await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `✅ ${targetName} is now a bot moderator.`}) });
+            console.log(`Added mod: ${targetName} (${targetId})`);
+          } else if (cmd === "/removemod") {
+            botMods.delete(targetId);
+            await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `❌ ${targetName} removed as bot moderator.`}) });
+            console.log(`Removed mod: ${targetName} (${targetId})`);
+          }
+        } else {
+          await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "↩️ Reply to a user to add/remove them as mod.", reply_to_message_id: msg.message_id}) });
+        }
+        continue;
+      }
+      
+      // Mod commands (admin or bot mod)
+      if (text.startsWith("/warn") || text.startsWith("/mute") || text.startsWith("/unmute") || text.startsWith("/ban") || text.startsWith("/unban")) {
+        // Check if sender is admin or bot mod
+        let isAdmin = isMod(msg.from.id);
+        if (!isAdmin) {
+          try {
+            const adminRes = await fetch(`${BASE}/getChatMember`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, user_id: msg.from.id })
+            });
+            const adminData = await adminRes.json();
+            isAdmin = adminData.ok && ["creator", "administrator"].includes(adminData.result?.status);
+          } catch (e) {}
+        }
           
           if (!isAdmin) {
             await fetch(`${BASE}/sendMessage`, {
