@@ -2,7 +2,13 @@
   <h1 align="center">🚀 Send.it</h1>
   <p align="center"><strong>The Most Feature-Rich Token Launchpad on Solana</strong></p>
   <p align="center">
-    <em>25+ on-chain Anchor modules · ~11,800 lines of Rust · Built for the next era of DeFi</em>
+    <img src="https://img.shields.io/badge/modules-29-00c896-00c896" alt="28+ modules">
+    <img src="https://img.shields.io/badge/Rust_LOC-13k%2B-orange" alt="Rust LOC">
+    <img src="https://img.shields.io/badge/Solana-Anchor-9945FF?logo=solana" alt="Solana Anchor">
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License">
+  </p>
+  <p align="center">
+    <em>29 on-chain Anchor modules · ~13,000 lines of Rust · 8 frontend dashboards · Built for the next era of DeFi</em>
   </p>
   <p align="center">
     <a href="https://joebower1983-a11y.github.io/send_it/">📄 GitHub Pages</a> ·
@@ -71,6 +77,13 @@ Send.it is a **next-generation token launchpad** on Solana that goes far beyond 
 | **Premium** | Premium tier access with enhanced features and reduced fees |
 | **Price Alerts** | On-chain subscription for price movement notifications |
 
+### 💸 Creator Monetization (Inspired by Bags.fm)
+| Module | Description |
+|--------|-------------|
+| **Fee Splitting** | Split creator fees with co-creators, charities, or any wallet (up to 5 recipients) |
+| **Content Claims** | "Get Bagged" — content owners can claim tokens based on their content and redirect fees |
+| **Embeddable Widgets** | On-chain config for embeddable price badges, trading cards, and mini charts |
+
 ### 📊 Analytics & Intelligence
 | Module | Description |
 |--------|-------------|
@@ -101,6 +114,9 @@ programs/send_it/src/
 ├── premium.rs              # Premium tier system
 ├── price_alerts.rs         # Price alert subscriptions
 ├── raffle.rs               # Raffle system
+├── fee_splitting.rs        # Creator fee splitting
+├── content_claims.rs       # Content ownership claims
+├── embeddable_widgets.rs   # Embeddable widget config
 ├── referral.rs             # Referral program
 ├── reputation.rs           # Reputation & trust scoring
 ├── seasons.rs              # Seasonal competitions
@@ -162,7 +178,7 @@ anchor deploy --provider.cluster devnet
 
 | Metric | Value |
 |--------|-------|
-| On-chain modules | **25+** |
+| On-chain modules | **29** |
 | Lines of Rust | **~11,800** |
 | Bonding curve types | **3** (Linear, Exponential, Sigmoid) |
 | Core instructions | **11** |
@@ -177,7 +193,7 @@ anchor deploy --provider.cluster devnet
 - [x] Creator vesting & rug protection
 - [x] Auto-migration to Raydium
 - [x] Leaderboard system
-- [x] 25+ feature modules (staking, perps, lending, social, governance…)
+- [x] 29 feature modules (staking, perps, lending, social, governance…)
 - [x] FairScale reputation integration
 - [x] GitHub Pages deployment
 - [x] Vercel frontend deployment
