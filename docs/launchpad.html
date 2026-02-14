@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Token Launchpad</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0e17;--bg2:#1a1f2e;--bg3:#242a3d;--bg4:#2e3650;
+--accent:#00c896;--accent2:#00e6a8;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,200,150,.3);
+--radius:12px;--radius2:8px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden;background-image:linear-gradient(rgba(0,200,150,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,150,.02) 1px,transparent 1px);background-size:60px 60px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--accent),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea{resize:vertical;min-height:80px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+header{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,200,150,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{color:var(--accent);text-shadow:0 0 20px rgba(0,200,150,.4)}
+.logo-icon{font-size:24px;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{filter:drop-shadow(0 0 6px rgba(0,200,150,.4))}50%{filter:drop-shadow(0 0 14px rgba(0,200,150,.7))}}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.3s}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+
+nav{position:sticky;top:64px;z-index:99;background:rgba(10,14,23,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,200,150,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
+.nav-item{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:6px}
+.nav-item:hover{color:var(--text);background:var(--bg2)}
+.nav-item.active{color:var(--accent);background:rgba(0,200,150,.08)}
+
+main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
+.card:hover{border-color:rgba(0,200,150,.15)}
+.section-title{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title i{color:var(--accent)}
+
+/* Hero */
+.hero{text-align:center;padding:40px 24px 32px}
+.hero h1{font-size:48px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:16px;margin-bottom:20px}
+.hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:28px;font-weight:900;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.hero-stat .lbl{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* Form */
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-group label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.form-row{grid-template-columns:1fr}}
+.form-section{background:var(--bg3);border-radius:var(--radius);padding:18px;border:1px solid rgba(255,255,255,.04);margin-bottom:16px}
+.form-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.btn-primary{width:100%;padding:18px;border-radius:var(--radius);font-size:18px;font-weight:900;color:#000;background:linear-gradient(135deg,var(--accent),#00e07a);transition:.3s;text-transform:uppercase;letter-spacing:2px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,200,150,.4)}
+.btn-sm{padding:10px 20px;border-radius:var(--radius2);font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.2s}
+.btn-sm:hover{box-shadow:var(--glow)}
+.btn-outline{background:transparent;border:1px solid rgba(0,200,150,.3);color:var(--accent);padding:10px 20px;border-radius:var(--radius2);font-weight:700;font-size:13px}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.toggle-row span{font-size:14px;font-weight:600}
+.toggle{position:relative;width:44px;height:24px;cursor:pointer}
+.toggle input{display:none}
+.toggle .slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;transition:.3s}
+.toggle .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:var(--accent)}
+.toggle input:checked+.slider::before{transform:translateX(20px)}
+
+/* Slider */
+.range-wrap{display:flex;align-items:center;gap:12px}
+.range-wrap input[type=range]{-webkit-appearance:none;height:6px;background:var(--bg4);border-radius:3px;padding:0}
+.range-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 10px rgba(0,200,150,.4)}
+.range-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--accent);min-width:40px}
+
+/* Upload */
+.upload-area{border:2px dashed rgba(0,200,150,.2);border-radius:var(--radius);padding:32px;text-align:center;color:var(--text2);cursor:pointer;transition:.2s}
+.upload-area:hover{border-color:var(--accent);background:rgba(0,200,150,.03)}
+.upload-area i{font-size:32px;color:var(--accent);margin-bottom:8px;display:block}
+
+/* Curve preview */
+.curve-preview{height:120px;background:var(--bg);border-radius:var(--radius2);position:relative;overflow:hidden}
+.curve-preview canvas{width:100%!important;height:100%!important}
+
+/* Token cards */
+.token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px}
+.token-card{cursor:pointer;position:relative;overflow:hidden}
+.token-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:.3s}
+.token-card:hover::before{opacity:1}
+.token-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.token-img{width:44px;height:44px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.token-name{font-weight:700;font-size:15px}
+.token-sym{color:var(--accent);font-size:12px;font-family:'JetBrains Mono',monospace}
+.token-time{color:var(--text3);font-size:11px}
+.token-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--bg);border-radius:var(--radius2);padding:8px 10px;text-align:center}
+.stat .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.stat .value{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.progress-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.progress-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
+
+.mono{font-family:'JetBrains Mono',monospace}
+.green{color:#22c55e}.red{color:#ef4444}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(34,197,94,.12);color:#22c55e}
+.badge-purple{background:rgba(168,85,247,.12);color:#a855f7}
+.badge-accent{background:rgba(0,200,150,.12);color:var(--accent)}
+
+/* Claim banner */
+.claim-banner{background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(0,200,150,.1));border:1px solid rgba(168,85,247,.2);border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.claim-banner h3{font-size:16px;font-weight:800;margin-bottom:4px}
+.claim-banner p{color:var(--text2);font-size:13px}
+
+/* Search */
+.search-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:200px}
+.search-bar select{max-width:140px;flex-shrink:0}
+
+/* Co-creator row */
+.co-creator-row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.co-creator-row input{flex:1}
+.co-creator-row .pct-input{max-width:80px}
+.remove-btn{width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,.15);color:#ef4444;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+
+/* Trending */
+.trending-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.trending-row:last-child{border:none}
+.trending-rank{font-size:18px;font-weight:900;color:var(--accent);width:28px;text-align:center;font-family:'JetBrains Mono',monospace}
+.trending-info{flex:1}
+.trending-chart{width:60px;height:24px}
+
+.chart-container{position:relative;height:120px}
+.chart-container canvas{width:100%!important;height:100%!important}
+
+@media(max-width:640px){
+  .hero h1{font-size:32px}
+  nav{gap:2px;padding:6px 8px}
+  .nav-item{padding:8px 12px;font-size:12px}
+  main{padding:12px}
+  .hero-stats{gap:16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo"><span class="logo-icon">🚀</span><span>Send<span style="color:var(--accent)">.it</span></span></a>
+  <button class="wallet-btn">Connect Wallet</button>
+</header>
+
+<nav>
+  <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launch</a>
+  <a href="staking.html" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+  <a href="trading.html" class="nav-item"><i class="fas fa-chart-line"></i> Trading</a>
+  <a href="social.html" class="nav-item"><i class="fas fa-users"></i> Social</a>
+  <a href="lending.html" class="nav-item"><i class="fas fa-hand-holding-usd"></i> Lending</a>
+  <a href="governance.html" class="nav-item"><i class="fas fa-landmark"></i> Governance</a>
+  <a href="airdrops.html" class="nav-item"><i class="fas fa-parachute-box"></i> Airdrops</a>
+  <a href="portfolio.html" class="nav-item"><i class="fas fa-wallet"></i> Portfolio</a>
+  <a href="launchpad.html" class="nav-item active"><i class="fas fa-shuttle-space"></i> Launchpad</a>
+  <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
+</nav>
+
+<main>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Launch Your Token</h1>
+  <p>Create, launch, and graduate tokens on the fairest bonding curve platform on Solana</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">247</div><div class="lbl">Launched Today</div></div>
+    <div class="hero-stat"><div class="num">$4.2M</div><div class="lbl">Total Volume</div></div>
+    <div class="hero-stat"><div class="num">18m</div><div class="lbl">Avg Graduation</div></div>
+  </div>
+</div>
+
+<!-- Content Claims Banner -->
+<div class="claim-banner">
+  <div>
+    <h3>🛡️ Someone launched a token about your content?</h3>
+    <p>Verify ownership and claim creator royalties on any token using your name, brand, or content.</p>
+  </div>
+  <a href="#" class="btn-sm">Claim It Here →</a>
+</div>
+
+<!-- Launch Form -->
+<div class="card" style="margin-bottom:24px;max-width:800px;margin-left:auto;margin-right:auto">
+  <h2 class="section-title"><i class="fas fa-plus-circle"></i> Create New Token</h2>
+
+  <div class="form-row">
+    <div class="form-group"><label>Token Name</label><input type="text" placeholder="e.g. MoonCat"></div>
+    <div class="form-group"><label>Symbol</label><input type="text" placeholder="e.g. MCAT" maxlength="10"></div>
+  </div>
+
+  <div class="form-group"><label>Description</label><textarea placeholder="What's your token about?"></textarea></div>
+
+  <div class="form-group">
+    <label>Token Image</label>
+    <div class="upload-area" id="uploadArea">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <div>Drop image here or <span style="color:var(--accent);font-weight:700">browse</span></div>
+      <div style="font-size:11px;margin-top:4px">PNG, JPG, GIF · Max 5MB</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-chart-line"></i> Bonding Curve</h3>
+    <div class="form-group"><label>Curve Type</label>
+      <select id="curveType">
+        <option value="linear">Linear</option>
+        <option value="exponential" selected>Exponential</option>
+        <option value="sigmoid">Sigmoid</option>
+      </select>
+    </div>
+    <div class="curve-preview"><canvas id="curveCanvas"></canvas></div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-percentage"></i> Fees & Rewards</h3>
+    <div class="form-group">
+      <label>Creator Fee</label>
+      <div class="range-wrap">
+        <input type="range" id="feeSlider" min="0" max="5" step="0.1" value="2">
+        <span class="range-val" id="feeVal">2.0%</span>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span><i class="fas fa-shield-alt" style="color:var(--accent);margin-right:6px"></i> Anti-Snipe Protection</span>
+      <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <span><i class="fas fa-gift" style="color:var(--orange);margin-right:6px"></i> Holder Rewards</span>
+      <label class="toggle"><input type="checkbox"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3><i class="fas fa-users"></i> Fee Splitting (Co-Creators)</h3>
+    <div id="coCreators">
+      <div class="co-creator-row">
+        <input type="text" placeholder="Wallet address...">
+        <input type="number" class="pct-input" placeholder="%" value="50">
+        <button class="remove-btn"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <button class="btn-outline" style="margin-top:8px" onclick="addCoCreator()"><i class="fas fa-plus"></i> Add Co-Creator</button>
+  </div>
+
+  <button class="btn-primary">🚀 Launch Token</button>
+</div>
+
+<!-- Token Search -->
+<div class="search-bar">
+  <input type="text" placeholder="🔍 Search tokens by name, symbol, or address...">
+  <select><option>All Status</option><option>Live</option><option>Graduated</option></select>
+  <select><option>Volume ↓</option><option>Age ↓</option><option>Holders ↓</option></select>
+</div>
+
+<!-- Live Launches -->
+<h2 class="section-title"><i class="fas fa-broadcast-tower" style="color:var(--accent)"></i> Live on Bonding Curve</h2>
+<div class="token-grid">
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">🌙</div><div><div class="token-name">MoonDog</div><div class="token-sym">MDOG</div><div class="token-time">12m ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0042</div></div><div class="stat"><div class="label">Volume</div><div class="value">$84K</div></div><div class="stat"><div class="label">Holders</div><div class="value">342</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:72%"></div></div>
+    <div class="progress-label"><span>72% to graduation</span><span>$72K / $100K</span></div>
+  </div>
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">🐸</div><div><div class="token-name">PepeSOL</div><div class="token-sym">PSOL</div><div class="token-time">28m ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0018</div></div><div class="stat"><div class="label">Volume</div><div class="value">$56K</div></div><div class="stat"><div class="label">Holders</div><div class="value">218</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:56%"></div></div>
+    <div class="progress-label"><span>56% to graduation</span><span>$56K / $100K</span></div>
+  </div>
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">⚡</div><div><div class="token-name">ZapCoin</div><div class="token-sym">ZAP</div><div class="token-time">45m ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0089</div></div><div class="stat"><div class="label">Volume</div><div class="value">$120K</div></div><div class="stat"><div class="label">Holders</div><div class="value">567</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:88%"></div></div>
+    <div class="progress-label"><span>88% to graduation</span><span>$88K / $100K</span></div>
+  </div>
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">🎭</div><div><div class="token-name">VibeCheck</div><div class="token-sym">VIBE</div><div class="token-time">1h ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0031</div></div><div class="stat"><div class="label">Volume</div><div class="value">$42K</div></div><div class="stat"><div class="label">Holders</div><div class="value">156</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:42%"></div></div>
+    <div class="progress-label"><span>42% to graduation</span><span>$42K / $100K</span></div>
+  </div>
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">🎵</div><div><div class="token-name">BeatDrop</div><div class="token-sym">BEAT</div><div class="token-time">2h ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0055</div></div><div class="stat"><div class="label">Volume</div><div class="value">$67K</div></div><div class="stat"><div class="label">Holders</div><div class="value">289</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:67%"></div></div>
+    <div class="progress-label"><span>67% to graduation</span><span>$67K / $100K</span></div>
+  </div>
+  <div class="card token-card">
+    <div class="token-head"><div class="token-img">🦊</div><div><div class="token-name">SolFox</div><div class="token-sym">SFOX</div><div class="token-time">3h ago</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0012</div></div><div class="stat"><div class="label">Volume</div><div class="value">$23K</div></div><div class="stat"><div class="label">Holders</div><div class="value">98</div></div></div>
+    <div class="progress-bar"><div class="fill" style="width:23%"></div></div>
+    <div class="progress-label"><span>23% to graduation</span><span>$23K / $100K</span></div>
+  </div>
+</div>
+
+<!-- Recently Graduated -->
+<h2 class="section-title"><i class="fas fa-graduation-cap" style="color:var(--accent)"></i> Recently Graduated</h2>
+<div class="grid-3" style="margin-bottom:24px">
+  <div class="card">
+    <div class="token-head"><div class="token-img" style="background:#22c55e">🏆</div><div><div class="token-name">AlphaDAO <span class="badge badge-green">Graduated</span></div><div class="token-sym">ALPHA</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Final MC</div><div class="value">$2.4M</div></div><div class="stat"><div class="label">Holders</div><div class="value">1,847</div></div><div class="stat"><div class="label">Time</div><div class="value">14m</div></div></div>
+    <a href="#" style="display:block;text-align:center;color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> Trade on Raydium</a>
+  </div>
+  <div class="card">
+    <div class="token-head"><div class="token-img" style="background:#a855f7">💎</div><div><div class="token-name">DiamondHands <span class="badge badge-green">Graduated</span></div><div class="token-sym">DIAM</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Final MC</div><div class="value">$1.8M</div></div><div class="stat"><div class="label">Holders</div><div class="value">1,234</div></div><div class="stat"><div class="label">Time</div><div class="value">22m</div></div></div>
+    <a href="#" style="display:block;text-align:center;color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> Trade on Raydium</a>
+  </div>
+  <div class="card">
+    <div class="token-head"><div class="token-img" style="background:#ff8800">🔥</div><div><div class="token-name">BurnFi <span class="badge badge-green">Graduated</span></div><div class="token-sym">BURN</div></div></div>
+    <div class="token-stats"><div class="stat"><div class="label">Final MC</div><div class="value">$3.1M</div></div><div class="stat"><div class="label">Holders</div><div class="value">2,156</div></div><div class="stat"><div class="label">Time</div><div class="value">9m</div></div></div>
+    <a href="#" style="display:block;text-align:center;color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> Trade on Raydium</a>
+  </div>
+</div>
+
+<!-- Trending Tokens -->
+<div class="card" style="margin-bottom:24px">
+  <h2 class="section-title"><i class="fas fa-fire" style="color:var(--orange)"></i> Trending by Volume</h2>
+  <div class="trending-row">
+    <span class="trending-rank">1</span>
+    <div class="token-img" style="width:36px;height:36px;font-size:18px">⚡</div>
+    <div class="trending-info"><div style="font-weight:700">ZapCoin <span class="mono" style="color:var(--accent);font-size:12px">ZAP</span></div><div style="font-size:12px;color:var(--text2)">$120K vol · 567 holders</div></div>
+    <span class="green mono" style="font-weight:700">+34.2%</span>
+    <canvas class="trending-chart" id="trend1"></canvas>
+  </div>
+  <div class="trending-row">
+    <span class="trending-rank">2</span>
+    <div class="token-img" style="width:36px;height:36px;font-size:18px">🌙</div>
+    <div class="trending-info"><div style="font-weight:700">MoonDog <span class="mono" style="color:var(--accent);font-size:12px">MDOG</span></div><div style="font-size:12px;color:var(--text2)">$84K vol · 342 holders</div></div>
+    <span class="green mono" style="font-weight:700">+28.7%</span>
+    <canvas class="trending-chart" id="trend2"></canvas>
+  </div>
+  <div class="trending-row">
+    <span class="trending-rank">3</span>
+    <div class="token-img" style="width:36px;height:36px;font-size:18px">🎵</div>
+    <div class="trending-info"><div style="font-weight:700">BeatDrop <span class="mono" style="color:var(--accent);font-size:12px">BEAT</span></div><div style="font-size:12px;color:var(--text2)">$67K vol · 289 holders</div></div>
+    <span class="green mono" style="font-weight:700">+19.4%</span>
+    <canvas class="trending-chart" id="trend3"></canvas>
+  </div>
+  <div class="trending-row">
+    <span class="trending-rank">4</span>
+    <div class="token-img" style="width:36px;height:36px;font-size:18px">🐸</div>
+    <div class="trending-info"><div style="font-weight:700">PepeSOL <span class="mono" style="color:var(--accent);font-size:12px">PSOL</span></div><div style="font-size:12px;color:var(--text2)">$56K vol · 218 holders</div></div>
+    <span class="green mono" style="font-weight:700">+15.1%</span>
+    <canvas class="trending-chart" id="trend4"></canvas>
+  </div>
+  <div class="trending-row">
+    <span class="trending-rank">5</span>
+    <div class="token-img" style="width:36px;height:36px;font-size:18px">🎭</div>
+    <div class="trending-info"><div style="font-weight:700">VibeCheck <span class="mono" style="color:var(--accent);font-size:12px">VIBE</span></div><div style="font-size:12px;color:var(--text2)">$42K vol · 156 holders</div></div>
+    <span class="red mono" style="font-weight:700">-2.3%</span>
+    <canvas class="trending-chart" id="trend5"></canvas>
+  </div>
+</div>
+
+</main>
+
+<script>
+// Fee slider
+const feeSlider = document.getElementById('feeSlider');
+const feeVal = document.getElementById('feeVal');
+feeSlider.addEventListener('input', () => feeVal.textContent = parseFloat(feeSlider.value).toFixed(1) + '%');
+
+// Co-creator
+function addCoCreator() {
+  const div = document.createElement('div');
+  div.className = 'co-creator-row';
+  div.innerHTML = '<input type="text" placeholder="Wallet address..."><input type="number" class="pct-input" placeholder="%"><button class="remove-btn" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+  document.getElementById('coCreators').appendChild(div);
+}
+
+// Curve preview
+function drawCurve() {
+  const canvas = document.getElementById('curveCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth;
+  const h = canvas.height = canvas.offsetHeight;
+  ctx.clearRect(0, 0, w, h);
+
+  const type = document.getElementById('curveType').value;
+  const pts = [];
+  for (let i = 0; i <= 100; i++) {
+    const x = i / 100;
+    let y;
+    if (type === 'linear') y = x;
+    else if (type === 'exponential') y = Math.pow(x, 2.5);
+    else y = 1 / (1 + Math.exp(-12 * (x - 0.5)));
+    pts.push({ x: 20 + x * (w - 40), y: h - 16 - y * (h - 32) });
+  }
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, h - 16);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length - 1].x, h - 16);
+  ctx.closePath();
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, 'rgba(0,200,150,0.2)');
+  g.addColorStop(1, 'rgba(0,200,150,0)');
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = '#00c896';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#555570';
+  ctx.font = '10px Inter';
+  ctx.fillText('Supply →', w - 60, h - 2);
+  ctx.save();
+  ctx.translate(10, 40);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Price →', 0, 0);
+  ctx.restore();
+}
+document.getElementById('curveType').addEventListener('change', drawCurve);
+window.addEventListener('resize', drawCurve);
+setTimeout(drawCurve, 50);
+
+// Sparkline helper
+function drawSparkline(id, data, color) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = 60, h = canvas.height = 24;
+  const min = Math.min(...data), max = Math.max(...data), range = max - min || 1;
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * h * 0.8 - h * 0.1;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+drawSparkline('trend1', [3,5,4,7,8,6,9,12,11,14,16,18], '#22c55e');
+drawSparkline('trend2', [2,3,4,3,5,7,6,8,10,9,11,12], '#22c55e');
+drawSparkline('trend3', [4,5,4,6,7,8,7,9,10,9,11,10], '#22c55e');
+drawSparkline('trend4', [1,2,2,3,4,3,5,6,5,7,8,7], '#22c55e');
+drawSparkline('trend5', [8,7,8,6,7,5,6,4,5,4,5,4], '#ef4444');
+</script>
+</body>
+</html>

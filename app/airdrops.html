@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Send.it — Airdrops & Rewards</title>
+<title>Send.it — Airdrops & Rewards Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
 --bg:#0a0e17;--bg2:#111827;--bg3:#1a1f2e;--bg4:#252838;
---neon:#00c896;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--neon:#00c896;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;--blue:#3b82f6;--yellow:#fbbf24;
 --text:#e8e8f0;--text2:#8888aa;--text3:#555570;
 --glow:0 0 20px rgba(0,200,150,.3);
 --radius:12px;--radius2:8px;
@@ -29,7 +29,6 @@ input:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
 header{position:sticky;top:40px;z-index:100;background:rgba(10,14,23,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,200,150,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
 .logo span{color:var(--neon);text-shadow:0 0 20px rgba(0,200,150,.4)}
-.logo-icon{font-size:24px}
 .wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s}
 .wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
 
@@ -43,8 +42,10 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 .hero{text-align:center;padding:48px 24px 32px}
 .hero h1{font-size:52px;font-weight:900;color:var(--neon);text-shadow:0 0 40px rgba(0,200,150,.35);letter-spacing:-2px;margin-bottom:8px}
 .hero p{color:var(--text2);font-size:16px;margin-bottom:24px}
-.hero-value{font-size:36px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon);text-shadow:0 0 20px rgba(0,200,150,.3)}
-.hero-value-label{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.hero-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat .val{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon)}
+.hero-stat .lbl{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
 
 .card{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
 .card:hover{border-color:rgba(0,200,150,.15)}
@@ -52,97 +53,95 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 .section-title{font-size:22px;font-weight:800;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
 .section-title i{color:var(--neon)}
 
-/* Airdrops */
-.airdrop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+/* Airdrop Cards */
+.airdrops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
 .airdrop-card{position:relative;overflow:hidden}
-.airdrop-card.active::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--neon),var(--purple))}
-.airdrop-card.completed{opacity:.5}
+.airdrop-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--neon),var(--purple))}
 .airdrop-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.airdrop-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.airdrop-meta h3{font-size:15px;font-weight:700}
-.airdrop-meta .token-sym{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon)}
-.airdrop-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.airdrop-stat{background:var(--bg);border-radius:var(--radius2);padding:8px 10px}
-.airdrop-stat .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.airdrop-stat .val{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
-.claim-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.claim-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--neon2))}
-.claim-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:14px}
-.countdown{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:6px}
-.countdown i{font-size:11px}
-.claim-btn{width:100%;padding:10px;border-radius:8px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s;text-transform:uppercase;letter-spacing:.5px}
-.claim-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
-.claim-btn.claimed{background:var(--bg4);color:var(--neon);cursor:default}
-.claim-btn.missed{background:var(--bg4);color:var(--text3);cursor:default}
-.completed-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px}
-.completed-badge.success{background:rgba(0,200,150,.1);color:var(--neon)}
-.completed-badge.fail{background:rgba(255,45,120,.1);color:var(--pink)}
+.token-logo{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;flex-shrink:0}
+.token-info h3{font-size:16px;font-weight:800}
+.token-info .token-sub{font-size:12px;color:var(--text3)}
+.airdrop-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+.airdrop-row .lbl{color:var(--text3)}
+.airdrop-row .val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.progress-bar{width:100%;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin:8px 0}
+.progress-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--neon),var(--neon2))}
+.countdown{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--orange);font-family:'JetBrains Mono',monospace;margin-top:8px}
+.claim-btn{width:100%;padding:12px;border-radius:var(--radius2);font-size:14px;font-weight:800;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));text-transform:uppercase;letter-spacing:.5px;margin-top:12px;transition:.3s}
+.claim-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,200,150,.35)}
+.claim-btn:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Completed */
+.completed-card{opacity:.55}
+.completed-card::before{background:var(--bg4)!important}
+.status-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.status-claimed{background:rgba(0,200,150,.12);color:var(--neon)}
+.status-missed{background:rgba(255,45,120,.12);color:var(--pink)}
 
 /* Raffle */
-.raffle-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:768px){.raffle-grid{grid-template-columns:1fr}}
-.raffle-prize{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon);margin:8px 0}
-.raffle-info{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-.raffle-row{display:flex;justify-content:space-between;font-size:13px}
-.raffle-row .lbl{color:var(--text3)}
-.raffle-row .val{font-weight:700;font-family:'JetBrains Mono',monospace}
-.buy-ticket-btn{padding:12px 24px;border-radius:8px;font-weight:700;font-size:14px;color:#000;background:linear-gradient(135deg,var(--orange),#ffaa00);transition:.3s;width:100%}
-.buy-ticket-btn:hover{transform:translateY(-1px);box-shadow:0 0 20px rgba(255,136,0,.3)}
-.winners-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.winner-item{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 12px;background:var(--bg);border-radius:8px}
-.winner-addr{font-family:'JetBrains Mono',monospace;color:var(--text2);font-size:12px}
-.winner-prize{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--neon)}
+.raffle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.raffle-card{position:relative;overflow:hidden}
+.raffle-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--pink))}
+.raffle-prize{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--orange);margin:8px 0}
+.buy-ticket-btn{width:100%;padding:12px;border-radius:var(--radius2);font-size:14px;font-weight:800;color:#000;background:linear-gradient(135deg,var(--orange),#ffaa00);text-transform:uppercase;letter-spacing:.5px;margin-top:12px;transition:.3s}
+.buy-ticket-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,136,0,.35)}
+.winners-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.winner-item{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.winner-item .addr{font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.winner-item .prize{font-weight:700;color:var(--orange)}
 
 /* Referral */
-.referral-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.referral-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:768px){.referral-grid{grid-template-columns:1fr}}
-.referral-link-box{display:flex;gap:8px;margin-bottom:16px}
-.referral-link-box input{flex:1;background:var(--bg);font-family:'JetBrains Mono',monospace;font-size:12px}
-.copy-btn{padding:10px 16px;border-radius:8px;background:var(--neon);color:#000;font-weight:700;font-size:13px;white-space:nowrap;transition:.2s}
+.ref-link-box{display:flex;gap:8px;margin-bottom:16px}
+.ref-link-box input{flex:1;font-family:'JetBrains Mono',monospace;font-size:12px}
+.copy-btn{padding:10px 20px;border-radius:var(--radius2);font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));white-space:nowrap;transition:.2s}
 .copy-btn:hover{box-shadow:var(--glow)}
-.ref-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
-.ref-stat{text-align:center;background:var(--bg);border-radius:var(--radius2);padding:12px}
-.ref-stat .val{font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon)}
-.ref-stat .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;margin-top:4px}
-.leaderboard{display:flex;flex-direction:column;gap:6px}
-.lb-item{display:flex;align-items:center;gap:12px;font-size:13px;padding:8px 12px;background:var(--bg);border-radius:8px}
-.lb-rank{font-weight:900;width:24px;text-align:center;font-family:'JetBrains Mono',monospace}
-.lb-rank.gold{color:#ffd700}
-.lb-rank.silver{color:#c0c0c0}
-.lb-rank.bronze{color:#cd7f32}
-.lb-addr{flex:1;font-family:'JetBrains Mono',monospace;color:var(--text2);font-size:12px}
-.lb-refs{font-weight:700;font-family:'JetBrains Mono',monospace}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.info-row .lbl{color:var(--text3)}
+.info-row .val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.leaderboard-table{width:100%;border-collapse:collapse;font-size:13px}
+.leaderboard-table th{text-align:left;padding:10px 8px;color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,.06)}
+.leaderboard-table td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.leaderboard-table tr:hover{background:rgba(0,200,150,.03)}
+.rank-1{color:var(--yellow)}
+.rank-2{color:#c0c0c0}
+.rank-3{color:#cd7f32}
 
 /* Battle Pass */
 .bp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
-.bp-item{text-align:center;padding:16px 12px;border-radius:var(--radius);background:var(--bg);border:1px solid rgba(255,255,255,.04);position:relative;transition:.2s}
+.bp-item{text-align:center;padding:16px 10px;border-radius:var(--radius);background:var(--bg2);border:1px solid rgba(255,255,255,.04);position:relative;transition:.2s}
 .bp-item.unlocked{border-color:rgba(0,200,150,.3);background:rgba(0,200,150,.05)}
-.bp-item.locked{opacity:.4}
-.bp-level{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px}
-.bp-icon{font-size:28px;margin-bottom:8px}
-.bp-reward{font-size:12px;font-weight:700;margin-bottom:10px}
-.bp-claim{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;color:#000;background:var(--neon);transition:.2s}
-.bp-claim:hover{box-shadow:var(--glow)}
-.bp-claim.locked-btn{background:var(--bg4);color:var(--text3);cursor:default}
+.bp-item.locked{opacity:.45}
+.bp-level{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.bp-icon{font-size:28px;margin-bottom:6px}
+.bp-reward{font-size:12px;font-weight:700;margin-bottom:8px}
+.bp-claim-btn{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.2s}
+.bp-claim-btn:hover{box-shadow:var(--glow)}
+.bp-claimed-tag{font-size:11px;color:var(--neon);font-weight:700}
 
 /* Achievements */
-.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.ach-item{display:flex;align-items:center;gap:14px;padding:16px}
-.ach-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:var(--bg)}
-.ach-item.completed .ach-icon{background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.3)}
-.ach-info{flex:1}
-.ach-name{font-size:14px;font-weight:700;margin-bottom:2px}
-.ach-desc{font-size:12px;color:var(--text3);margin-bottom:6px}
-.ach-progress{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
-.ach-progress .fill{height:100%;border-radius:3px;background:var(--neon)}
-.ach-pct{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-top:4px}
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.achievement-card{display:flex;align-items:center;gap:14px;padding:16px}
+.achievement-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:var(--bg2)}
+.achievement-icon.earned{background:rgba(0,200,150,.12)}
+.achievement-info{flex:1;min-width:0}
+.achievement-info h4{font-size:14px;font-weight:700;margin-bottom:2px}
+.achievement-info p{font-size:11px;color:var(--text3);margin-bottom:6px}
+.achievement-progress{width:100%;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.achievement-progress .fill{height:100%;border-radius:3px;background:var(--neon)}
+.achievement-pct{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-top:2px}
+.achievement-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;background:rgba(0,200,150,.12);color:var(--neon);text-transform:uppercase;letter-spacing:.5px}
 
 @media(max-width:600px){
   .hero h1{font-size:32px}
-  .hero-value{font-size:26px}
+  .hero-stats{gap:16px}
+  .hero-stat .val{font-size:22px}
   nav{gap:2px;padding:6px 8px}
   .nav-item{padding:8px 12px;font-size:12px}
-  .ref-stats{grid-template-columns:1fr}
+  .airdrops-grid,.raffle-grid{grid-template-columns:1fr}
+  .bp-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  .achievements-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -150,7 +149,7 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 <div class="testnet-banner"><span>⚡ Testnet Mode — Devnet Only ⚡</span></div>
 <div id="app">
 <header>
-  <a href="index.html" class="logo"><span class="logo-icon">🚀</span> Send<span>.it</span></a>
+  <a href="index.html" class="logo"><span>🚀</span> Send<span>.it</span></a>
   <button class="wallet-btn">Connect Wallet</button>
 </header>
 <nav>
@@ -168,72 +167,72 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 <!-- Hero -->
 <div class="hero">
   <h1>Claim Your Rewards</h1>
-  <p>Airdrops, raffles, referrals, and achievements — all in one place</p>
-  <div class="hero-value">$4,280.50</div>
-  <div class="hero-value-label">Total Claimable Value</div>
+  <p>Airdrops, raffles, referrals, and battle pass rewards — all in one place</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="val">$12,480</div><div class="lbl">Available to Claim</div></div>
+    <div class="hero-stat"><div class="val">4</div><div class="lbl">Active Airdrops</div></div>
+    <div class="hero-stat"><div class="val">2</div><div class="lbl">Active Raffles</div></div>
+    <div class="hero-stat"><div class="val">14</div><div class="lbl">Achievements Earned</div></div>
+  </div>
 </div>
 
 <!-- Active Airdrops -->
 <h2 class="section-title"><i class="fas fa-parachute-box"></i> Active Airdrops</h2>
-<div class="airdrop-grid">
+<div class="airdrops-grid">
 
-  <div class="card airdrop-card active">
+  <div class="card airdrop-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(0,200,150,.15)">🪂</div>
-      <div class="airdrop-meta"><h3>SEND Genesis Drop</h3><span class="token-sym">SEND</span></div>
+      <div class="token-logo" style="background:linear-gradient(135deg,#00c896,#00e87b)">S</div>
+      <div class="token-info"><h3>SEND Genesis Airdrop</h3><div class="token-sub">Season 1 Rewards</div></div>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">5,000,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">Your Allocation</div><div class="val" style="color:var(--neon)">12,500</div></div>
-    </div>
-    <div class="claim-bar"><div class="fill" style="width:34%"></div></div>
-    <div class="claim-label"><span>34% claimed</span><span>1,700,000 / 5,000,000</span></div>
-    <div class="countdown"><i class="fas fa-clock"></i> 5d 12h 30m remaining</div>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">10,000,000 SEND</span></div>
+    <div class="airdrop-row"><span class="lbl">Claimed</span><span class="val">62%</span></div>
+    <div class="progress-bar"><div class="fill" style="width:62%"></div></div>
+    <div class="airdrop-row"><span class="lbl">Your Allocation</span><span class="val" style="color:var(--neon)">4,200 SEND</span></div>
+    <div class="airdrop-row"><span class="lbl">Merkle Proof</span><span class="val" style="color:var(--neon)">✓ Verified</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 3d 14h 22m remaining</div>
     <button class="claim-btn"><i class="fas fa-download"></i> Claim with Merkle Proof</button>
   </div>
 
-  <div class="card airdrop-card active">
+  <div class="card airdrop-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(168,85,247,.15)">💎</div>
-      <div class="airdrop-meta"><h3>DeFi Alliance Reward</h3><span class="token-sym">ALLY</span></div>
+      <div class="token-logo" style="background:linear-gradient(135deg,#a855f7,#c084fc)">M</div>
+      <div class="token-info"><h3>MEME Loyalty Drop</h3><div class="token-sub">For Active Traders</div></div>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">2,000,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">Your Allocation</div><div class="val" style="color:var(--neon)">8,200</div></div>
-    </div>
-    <div class="claim-bar"><div class="fill" style="width:62%"></div></div>
-    <div class="claim-label"><span>62% claimed</span><span>1,240,000 / 2,000,000</span></div>
-    <div class="countdown"><i class="fas fa-clock"></i> 2d 8h 15m remaining</div>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">50,000,000 MEME</span></div>
+    <div class="airdrop-row"><span class="lbl">Claimed</span><span class="val">38%</span></div>
+    <div class="progress-bar"><div class="fill" style="width:38%"></div></div>
+    <div class="airdrop-row"><span class="lbl">Your Allocation</span><span class="val" style="color:var(--neon)">125,000 MEME</span></div>
+    <div class="airdrop-row"><span class="lbl">Merkle Proof</span><span class="val" style="color:var(--neon)">✓ Verified</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 7d 02h 45m remaining</div>
     <button class="claim-btn"><i class="fas fa-download"></i> Claim with Merkle Proof</button>
   </div>
 
-  <div class="card airdrop-card active">
+  <div class="card airdrop-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(255,136,0,.15)">🔥</div>
-      <div class="airdrop-meta"><h3>SolBlaze Bonus</h3><span class="token-sym">BLZE</span></div>
+      <div class="token-logo" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)">V</div>
+      <div class="token-info"><h3>VIBE Community Drop</h3><div class="token-sub">Social Score Reward</div></div>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">10,000,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">Your Allocation</div><div class="val" style="color:var(--neon)">45,000</div></div>
-    </div>
-    <div class="claim-bar"><div class="fill" style="width:18%"></div></div>
-    <div class="claim-label"><span>18% claimed</span><span>1,800,000 / 10,000,000</span></div>
-    <div class="countdown"><i class="fas fa-clock"></i> 12d 4h 50m remaining</div>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">25,000,000 VIBE</span></div>
+    <div class="airdrop-row"><span class="lbl">Claimed</span><span class="val">15%</span></div>
+    <div class="progress-bar"><div class="fill" style="width:15%"></div></div>
+    <div class="airdrop-row"><span class="lbl">Your Allocation</span><span class="val" style="color:var(--neon)">82,000 VIBE</span></div>
+    <div class="airdrop-row"><span class="lbl">Merkle Proof</span><span class="val" style="color:var(--neon)">✓ Verified</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 12d 08h 10m remaining</div>
     <button class="claim-btn"><i class="fas fa-download"></i> Claim with Merkle Proof</button>
   </div>
 
-  <div class="card airdrop-card active">
+  <div class="card airdrop-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(255,45,120,.15)">🎯</div>
-      <div class="airdrop-meta"><h3>Loyalty Points Conversion</h3><span class="token-sym">SEND</span></div>
+      <div class="token-logo" style="background:linear-gradient(135deg,#ff8800,#ffaa00)">D</div>
+      <div class="token-info"><h3>DGEN Staker Bonus</h3><div class="token-sub">Staking Loyalty Reward</div></div>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">1,000,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">Your Allocation</div><div class="val" style="color:var(--neon)">3,750</div></div>
-    </div>
-    <div class="claim-bar"><div class="fill" style="width:77%"></div></div>
-    <div class="claim-label"><span>77% claimed</span><span>770,000 / 1,000,000</span></div>
-    <div class="countdown"><i class="fas fa-clock"></i> 1d 2h 10m remaining</div>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">5,000,000 DGEN</span></div>
+    <div class="airdrop-row"><span class="lbl">Claimed</span><span class="val">81%</span></div>
+    <div class="progress-bar"><div class="fill" style="width:81%"></div></div>
+    <div class="airdrop-row"><span class="lbl">Your Allocation</span><span class="val" style="color:var(--neon)">18,400 DGEN</span></div>
+    <div class="airdrop-row"><span class="lbl">Merkle Proof</span><span class="val" style="color:var(--neon)">✓ Verified</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 1d 06h 33m remaining</div>
     <button class="claim-btn"><i class="fas fa-download"></i> Claim with Merkle Proof</button>
   </div>
 
@@ -241,258 +240,231 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 
 <!-- Completed Airdrops -->
 <h2 class="section-title"><i class="fas fa-check-circle"></i> Completed Airdrops</h2>
-<div class="airdrop-grid">
+<div class="airdrops-grid">
 
-  <div class="card airdrop-card completed">
+  <div class="card airdrop-card completed-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(0,200,150,.08)">✅</div>
-      <div class="airdrop-meta"><h3>Early Adopter Reward</h3><span class="token-sym">SEND</span></div>
+      <div class="token-logo" style="background:#333">A</div>
+      <div class="token-info"><h3>ALPHA Early Access</h3><div class="token-sub">Launch Day Drop</div></div>
+      <span class="status-tag status-claimed">Claimed</span>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">3,000,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">You Received</div><div class="val">15,000</div></div>
-    </div>
-    <span class="completed-badge success"><i class="fas fa-check"></i> Claimed</span>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">8,000,000 ALPHA</span></div>
+    <div class="airdrop-row"><span class="lbl">You Received</span><span class="val">12,500 ALPHA</span></div>
+    <button class="claim-btn" disabled>Claimed ✓</button>
   </div>
 
-  <div class="card airdrop-card completed">
+  <div class="card airdrop-card completed-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(255,45,120,.08)">❌</div>
-      <div class="airdrop-meta"><h3>NFT Holder Bonus</h3><span class="token-sym">NFTB</span></div>
+      <div class="token-logo" style="background:#333">B</div>
+      <div class="token-info"><h3>BETA Tester Reward</h3><div class="token-sub">Beta Program</div></div>
+      <span class="status-tag status-claimed">Claimed</span>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">500,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">Your Allocation</div><div class="val">2,000</div></div>
-    </div>
-    <span class="completed-badge fail"><i class="fas fa-times"></i> Missed</span>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">3,000,000 BETA</span></div>
+    <div class="airdrop-row"><span class="lbl">You Received</span><span class="val">8,000 BETA</span></div>
+    <button class="claim-btn" disabled>Claimed ✓</button>
   </div>
 
-  <div class="card airdrop-card completed">
+  <div class="card airdrop-card completed-card">
     <div class="airdrop-header">
-      <div class="airdrop-icon" style="background:rgba(0,200,150,.08)">✅</div>
-      <div class="airdrop-meta"><h3>Beta Tester Airdrop</h3><span class="token-sym">SEND</span></div>
+      <div class="token-logo" style="background:#333">X</div>
+      <div class="token-info"><h3>XMAS Holiday Drop</h3><div class="token-sub">December 2025</div></div>
+      <span class="status-tag status-missed">Missed</span>
     </div>
-    <div class="airdrop-stats">
-      <div class="airdrop-stat"><div class="lbl">Total Allocation</div><div class="val">1,500,000</div></div>
-      <div class="airdrop-stat"><div class="lbl">You Received</div><div class="val">7,500</div></div>
-    </div>
-    <span class="completed-badge success"><i class="fas fa-check"></i> Claimed</span>
+    <div class="airdrop-row"><span class="lbl">Total Allocation</span><span class="val">15,000,000 XMAS</span></div>
+    <div class="airdrop-row"><span class="lbl">Your Allocation</span><span class="val" style="color:var(--pink)">Expired</span></div>
+    <button class="claim-btn" disabled>Expired</button>
   </div>
 
 </div>
 
-<!-- Raffle -->
+<!-- Raffles -->
 <h2 class="section-title"><i class="fas fa-ticket"></i> Raffles</h2>
 <div class="raffle-grid">
-  <div class="card">
-    <h3 style="font-size:16px;font-weight:800;margin-bottom:4px">🎰 Weekly Mega Raffle</h3>
-    <div class="raffle-prize">50,000 SEND</div>
-    <div class="raffle-info">
-      <div class="raffle-row"><span class="lbl">Your Tickets</span><span class="val">12</span></div>
-      <div class="raffle-row"><span class="lbl">Total Tickets Sold</span><span class="val">4,832</span></div>
-      <div class="raffle-row"><span class="lbl">Ticket Price</span><span class="val">10 SEND</span></div>
-      <div class="raffle-row"><span class="lbl">Win Chance</span><span class="val" style="color:var(--neon)">0.25%</span></div>
-    </div>
-    <div class="countdown" style="margin-bottom:16px"><i class="fas fa-clock"></i> Drawing in 3d 8h 22m</div>
-    <button class="buy-ticket-btn"><i class="fas fa-ticket"></i> Buy Tickets (10 SEND each)</button>
-  </div>
-  <div class="card">
-    <h3 style="font-size:16px;font-weight:800;margin-bottom:12px">🏆 Previous Winners</h3>
+
+  <div class="card raffle-card">
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">🎰 Mega SOL Raffle</h3>
+    <div class="raffle-prize">50 SOL</div>
+    <div class="airdrop-row"><span class="lbl">Tickets Sold</span><span class="val">2,847 / 5,000</span></div>
+    <div class="airdrop-row"><span class="lbl">Ticket Price</span><span class="val">0.05 SOL</span></div>
+    <div class="airdrop-row"><span class="lbl">Your Tickets</span><span class="val" style="color:var(--neon)">12</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 2d 18h 05m remaining</div>
+    <button class="buy-ticket-btn"><i class="fas fa-ticket"></i> Buy Ticket (0.05 SOL)</button>
     <div class="winners-list">
-      <div class="winner-item"><span class="winner-addr">7xKp...3mNq</span><span class="winner-prize">50,000 SEND</span></div>
-      <div class="winner-item"><span class="winner-addr">9aFr...8vBw</span><span class="winner-prize">50,000 SEND</span></div>
-      <div class="winner-item"><span class="winner-addr">2dLm...5xYz</span><span class="winner-prize">25,000 SEND</span></div>
-      <div class="winner-item"><span class="winner-addr">4tRe...1pQs</span><span class="winner-prize">25,000 SEND</span></div>
-      <div class="winner-item"><span class="winner-addr">6wHj...9kCd</span><span class="winner-prize">50,000 SEND</span></div>
+      <div style="font-size:12px;font-weight:700;color:var(--text3);margin-top:8px;text-transform:uppercase;letter-spacing:1px">Previous Winners</div>
+      <div class="winner-item"><span class="addr">7xK9...mN4p</span><span class="prize">25 SOL</span></div>
+      <div class="winner-item"><span class="addr">3bR2...qW8v</span><span class="prize">10 SOL</span></div>
+      <div class="winner-item"><span class="addr">9pL5...hJ2x</span><span class="prize">15 SOL</span></div>
     </div>
   </div>
+
+  <div class="card raffle-card">
+    <h3 style="font-size:18px;font-weight:800;margin-bottom:4px">🎁 NFT Collection Raffle</h3>
+    <div class="raffle-prize">Rare NFT Bundle</div>
+    <div class="airdrop-row"><span class="lbl">Tickets Sold</span><span class="val">1,203 / 3,000</span></div>
+    <div class="airdrop-row"><span class="lbl">Ticket Price</span><span class="val">500 SEND</span></div>
+    <div class="airdrop-row"><span class="lbl">Your Tickets</span><span class="val" style="color:var(--neon)">5</span></div>
+    <div class="countdown"><i class="fas fa-clock"></i> 5d 11h 42m remaining</div>
+    <button class="buy-ticket-btn"><i class="fas fa-ticket"></i> Buy Ticket (500 SEND)</button>
+    <div class="winners-list">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);margin-top:8px;text-transform:uppercase;letter-spacing:1px">Previous Winners</div>
+      <div class="winner-item"><span class="addr">4mX8...kL9r</span><span class="prize">DeGod #4421</span></div>
+      <div class="winner-item"><span class="addr">6tY1...nP3w</span><span class="prize">SMB #1822</span></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Referral Dashboard -->
 <h2 class="section-title"><i class="fas fa-user-plus"></i> Referral Dashboard</h2>
 <div class="referral-grid">
   <div class="card">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text2)">Your Referral Link</h3>
-    <div class="referral-link-box">
-      <input type="text" value="https://send.it/ref/0x7aB3...f92d" readonly>
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:16px"><i class="fas fa-link" style="color:var(--neon)"></i> Your Referral Link</h3>
+    <div class="ref-link-box">
+      <input type="text" value="https://send.it/ref/0x7aB9...k4Lm" readonly>
       <button class="copy-btn"><i class="fas fa-copy"></i> Copy</button>
     </div>
-    <div class="ref-stats">
-      <div class="ref-stat"><div class="val">47</div><div class="lbl">Total Referrals</div></div>
-      <div class="ref-stat"><div class="val">$1,240</div><div class="lbl">Earnings (25%)</div></div>
-      <div class="ref-stat"><div class="val">12</div><div class="lbl">Active This Month</div></div>
-    </div>
-    <p style="font-size:12px;color:var(--text3)">Earn 25% of platform fees generated by your referrals. Paid out weekly in SEND tokens.</p>
+    <div class="info-row"><span class="lbl">Total Referrals</span><span class="val" style="color:var(--neon)">47</span></div>
+    <div class="info-row"><span class="lbl">Active Referrals (30d)</span><span class="val">18</span></div>
+    <div class="info-row"><span class="lbl">Commission Rate</span><span class="val" style="color:var(--neon)">25% of fees</span></div>
+    <div class="info-row"><span class="lbl">Total Earnings</span><span class="val" style="color:var(--neon)">1,842 SEND</span></div>
+    <div class="info-row"><span class="lbl">Pending Payout</span><span class="val">214 SEND</span></div>
+    <button class="claim-btn" style="margin-top:16px"><i class="fas fa-wallet"></i> Withdraw Earnings</button>
   </div>
   <div class="card">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text2)">Leaderboard</h3>
-    <div class="leaderboard">
-      <div class="lb-item"><span class="lb-rank gold">1</span><span class="lb-addr">8xMp...4nKr</span><span class="lb-refs">234 refs</span></div>
-      <div class="lb-item"><span class="lb-rank silver">2</span><span class="lb-addr">3dFr...7vBw</span><span class="lb-refs">189 refs</span></div>
-      <div class="lb-item"><span class="lb-rank bronze">3</span><span class="lb-addr">5aLm...2xYz</span><span class="lb-refs">156 refs</span></div>
-      <div class="lb-item"><span class="lb-rank">4</span><span class="lb-addr">9tRe...6pQs</span><span class="lb-refs">112 refs</span></div>
-      <div class="lb-item"><span class="lb-rank">5</span><span class="lb-addr">1wHj...0kCd</span><span class="lb-refs">98 refs</span></div>
-      <div class="lb-item" style="border:1px solid rgba(0,200,150,.2);border-radius:8px"><span class="lb-rank" style="color:var(--neon)">14</span><span class="lb-addr" style="color:var(--neon)">You</span><span class="lb-refs" style="color:var(--neon)">47 refs</span></div>
-    </div>
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:16px"><i class="fas fa-trophy" style="color:var(--yellow)"></i> Referral Leaderboard</h3>
+    <table class="leaderboard-table">
+      <thead><tr><th>#</th><th>Referrer</th><th>Referrals</th><th>Earned</th></tr></thead>
+      <tbody>
+        <tr><td class="rank-1">🥇</td><td>whale.sol</td><td style="font-family:'JetBrains Mono',monospace">342</td><td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">24,800 SEND</td></tr>
+        <tr><td class="rank-2">🥈</td><td>defi_king.sol</td><td style="font-family:'JetBrains Mono',monospace">289</td><td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">19,420 SEND</td></tr>
+        <tr><td class="rank-3">🥉</td><td>crypto_chad.sol</td><td style="font-family:'JetBrains Mono',monospace">214</td><td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">15,100 SEND</td></tr>
+        <tr><td style="color:var(--text3)">4</td><td>sol_maxi.sol</td><td style="font-family:'JetBrains Mono',monospace">178</td><td style="font-family:'JetBrains Mono',monospace">12,340 SEND</td></tr>
+        <tr><td style="color:var(--text3)">5</td><td>nft_wizard.sol</td><td style="font-family:'JetBrains Mono',monospace">156</td><td style="font-family:'JetBrains Mono',monospace">10,880 SEND</td></tr>
+        <tr style="background:rgba(0,200,150,.05)"><td style="color:var(--neon)">23</td><td style="color:var(--neon)">You</td><td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">47</td><td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">1,842 SEND</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- Battle Pass -->
-<h2 class="section-title"><i class="fas fa-shield"></i> Season 2 Battle Pass</h2>
+<!-- Battle Pass Rewards -->
+<h2 class="section-title"><i class="fas fa-shield-halved"></i> Battle Pass — Season 2</h2>
 <div class="bp-grid">
-  <div class="card bp-item unlocked">
-    <div class="bp-level">Level 1</div>
-    <div class="bp-icon">🎁</div>
-    <div class="bp-reward">500 SEND</div>
-    <button class="bp-claim"><i class="fas fa-check"></i> Claim</button>
-  </div>
-  <div class="card bp-item unlocked">
-    <div class="bp-level">Level 2</div>
-    <div class="bp-icon">🎨</div>
-    <div class="bp-reward">Profile Frame</div>
-    <button class="bp-claim"><i class="fas fa-check"></i> Claim</button>
-  </div>
-  <div class="card bp-item unlocked">
-    <div class="bp-level">Level 3</div>
-    <div class="bp-icon">💰</div>
-    <div class="bp-reward">1,000 SEND</div>
-    <button class="bp-claim"><i class="fas fa-check"></i> Claim</button>
-  </div>
-  <div class="card bp-item unlocked">
-    <div class="bp-level">Level 4</div>
-    <div class="bp-icon">🎟️</div>
-    <div class="bp-reward">5 Raffle Tickets</div>
-    <button class="bp-claim"><i class="fas fa-check"></i> Claim</button>
-  </div>
-  <div class="card bp-item unlocked">
-    <div class="bp-level">Level 5</div>
-    <div class="bp-icon">⚡</div>
-    <div class="bp-reward">2,500 SEND</div>
-    <button class="bp-claim"><i class="fas fa-check"></i> Claim</button>
-  </div>
-  <div class="card bp-item locked">
-    <div class="bp-level">Level 6</div>
-    <div class="bp-icon">🔒</div>
-    <div class="bp-reward">Custom Badge</div>
-    <button class="bp-claim locked-btn">Locked</button>
-  </div>
-  <div class="card bp-item locked">
-    <div class="bp-level">Level 7</div>
-    <div class="bp-icon">🔒</div>
-    <div class="bp-reward">5,000 SEND</div>
-    <button class="bp-claim locked-btn">Locked</button>
-  </div>
-  <div class="card bp-item locked">
-    <div class="bp-level">Level 8</div>
-    <div class="bp-icon">🔒</div>
-    <div class="bp-reward">Exclusive NFT</div>
-    <button class="bp-claim locked-btn">Locked</button>
-  </div>
-  <div class="card bp-item locked">
-    <div class="bp-level">Level 9</div>
-    <div class="bp-icon">🔒</div>
-    <div class="bp-reward">10,000 SEND</div>
-    <button class="bp-claim locked-btn">Locked</button>
-  </div>
-  <div class="card bp-item locked">
-    <div class="bp-level">Level 10</div>
-    <div class="bp-icon">🔒</div>
-    <div class="bp-reward">Platinum Pass</div>
-    <button class="bp-claim locked-btn">Locked</button>
-  </div>
+  <div class="bp-item unlocked"><div class="bp-level">Lvl 1</div><div class="bp-icon">🪙</div><div class="bp-reward">500 SEND</div><span class="bp-claimed-tag">Claimed ✓</span></div>
+  <div class="bp-item unlocked"><div class="bp-level">Lvl 2</div><div class="bp-icon">🎨</div><div class="bp-reward">Profile Frame</div><span class="bp-claimed-tag">Claimed ✓</span></div>
+  <div class="bp-item unlocked"><div class="bp-level">Lvl 3</div><div class="bp-icon">💎</div><div class="bp-reward">1,000 SEND</div><span class="bp-claimed-tag">Claimed ✓</span></div>
+  <div class="bp-item unlocked"><div class="bp-level">Lvl 4</div><div class="bp-icon">🎭</div><div class="bp-reward">Rare Avatar</div><button class="bp-claim-btn">Claim</button></div>
+  <div class="bp-item unlocked"><div class="bp-level">Lvl 5</div><div class="bp-icon">⚡</div><div class="bp-reward">2,500 SEND</div><button class="bp-claim-btn">Claim</button></div>
+  <div class="bp-item locked"><div class="bp-level">Lvl 6</div><div class="bp-icon">🔥</div><div class="bp-reward">Fee Discount</div><div style="font-size:11px;color:var(--text3)">Locked</div></div>
+  <div class="bp-item locked"><div class="bp-level">Lvl 7</div><div class="bp-icon">👑</div><div class="bp-reward">5,000 SEND</div><div style="font-size:11px;color:var(--text3)">Locked</div></div>
+  <div class="bp-item locked"><div class="bp-level">Lvl 8</div><div class="bp-icon">🌟</div><div class="bp-reward">Legendary NFT</div><div style="font-size:11px;color:var(--text3)">Locked</div></div>
+  <div class="bp-item locked"><div class="bp-level">Lvl 9</div><div class="bp-icon">🏆</div><div class="bp-reward">10,000 SEND</div><div style="font-size:11px;color:var(--text3)">Locked</div></div>
+  <div class="bp-item locked"><div class="bp-level">Lvl 10</div><div class="bp-icon">🚀</div><div class="bp-reward">Exclusive Title</div><div style="font-size:11px;color:var(--text3)">Locked</div></div>
 </div>
 
-<!-- Achievements -->
-<h2 class="section-title"><i class="fas fa-trophy"></i> Achievement Badges</h2>
-<div class="ach-grid">
+<!-- Achievement Badges -->
+<h2 class="section-title"><i class="fas fa-medal"></i> Achievement Badges</h2>
+<div class="achievements-grid">
 
-  <div class="card ach-item completed">
-    <div class="ach-icon">🏅</div>
-    <div class="ach-info">
-      <div class="ach-name">First Launch</div>
-      <div class="ach-desc">Launch your first token on Send.it</div>
-      <div class="ach-progress"><div class="fill" style="width:100%"></div></div>
-      <div class="ach-pct">✓ Completed</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon earned">🚀</div>
+    <div class="achievement-info">
+      <h4>First Launch</h4><p>Launch your first token on Send.it</p>
+      <span class="achievement-badge">Earned</span>
     </div>
   </div>
 
-  <div class="card ach-item completed">
-    <div class="ach-icon">🗳️</div>
-    <div class="ach-info">
-      <div class="ach-name">Active Voter</div>
-      <div class="ach-desc">Vote on 10 governance proposals</div>
-      <div class="ach-progress"><div class="fill" style="width:100%"></div></div>
-      <div class="ach-pct">✓ Completed</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon earned">💰</div>
+    <div class="achievement-info">
+      <h4>Diamond Hands</h4><p>Hold a token for 30+ days</p>
+      <span class="achievement-badge">Earned</span>
     </div>
   </div>
 
-  <div class="card ach-item completed">
-    <div class="ach-icon">🤝</div>
-    <div class="ach-info">
-      <div class="ach-name">Social Butterfly</div>
-      <div class="ach-desc">Follow 25 creators</div>
-      <div class="ach-progress"><div class="fill" style="width:100%"></div></div>
-      <div class="ach-pct">✓ Completed</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon earned">🗳️</div>
+    <div class="achievement-info">
+      <h4>Civic Duty</h4><p>Vote on 10 governance proposals</p>
+      <span class="achievement-badge">Earned</span>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">💎</div>
-    <div class="ach-info">
-      <div class="ach-name">Diamond Hands</div>
-      <div class="ach-desc">Hold a token for 30+ days</div>
-      <div class="ach-progress"><div class="fill" style="width:73%"></div></div>
-      <div class="ach-pct">22 / 30 days</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon earned">🤝</div>
+    <div class="achievement-info">
+      <h4>Network Builder</h4><p>Refer 25 active users</p>
+      <span class="achievement-badge">Earned</span>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">🐋</div>
-    <div class="ach-info">
-      <div class="ach-name">Whale Status</div>
-      <div class="ach-desc">Accumulate 100,000 SEND tokens</div>
-      <div class="ach-progress"><div class="fill" style="width:32%"></div></div>
-      <div class="ach-pct">32,700 / 100,000</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon">📊</div>
+    <div class="achievement-info">
+      <h4>Volume King</h4><p>Trade over $100K total volume</p>
+      <div class="achievement-progress"><div class="fill" style="width:72%"></div></div>
+      <div class="achievement-pct">$72,400 / $100,000</div>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">🔥</div>
-    <div class="ach-info">
-      <div class="ach-name">Hot Streak</div>
-      <div class="ach-desc">Make 50 trades in a month</div>
-      <div class="ach-progress"><div class="fill" style="width:56%"></div></div>
-      <div class="ach-pct">28 / 50 trades</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon">🏦</div>
+    <div class="achievement-info">
+      <h4>Lending Pro</h4><p>Supply $50K+ in lending pools</p>
+      <div class="achievement-progress"><div class="fill" style="width:45%"></div></div>
+      <div class="achievement-pct">$22,500 / $50,000</div>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">📢</div>
-    <div class="ach-info">
-      <div class="ach-name">Referral King</div>
-      <div class="ach-desc">Refer 100 users to the platform</div>
-      <div class="ach-progress"><div class="fill" style="width:47%"></div></div>
-      <div class="ach-pct">47 / 100 referrals</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon">⛏️</div>
+    <div class="achievement-info">
+      <h4>Staking Veteran</h4><p>Stake for 90 consecutive days</p>
+      <div class="achievement-progress"><div class="fill" style="width:60%"></div></div>
+      <div class="achievement-pct">54 / 90 days</div>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">🏗️</div>
-    <div class="ach-info">
-      <div class="ach-name">Master Builder</div>
-      <div class="ach-desc">Launch 10 tokens that reach migration</div>
-      <div class="ach-progress"><div class="fill" style="width:20%"></div></div>
-      <div class="ach-pct">2 / 10 tokens</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon">🎯</div>
+    <div class="achievement-info">
+      <h4>Sniper</h4><p>Buy within 60s of 10 launches</p>
+      <div class="achievement-progress"><div class="fill" style="width:30%"></div></div>
+      <div class="achievement-pct">3 / 10 snipes</div>
     </div>
   </div>
 
-  <div class="card ach-item">
-    <div class="ach-icon">🎰</div>
-    <div class="ach-info">
-      <div class="ach-name">Lucky Draw</div>
-      <div class="ach-desc">Win a raffle</div>
-      <div class="ach-progress"><div class="fill" style="width:0%"></div></div>
-      <div class="ach-pct">0 / 1 wins</div>
+  <div class="card achievement-card">
+    <div class="achievement-icon">🌐</div>
+    <div class="achievement-info">
+      <h4>Social Butterfly</h4><p>Get 500 followers on your profile</p>
+      <div class="achievement-progress"><div class="fill" style="width:88%"></div></div>
+      <div class="achievement-pct">440 / 500 followers</div>
+    </div>
+  </div>
+
+  <div class="card achievement-card">
+    <div class="achievement-icon">🎰</div>
+    <div class="achievement-info">
+      <h4>Lucky Winner</h4><p>Win a raffle</p>
+      <div class="achievement-progress"><div class="fill" style="width:0%"></div></div>
+      <div class="achievement-pct">0 / 1 wins</div>
+    </div>
+  </div>
+
+  <div class="card achievement-card">
+    <div class="achievement-icon earned">📝</div>
+    <div class="achievement-info">
+      <h4>Proposal Author</h4><p>Submit a governance proposal</p>
+      <span class="achievement-badge">Earned</span>
+    </div>
+  </div>
+
+  <div class="card achievement-card">
+    <div class="achievement-icon">🔥</div>
+    <div class="achievement-info">
+      <h4>Streak Master</h4><p>Log in 30 days in a row</p>
+      <div class="achievement-progress"><div class="fill" style="width:53%"></div></div>
+      <div class="achievement-pct">16 / 30 days</div>
     </div>
   </div>
 
