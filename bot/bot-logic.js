@@ -25,7 +25,7 @@ const responses = {
   "/socials": `📱 *Send\\.it Socials*\n\n🐦 Twitter: [@SendItSolana420](https://twitter.com/SendItSolana420)\n💬 Discord: [discord\\.gg/vKRTyG85](https://discord.gg/vKRTyG85)\n📱 Telegram: [Join Group](https://t.me/+Xw4E2sJ0Z3Q5ZDYx)\n📦 GitHub: [send\\_it](https://github.com/joebower1983-a11y/send_it)`,
   "/whitepaper": `📄 *Send\\.it Whitepaper v2\\.0*\n\nRead the full whitepaper covering all 29 modules:\n[View on GitHub](https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md)`,
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n/raider — Give Raider ⚔️ badge \\(reply\\)\n/unraider — Remove Raider badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators\n\n🏆 *Contest Commands:*\n/contest — Show active contests \\& help\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — End all contests \\(mod\\)`,
+  "/filters": "🤖 <b>Bot Commands</b>\n\n📊 /price — Token price &amp; stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract &amp; fee info\n📜 /rules — Group rules\n🌐 /website — Send.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy-paste shill message\n🤖 /filters — This list\n\n🛡️ <b>Mod Commands (admin/mod only):</b>\n/warn — Warn a user (reply)\n/mute [min] — Mute user (reply, default 60min)\n/unmute — Unmute user (reply)\n/ban — Ban user (reply)\n/unban — Unban user (reply)\n\n⚔️ <b>Raid Leader Commands (mod/owner):</b>\n/addraidleader — Add raid leader (reply)\n/removeraidleader — Remove raid leader (reply)\n/raidleaders — List raid leaders\n\n📣 <b>Roles (mod):</b>\n/shiller — Give Shiller 📣 badge (reply)\n/unshiller — Remove Shiller badge (reply)\n/fundraiser — Give Fundraiser 💰 badge (reply)\n/unfundraiser — Remove Fundraiser badge (reply)\n/pm — Give Project Manager 📋 badge (reply)\n/unpm — Remove Project Manager badge (reply)\n/raider — Give Raider ⚔️ badge (reply)\n/unraider — Remove Raider badge (reply)\n\n👑 <b>Owner Commands:</b>\n/addmod — Add bot moderator (reply)\n/removemod — Remove bot moderator (reply)\n/modlist — List all bot moderators\n\n🏆 <b>Contest Commands:</b>\n/contest — Show active contests &amp; help\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — End all contests (mod)",
   "/shill": `📣 *Copy \\& paste this everywhere:*\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\n🚀 Send\\.it — The fairest token launchpad on Solana\n\n✅ No insiders \\| No presales \\| Anti\\-snipe\n✅ 29 on\\-chain modules \\| 13k\\+ lines of Rust\n✅ Auto Raydium migration\n✅ Creator rewards \\+ holder rewards\n\n📋 CA: F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n🐦 twitter\\.com/SendItSolana420\n💬 t\\.me/\\+Xw4E2sJ0Z3Q5ZDYx\n💎 discord\\.gg/vKRTyG85\n📈 pump\\.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\nSend it\\! 🔥`,
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
 };
@@ -90,7 +90,7 @@ async function handleContestCommand(msg, chatId, text) {
     } else {
       txt += "_No active contests_\n";
     }
-    txt += "\n*Commands:*\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — end all contests";
+    txt += "\n*Commands:*\n/contest shill start\|enter\|entries\|end\n/contest raid start\|leaderboard\|end\n/contest meme start\|enter\|entries\|end\n/contest invite start\|leaderboard\|end\n/contest end all — end all contests";
     await tgApi("sendMessage", { chat_id: chatId, text: txt, reply_to_message_id: msg.message_id });
     return;
   }
@@ -573,11 +573,14 @@ async function handleUpdate(update) {
   // Check for commands
   const cmd = text.split("@")[0].split(" ")[0].toLowerCase();
   if (responses[cmd]) {
-    await tgApi("sendMessage", {
+    const opts = {
       chat_id: chatId, text: responses[cmd],
-      parse_mode: "MarkdownV2", disable_web_page_preview: true,
+      disable_web_page_preview: true,
       reply_to_message_id: msg.message_id
-    });
+    };
+    if (cmd === "/filters") opts.parse_mode = "HTML";
+    else opts.parse_mode = "MarkdownV2";
+    await tgApi("sendMessage", opts);
     console.log(`Replied to ${cmd} from ${msg.from?.username || msg.from?.id}`);
   }
 }
