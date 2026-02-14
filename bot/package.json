@@ -1,19 +1,12 @@
 {
-  "name": "sendit-telegram-bot",
+  "name": "sendit-bot",
   "version": "1.0.0",
-  "description": "Send.it — Solana token launchpad Telegram bot",
-  "main": "src/index.js",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
-  },
-  "dependencies": {
-    "@solana/web3.js": "^1.95.0",
-    "bs58": "^5.0.0",
-    "dotenv": "^16.4.0",
-    "telegraf": "^4.16.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.0"
+    "dev": "node filters.js",
+    "lint": "node --check bot-logic.js api/webhook.js api/set-webhook.js"
   }
 }
