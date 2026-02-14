@@ -24,7 +24,7 @@ const responses = {
 
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
 
-  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n/raider — Give Raider ⚔️ badge \\(reply\\)\n/unraider — Remove Raider badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators`,
+  "/filters": `🤖 *Bot Commands*\n\n📊 /price — Token price \\& stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract \\& fee info\n📜 /rules — Group rules\n🌐 /website — Send\\.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🚨 /raids — Raid coordinator\n📣 /shill — Copy\\-paste shill message\n🤖 /filters — This list\n\n🛡️ *Mod Commands \\(admin/mod only\\):*\n/warn — Warn a user \\(reply\\)\n/mute \\[min\\] — Mute user \\(reply, default 60min\\)\n/unmute — Unmute user \\(reply\\)\n/ban — Ban user \\(reply\\)\n/unban — Unban user \\(reply\\)\n\n⚔️ *Raid Leader Commands \\(mod/owner\\):*\n/addraidleader — Add raid leader \\(reply\\)\n/removeraidleader — Remove raid leader \\(reply\\)\n/raidleaders — List raid leaders\n\n📣 *Roles \\(mod\\):*\n/shiller — Give Shiller 📣 badge \\(reply\\)\n/unshiller — Remove Shiller badge \\(reply\\)\n/fundraiser — Give Fundraiser 💰 badge \\(reply\\)\n/unfundraiser — Remove Fundraiser badge \\(reply\\)\n/pm — Give Project Manager 📋 badge \\(reply\\)\n/unpm — Remove Project Manager badge \\(reply\\)\n/raider — Give Raider ⚔️ badge \\(reply\\)\n/unraider — Remove Raider badge \\(reply\\)\n\n👑 *Owner Commands:*\n/addmod — Add bot moderator \\(reply\\)\n/removemod — Remove bot moderator \\(reply\\)\n/modlist — List all bot moderators\n\n🏆 *Contest Commands:*\n/contest — Show active contests \\& help\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — End all contests \\(mod\\)`,
 
   "/shill": `📣 *Copy \\& paste this everywhere:*\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\n🚀 Send\\.it — The fairest token launchpad on Solana\n\n✅ No insiders \\| No presales \\| Anti\\-snipe\n✅ 29 on\\-chain modules \\| 13k\\+ lines of Rust\n✅ Auto Raydium migration\n✅ Creator rewards \\+ holder rewards\n\n📋 CA: F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n🐦 twitter\\.com/SendItSolana420\n💬 t\\.me/\\+Xw4E2sJ0Z3Q5ZDYx\n💎 discord\\.gg/vKRTyG85\n📈 pump\\.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\nSend it\\! 🔥`,
 
@@ -53,6 +53,167 @@ function isOwner(userId) {
 
 function isMod(userId) {
   return botMods.has(userId) || isOwner(userId);
+}
+
+// Contest system
+const contests = {
+  shill: { active: false, entries: new Map(), endsAt: null, chatId: null },
+  raid: { active: false, scores: new Map(), endsAt: null, chatId: null },
+  meme: { active: false, entries: [], endsAt: null, chatId: null },
+  invite: { active: false, scores: new Map(), endsAt: null, chatId: null }
+};
+
+async function handleContestCommand(msg, chatId, text) {
+  const parts = text.split(/\s+/);
+  const type = parts[1]?.toLowerCase();
+  const sub = parts[2]?.toLowerCase();
+
+  // /contest — show active contests & help
+  if (!type) {
+    const active = Object.entries(contests).filter(([,c]) => c.active);
+    let txt = "🏆 *Contest System*\n\n";
+    if (active.length) {
+      txt += "*Active Contests:*\n";
+      for (const [name, c] of active) {
+        const left = Math.max(0, Math.round((c.endsAt - Date.now()) / 3600000));
+        txt += `• ${name.charAt(0).toUpperCase() + name.slice(1)} — ${left}h remaining\n`;
+      }
+    } else {
+      txt += "_No active contests_\n";
+    }
+    txt += "\n*Commands:*\n";
+    txt += "/contest shill start|enter|entries|end\n";
+    txt += "/contest raid start|leaderboard|end\n";
+    txt += "/contest meme start|enter|entries|end\n";
+    txt += "/contest invite start|leaderboard|end\n";
+    txt += "/contest end all — end all contests";
+    await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt, reply_to_message_id: msg.message_id}) });
+    return;
+  }
+
+  // /contest end all
+  if (type === "end" && sub === "all") {
+    if (!isMod(msg.from.id)) {
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) });
+      return;
+    }
+    for (const c of Object.values(contests)) {
+      c.active = false; c.endsAt = null;
+    }
+    await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "🏆 All contests ended."}) });
+    return;
+  }
+
+  // SHILL CONTEST
+  if (type === "shill") {
+    const c = contests.shill;
+    if (sub === "start") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      const hours = parseInt(parts[3]) || 72;
+      c.active = true; c.entries = new Map(); c.endsAt = Date.now() + hours * 3600000; c.chatId = chatId;
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🏆 Shill Contest started! ${hours}h to go.\n\nSubmit your tweet with:\n/contest shill enter <url>`}) });
+    } else if (sub === "enter") {
+      if (!c.active) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No active shill contest.", reply_to_message_id: msg.message_id}) }); return; }
+      const url = parts[3];
+      if (!url) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "Usage: /contest shill enter <tweet_url>", reply_to_message_id: msg.message_id}) }); return; }
+      c.entries.set(msg.from.id, { url, name: msg.from.first_name || "Anon", timestamp: Date.now() });
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `✅ Entry recorded! (${c.entries.size} total entries)`, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "entries") {
+      if (!c.active && c.entries.size === 0) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No shill contest entries.", reply_to_message_id: msg.message_id}) }); return; }
+      let txt = `📣 Shill Contest Entries (${c.entries.size}):\n\n`;
+      let i = 1;
+      for (const [, e] of c.entries) { txt += `${i++}. ${e.name} — ${e.url}\n`; }
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "end") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      c.active = false;
+      let txt = `🏆 Shill Contest ended! ${c.entries.size} entries:\n\n`;
+      let i = 1;
+      for (const [, e] of c.entries) { txt += `${i++}. ${e.name} — ${e.url}\n`; }
+      txt += "\nMods: judge entries and announce the winner!";
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt}) });
+    }
+    return;
+  }
+
+  // RAID CONTEST
+  if (type === "raid") {
+    const c = contests.raid;
+    if (sub === "start") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      const days = parseInt(parts[3]) || 7;
+      c.active = true; c.scores = new Map(); c.endsAt = Date.now() + days * 86400000; c.chatId = chatId;
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🏆 Raid Contest started! ${days} days to go.\n\nComplete raids with /raids done to earn points!`}) });
+    } else if (sub === "leaderboard") {
+      if (c.scores.size === 0) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No raid contest scores yet.", reply_to_message_id: msg.message_id}) }); return; }
+      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
+      let txt = "🏆 Raid Contest Leaderboard:\n\n";
+      sorted.forEach((e, i) => { txt += `${i + 1}. ${e.name} — ${e.points} pts\n`; });
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "end") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      c.active = false;
+      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
+      let txt = "🏆 Raid Contest OVER! Final standings:\n\n";
+      sorted.forEach((e, i) => { txt += `${["🥇","🥈","🥉"][i] || `${i+1}.`} ${e.name} — ${e.points} pts\n`; });
+      if (sorted.length === 0) txt += "No participants.";
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt}) });
+    }
+    return;
+  }
+
+  // MEME CONTEST
+  if (type === "meme") {
+    const c = contests.meme;
+    if (sub === "start") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      const hours = parseInt(parts[3]) || 72;
+      c.active = true; c.entries = []; c.endsAt = Date.now() + hours * 3600000; c.chatId = chatId;
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🏆 Meme Contest started! ${hours}h to go.\n\nReply to a photo/image with:\n/contest meme enter`}) });
+    } else if (sub === "enter") {
+      if (!c.active) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No active meme contest.", reply_to_message_id: msg.message_id}) }); return; }
+      const reply = msg.reply_to_message;
+      if (!reply || (!reply.photo && !reply.document)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "↩️ Reply to a photo/image to enter!", reply_to_message_id: msg.message_id}) }); return; }
+      c.entries.push({ userId: msg.from.id, name: msg.from.first_name || "Anon", messageId: reply.message_id, timestamp: Date.now() });
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `✅ Meme entry recorded! (${c.entries.length} total)`, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "entries") {
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🎨 Meme Contest: ${c.entries.length} entries so far.`, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "end") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      c.active = false;
+      let txt = `🏆 Meme Contest ended! ${c.entries.length} entries:\n\n`;
+      c.entries.forEach((e, i) => { txt += `${i + 1}. ${e.name}\n`; });
+      txt += "\nMods: judge entries and announce the winner!";
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt}) });
+    }
+    return;
+  }
+
+  // INVITE CONTEST
+  if (type === "invite") {
+    const c = contests.invite;
+    if (sub === "start") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      const days = parseInt(parts[3]) || 7;
+      c.active = true; c.scores = new Map(); c.endsAt = Date.now() + days * 86400000; c.chatId = chatId;
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🏆 Invite Contest started! ${days} days to go.\n\nInvite friends — they'll be tracked automatically!`}) });
+    } else if (sub === "leaderboard") {
+      if (c.scores.size === 0) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No invite scores yet.", reply_to_message_id: msg.message_id}) }); return; }
+      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
+      let txt = "🏆 Invite Contest Leaderboard:\n\n";
+      sorted.forEach((e, i) => { txt += `${i + 1}. ${e.name} — ${e.points} invites\n`; });
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt, reply_to_message_id: msg.message_id}) });
+    } else if (sub === "end") {
+      if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
+      c.active = false;
+      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
+      let txt = "🏆 Invite Contest OVER! Final standings:\n\n";
+      sorted.forEach((e, i) => { txt += `${["🥇","🥈","🥉"][i] || `${i+1}.`} ${e.name} — ${e.points} invites\n`; });
+      if (sorted.length === 0) txt += "No invites tracked.";
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt}) });
+    }
+    return;
+  }
 }
 
 // Raid system
@@ -133,6 +294,12 @@ async function handleRaidCommand(msg, chatId, text) {
     } else {
       const raid = activeRaids[activeRaids.length - 1];
       raid.participants.add(msg.from.id);
+      // Increment raid contest score if active
+      if (contests.raid.active) {
+        const rc = contests.raid.scores;
+        const existing = rc.get(msg.from.id);
+        if (existing) { existing.points++; } else { rc.set(msg.from.id, { name: msg.from.first_name || "Anon", points: 1 }); }
+      }
       await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `✅ ${msg.from.first_name} completed the raid! (${raid.participants.size} total)`, reply_to_message_id: msg.message_id}) });
     }
     
@@ -187,6 +354,15 @@ function generateCaptcha() {
 
 async function handleNewMember(msg) {
   const chatId = msg.chat.id;
+  // Track invite contest — credit the user who added them (msg.from)
+  if (contests.invite.active && msg.from) {
+    for (const member of msg.new_chat_members || []) {
+      if (member.is_bot || member.id === msg.from.id) continue;
+      const ic = contests.invite.scores;
+      const existing = ic.get(msg.from.id);
+      if (existing) { existing.points++; } else { ic.set(msg.from.id, { name: msg.from.first_name || "Anon", points: 1 }); }
+    }
+  }
   for (const member of msg.new_chat_members || []) {
     if (member.is_bot || captchaWhitelist.has(member.id)) continue;
     
@@ -194,22 +370,31 @@ async function handleNewMember(msg) {
     const name = member.first_name || "New member";
     const captcha = generateCaptcha();
     
-    // Send captcha challenge (plain text to avoid MarkdownV2 escaping issues)
-    const threadId = msg.message_thread_id || undefined;
-    const sendBody = {
-      chat_id: chatId,
-      text: `👋 Welcome ${name}!\n\n🔒 To verify you're human, solve this:\n\nWhat is ${captcha.question} ?\n\nJust type the number in chat within 3 minutes.`,
-    };
-    if (threadId) sendBody.message_thread_id = threadId;
-    
-    const res = await fetch(`${BASE}/sendMessage`, {
+    // Send captcha challenge via DM to the user
+    const dmRes = await fetch(`${BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(sendBody)
+      body: JSON.stringify({
+        chat_id: userId,
+        text: `👋 Welcome to Send.it!\n\n🔒 To verify you're human, solve this:\n\nWhat is ${captcha.question} ?\n\nReply here with the number within 3 minutes.`
+      })
     });
-    const data = await res.json();
-    const captchaMsgId = data.ok ? data.result.message_id : null;
-    if (!data.ok) console.error("Captcha send failed:", JSON.stringify(data));
+    const dmData = await dmRes.json();
+    const captchaMsgId = dmData.ok ? dmData.result.message_id : null;
+    
+    // If DM failed (user hasn't started bot), fall back to group message
+    if (!dmData.ok) {
+      console.error("DM captcha failed, falling back to group:", JSON.stringify(dmData));
+      const threadId = msg.message_thread_id || undefined;
+      const fallbackBody = {
+        chat_id: chatId,
+        text: `👋 Welcome ${name}!\n\n🔒 To verify you're human, solve this:\n\nWhat is ${captcha.question} ?\n\nJust type the number in chat within 3 minutes.`,
+      };
+      if (threadId) fallbackBody.message_thread_id = threadId;
+      const fbRes = await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(fallbackBody) });
+      const fbData = await fbRes.json();
+      if (fbData.ok) pendingCaptcha.set(userId, { chatId, msgId: fbData.result.message_id, answer: captcha.answer, timeout: null, threadId, isDm: false });
+    }
     
     // Set timeout to kick if not solved in 3 minutes
     const timeout = setTimeout(async () => {
@@ -233,7 +418,7 @@ async function handleNewMember(msg) {
       }
     }, 180000);
     
-    pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout, threadId });
+    pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout, isDm: dmData.ok });
     console.log(`Captcha sent to ${name} (${userId}): ${captcha.question} = ${captcha.answer}`);
   }
 }
@@ -242,7 +427,7 @@ async function checkCaptchaAnswer(msg) {
   const userId = msg.from.id;
   if (!pendingCaptcha.has(userId)) return false;
   
-  const { chatId, msgId, answer, timeout } = pendingCaptcha.get(userId);
+  const { chatId, msgId, answer, timeout, isDm } = pendingCaptcha.get(userId);
   const text = msg.text.trim();
   
   if (text === answer) {
@@ -273,25 +458,30 @@ async function checkCaptchaAnswer(msg) {
       })
     });
     
-    // Delete captcha message and answer
+    // Clean up captcha messages
     try {
-      if (msgId) await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msgId}) });
-      await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msg.message_id}) });
+      if (isDm && msgId) {
+        await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: userId, message_id: msgId}) });
+      } else if (msgId) {
+        await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msgId}) });
+        await fetch(`${BASE}/deleteMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, message_id: msg.message_id}) });
+      }
     } catch (e) {}
     
-    // Welcome them
-    const welcomeBody = {
-      chat_id: chatId,
-      text: `✅ Verified! Welcome to Send.it, ${msg.from.first_name || "anon"}! 🚀\n\nType /filters to see available commands.`
-    };
-    if (pendingCaptcha.get(userId)?.threadId || msg.message_thread_id) {
-      welcomeBody.message_thread_id = msg.message_thread_id;
-    }
+    // Welcome in group
     const welcomeRes = await fetch(`${BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(welcomeBody)
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `✅ Verified! Welcome to Send.it, ${msg.from.first_name || "anon"}! 🚀\n\nType /filters to see available commands.`
+      })
     });
+    
+    // Confirm in DM if that's where they answered
+    if (isDm) {
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: userId, text: "✅ Verified! You now have access to the Send.it group."}) });
+    }
     
     console.log(`${msg.from.first_name} (${userId}) passed captcha`);
     return true;
@@ -583,6 +773,12 @@ async function poll() {
             });
           }
         } catch (e) { console.error("Mod error:", e.message); }
+        continue;
+      }
+      
+      // Contest commands
+      if (text.startsWith("/contest")) {
+        await handleContestCommand(msg, chatId, text);
         continue;
       }
       
