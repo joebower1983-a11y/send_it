@@ -31,6 +31,10 @@ pub mod voting;
 pub mod fee_splitting;
 pub mod content_claims;
 pub mod embeddable_widgets;
+pub mod stable_pairs;
+pub mod social_launch;
+pub mod points_system;
+pub mod fund_tokens;
 
 declare_id!("SendiTLaunchPad111111111111111111111111111");
 
