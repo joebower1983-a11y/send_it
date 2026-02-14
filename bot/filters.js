@@ -70,38 +70,13 @@ async function handleNewMember(msg) {
     const name = member.first_name || "New member";
     const captcha = generateCaptcha();
     
-    // Restrict user until they solve captcha
-    try {
-      await fetch(`${BASE}/restrictChatMember`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          user_id: userId,
-          permissions: {
-            can_send_messages: false,
-            can_send_audios: false,
-            can_send_documents: false,
-            can_send_photos: false,
-            can_send_videos: false,
-            can_send_video_notes: false,
-            can_send_voice_notes: false,
-            can_send_polls: false,
-            can_send_other_messages: false,
-            can_add_web_page_previews: false,
-            can_invite_users: false
-          }
-        })
-      });
-    } catch (e) {}
-    
-    // Send captcha challenge
+    // Send captcha challenge FIRST (before restricting, so they can see it)
     const res = await fetch(`${BASE}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         chat_id: chatId,
-        text: `👋 Welcome ${name}\\!\n\n🔒 To verify you're human, solve this:\n\n*What is ${captcha.question.replace('+', '\\+')} \\?*\n\nReply with the answer within 60 seconds or you'll be removed\\.`,
+        text: `👋 Welcome ${name}\\!\n\n🔒 To verify you're human, solve this:\n\n*What is ${captcha.question.replace('+', '\\+')} \\?*\n\nJust type the number in chat within 2 minutes\\.`,
         parse_mode: "MarkdownV2"
       })
     });
@@ -128,7 +103,7 @@ async function handleNewMember(msg) {
           console.log(`Kicked ${name} (${userId}) - captcha timeout`);
         } catch (e) {}
       }
-    }, 60000);
+    }, 120000);
     
     pendingCaptcha.set(userId, { chatId, msgId: captchaMsgId, answer: captcha.answer, timeout });
     console.log(`Captcha sent to ${name} (${userId}): ${captcha.question} = ${captcha.answer}`);
