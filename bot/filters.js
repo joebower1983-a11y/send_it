@@ -229,6 +229,16 @@ async function poll() {
       const text = msg.text.trim();
       const chatId = msg.chat.id;
       
+      // Show user ID
+      if (text.startsWith("/myid")) {
+        await fetch(`${BASE}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: `Your Telegram ID: ${msg.from.id}`, reply_to_message_id: msg.message_id })
+        });
+        continue;
+      }
+      
       // Mod management (owner only)
       if (text.startsWith("/addmod") || text.startsWith("/removemod") || text.startsWith("/modlist")) {
         const cmd = text.split(" ")[0].toLowerCase();
