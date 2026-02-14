@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Governance & Voting</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0e17;--bg2:#111827;--bg3:#1a1f2e;--bg4:#252838;
+--neon:#00c896;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,200,150,.3);
+--radius:12px;--radius2:8px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden;background-image:linear-gradient(rgba(0,200,150,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,150,.03) 1px,transparent 1px);background-size:60px 60px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg2);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea{resize:vertical;min-height:80px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#0a0e17,#1a2332,#0a0e17);padding:10px 16px;text-align:center;font-weight:800;font-size:14px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 20px rgba(0,200,150,.2);border-bottom:1px solid rgba(0,200,150,.3)}
+
+#app{display:flex;flex-direction:column;min-height:100vh;padding-top:40px}
+header{position:sticky;top:40px;z-index:100;background:rgba(10,14,23,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,200,150,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{color:var(--neon);text-shadow:0 0 20px rgba(0,200,150,.4)}
+.logo-icon{font-size:24px}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+
+nav{position:sticky;top:104px;z-index:99;background:rgba(10,14,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,200,150,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
+.nav-item{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:6px}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--neon);background:rgba(0,200,150,.08)}
+
+main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+
+.hero{text-align:center;padding:48px 24px 32px}
+.hero h1{font-size:52px;font-weight:900;color:var(--neon);text-shadow:0 0 40px rgba(0,200,150,.35);letter-spacing:-2px;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:16px;margin-bottom:24px}
+.dao-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap}
+.dao-stat{text-align:center}
+.dao-stat .val{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon)}
+.dao-stat .lbl{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+.card{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
+.card:hover{border-color:rgba(0,200,150,.15)}
+
+.section-title{font-size:22px;font-weight:800;margin:40px 0 16px;display:flex;align-items:center;gap:10px}
+.section-title i{color:var(--neon)}
+
+/* Proposals */
+.proposals-grid{display:flex;flex-direction:column;gap:16px}
+.proposal-card{position:relative;overflow:hidden}
+.proposal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--neon),var(--purple))}
+.proposal-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.proposal-id{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon);background:rgba(0,200,150,.1);padding:2px 8px;border-radius:6px}
+.proposal-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
+.status-active{background:rgba(0,200,150,.15);color:var(--neon)}
+.proposal-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.proposal-desc{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.vote-bars{margin-bottom:16px}
+.vote-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.vote-label{font-size:12px;font-weight:700;width:60px}
+.vote-label.for{color:var(--neon)}
+.vote-label.against{color:var(--pink)}
+.vote-bar-track{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.vote-bar-fill{height:100%;border-radius:4px;transition:width .6s}
+.vote-bar-fill.for{background:var(--neon)}
+.vote-bar-fill.against{background:var(--pink)}
+.vote-pct{font-family:'JetBrains Mono',monospace;font-size:12px;width:45px;text-align:right}
+.proposal-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.time-remaining{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.time-remaining i{color:var(--orange)}
+.vote-btns{display:flex;gap:8px}
+.vote-btn{padding:8px 20px;border-radius:8px;font-weight:700;font-size:13px;transition:.2s}
+.vote-btn.for-btn{background:rgba(0,200,150,.15);color:var(--neon);border:1px solid rgba(0,200,150,.3)}
+.vote-btn.for-btn:hover{background:rgba(0,200,150,.25)}
+.vote-btn.against-btn{background:rgba(255,45,120,.1);color:var(--pink);border:1px solid rgba(255,45,120,.2)}
+.vote-btn.against-btn:hover{background:rgba(255,45,120,.2)}
+
+/* Voting Power / FairScore */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.info-grid{grid-template-columns:1fr}}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.info-row .lbl{color:var(--text3)}
+.info-row .val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.fairscore-big{font-size:56px;font-weight:900;font-family:'JetBrains Mono',monospace;text-align:center;color:var(--neon);margin:16px 0 8px;text-shadow:0 0 30px rgba(0,200,150,.3)}
+.gauge{width:100%;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin:8px 0}
+.gauge .fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon))}
+.tier-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 12px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.tier-gold{background:rgba(255,215,0,.15);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
+
+/* Create Proposal */
+.create-form{display:flex;flex-direction:column;gap:16px;max-width:700px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.submit-btn{padding:14px;border-radius:var(--radius);font-size:16px;font-weight:800;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));text-transform:uppercase;letter-spacing:1px;transition:.3s}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,200,150,.4)}
+
+/* Treasury */
+.treasury-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.treasury-grid{grid-template-columns:1fr}}
+.pie-chart{width:200px;height:200px;border-radius:50%;margin:0 auto 16px;background:conic-gradient(var(--neon) 0% 40%,var(--purple) 40% 65%,var(--orange) 65% 85%,var(--pink) 85% 100%);position:relative}
+.pie-chart::after{content:'';position:absolute;inset:35%;border-radius:50%;background:var(--bg3)}
+.pie-legend{display:flex;flex-direction:column;gap:8px}
+.pie-legend-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.pie-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tx-list{display:flex;flex-direction:column;gap:8px}
+.tx-item{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.tx-item .tx-desc{color:var(--text2)}
+.tx-item .tx-amt{font-family:'JetBrains Mono',monospace;font-weight:700}
+.tx-amt.out{color:var(--pink)}
+.tx-amt.in{color:var(--neon)}
+
+/* Premium Tiers */
+.tiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.tier-card{text-align:center;position:relative;overflow:hidden}
+.tier-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.tier-card.bronze::before{background:#cd7f32}
+.tier-card.silver::before{background:#c0c0c0}
+.tier-card.gold::before{background:#ffd700}
+.tier-card.platinum::before{background:linear-gradient(90deg,#e5e4e2,#00c896)}
+.tier-name{font-size:20px;font-weight:900;margin-bottom:4px}
+.tier-card.bronze .tier-name{color:#cd7f32}
+.tier-card.silver .tier-name{color:#c0c0c0}
+.tier-card.gold .tier-name{color:#ffd700}
+.tier-card.platinum .tier-name{color:#e5e4e2}
+.tier-req{font-size:12px;color:var(--text3);margin-bottom:16px;font-family:'JetBrains Mono',monospace}
+.tier-benefits{list-style:none;text-align:left;display:flex;flex-direction:column;gap:8px}
+.tier-benefits li{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.tier-benefits li i{color:var(--neon);font-size:11px}
+
+@media(max-width:600px){
+  .hero h1{font-size:32px}
+  .dao-stats{gap:16px}
+  .dao-stat .val{font-size:22px}
+  nav{gap:2px;padding:6px 8px}
+  .nav-item{padding:8px 12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="testnet-banner"><span>⚡ Testnet Mode — Devnet Only ⚡</span></div>
+<div id="app">
+<header>
+  <a href="index.html" class="logo"><span class="logo-icon">🚀</span> Send<span>.it</span></a>
+  <button class="wallet-btn">Connect Wallet</button>
+</header>
+<nav>
+  <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launch</a>
+  <a href="staking.html" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+  <a href="trading.html" class="nav-item"><i class="fas fa-chart-line"></i> Trading</a>
+  <a href="social.html" class="nav-item"><i class="fas fa-users"></i> Social</a>
+  <a href="lending.html" class="nav-item"><i class="fas fa-hand-holding-usd"></i> Lending</a>
+  <a href="governance.html" class="nav-item active"><i class="fas fa-landmark"></i> Governance</a>
+  <a href="airdrops.html" class="nav-item"><i class="fas fa-gift"></i> Airdrops</a>
+  <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
+</nav>
+<main>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Govern Send.it</h1>
+  <p>Shape the future of the protocol — propose, vote, and earn rewards</p>
+  <div class="dao-stats">
+    <div class="dao-stat"><div class="val">47</div><div class="lbl">Total Proposals</div></div>
+    <div class="dao-stat"><div class="val">12,847</div><div class="lbl">Active Voters</div></div>
+    <div class="dao-stat"><div class="val">$2.4M</div><div class="lbl">Treasury Balance</div></div>
+  </div>
+</div>
+
+<!-- Active Proposals -->
+<h2 class="section-title"><i class="fas fa-scroll"></i> Active Proposals</h2>
+<div class="proposals-grid">
+
+  <div class="card proposal-card">
+    <div class="proposal-header">
+      <span class="proposal-id">SIP-042</span>
+      <span class="proposal-status status-active">Active</span>
+    </div>
+    <div class="proposal-title">Reduce Platform Fee from 1.5% to 1.0%</div>
+    <div class="proposal-desc">Proposal to lower the standard trading fee to attract more volume and compete with other launchpads. Revenue impact estimated at -18% offset by projected 40% volume increase.</div>
+    <div class="vote-bars">
+      <div class="vote-bar-row"><span class="vote-label for">For</span><div class="vote-bar-track"><div class="vote-bar-fill for" style="width:72%"></div></div><span class="vote-pct">72%</span></div>
+      <div class="vote-bar-row"><span class="vote-label against">Against</span><div class="vote-bar-track"><div class="vote-bar-fill against" style="width:28%"></div></div><span class="vote-pct">28%</span></div>
+    </div>
+    <div class="proposal-footer">
+      <span class="time-remaining"><i class="fas fa-clock"></i> 2d 14h remaining</span>
+      <div class="vote-btns"><button class="vote-btn for-btn"><i class="fas fa-check"></i> Vote For</button><button class="vote-btn against-btn"><i class="fas fa-times"></i> Vote Against</button></div>
+    </div>
+  </div>
+
+  <div class="card proposal-card">
+    <div class="proposal-header">
+      <span class="proposal-id">SIP-043</span>
+      <span class="proposal-status status-active">Active</span>
+    </div>
+    <div class="proposal-title">Integrate Cross-Chain Bridge for Ethereum Assets</div>
+    <div class="proposal-desc">Fund development of a Wormhole-based bridge to allow ETH/ERC-20 tokens to be launched on Send.it. Estimated cost: 150,000 SEND from treasury.</div>
+    <div class="vote-bars">
+      <div class="vote-bar-row"><span class="vote-label for">For</span><div class="vote-bar-track"><div class="vote-bar-fill for" style="width:58%"></div></div><span class="vote-pct">58%</span></div>
+      <div class="vote-bar-row"><span class="vote-label against">Against</span><div class="vote-bar-track"><div class="vote-bar-fill against" style="width:42%"></div></div><span class="vote-pct">42%</span></div>
+    </div>
+    <div class="proposal-footer">
+      <span class="time-remaining"><i class="fas fa-clock"></i> 4d 6h remaining</span>
+      <div class="vote-btns"><button class="vote-btn for-btn"><i class="fas fa-check"></i> Vote For</button><button class="vote-btn against-btn"><i class="fas fa-times"></i> Vote Against</button></div>
+    </div>
+  </div>
+
+  <div class="card proposal-card">
+    <div class="proposal-header">
+      <span class="proposal-id">SIP-044</span>
+      <span class="proposal-status status-active">Active</span>
+    </div>
+    <div class="proposal-title">Allocate 50K SEND for Community Grants Program</div>
+    <div class="proposal-desc">Establish a grants program for developers building tools, bots, and analytics on top of Send.it. Quarterly review by governance council.</div>
+    <div class="vote-bars">
+      <div class="vote-bar-row"><span class="vote-label for">For</span><div class="vote-bar-track"><div class="vote-bar-fill for" style="width:89%"></div></div><span class="vote-pct">89%</span></div>
+      <div class="vote-bar-row"><span class="vote-label against">Against</span><div class="vote-bar-track"><div class="vote-bar-fill against" style="width:11%"></div></div><span class="vote-pct">11%</span></div>
+    </div>
+    <div class="proposal-footer">
+      <span class="time-remaining"><i class="fas fa-clock"></i> 6d 22h remaining</span>
+      <div class="vote-btns"><button class="vote-btn for-btn"><i class="fas fa-check"></i> Vote For</button><button class="vote-btn against-btn"><i class="fas fa-times"></i> Vote Against</button></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Voting Power & FairScore -->
+<h2 class="section-title"><i class="fas fa-bolt"></i> Your Voting Power & Reputation</h2>
+<div class="info-grid">
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:16px"><i class="fas fa-vote-yea" style="color:var(--neon)"></i> Voting Power</h3>
+    <div class="info-row"><span class="lbl">Token Balance</span><span class="val">24,500 SEND</span></div>
+    <div class="info-row"><span class="lbl">Delegated To You</span><span class="val">8,200 SEND</span></div>
+    <div class="info-row"><span class="lbl">Total Voting Power</span><span class="val" style="color:var(--neon)">32,700 SEND</span></div>
+    <div class="info-row"><span class="lbl">Delegation Status</span><span class="val">Self-delegated</span></div>
+    <div class="info-row"><span class="lbl">Proposals Voted</span><span class="val">18 / 47</span></div>
+    <div class="info-row"><span class="lbl">Participation Rate</span><span class="val">38.3%</span></div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:16px"><i class="fas fa-shield-halved" style="color:var(--neon)"></i> FairScore Reputation</h3>
+    <div class="fairscore-big">847</div>
+    <div class="gauge"><div class="fill" style="width:84.7%"></div></div>
+    <div style="text-align:center;margin-bottom:16px"><span class="tier-badge tier-gold"><i class="fas fa-crown"></i> Gold Tier</span></div>
+    <div class="info-row"><span class="lbl">Fee Discount</span><span class="val" style="color:var(--neon)">25%</span></div>
+    <div class="info-row"><span class="lbl">Trust Level</span><span class="val">Trusted</span></div>
+    <div class="info-row"><span class="lbl">Launches Allowed</span><span class="val">Unlimited</span></div>
+    <div class="info-row"><span class="lbl">Max Initial Liquidity</span><span class="val">500 SOL</span></div>
+  </div>
+</div>
+
+<!-- Create Proposal -->
+<h2 class="section-title"><i class="fas fa-plus-circle"></i> Create Proposal</h2>
+<div class="card">
+  <div class="create-form">
+    <div class="form-group">
+      <label>Proposal Title</label>
+      <input type="text" placeholder="Enter a concise title for your proposal...">
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea rows="4" placeholder="Describe your proposal in detail. Include rationale, expected impact, and implementation plan..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Proposal Type</label>
+      <select>
+        <option>Fee Change</option>
+        <option>Protocol Upgrade</option>
+        <option>Treasury Spend</option>
+        <option>Parameter Adjustment</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <button class="submit-btn"><i class="fas fa-paper-plane"></i> Submit Proposal (costs 100 SEND)</button>
+  </div>
+</div>
+
+<!-- Treasury Overview -->
+<h2 class="section-title"><i class="fas fa-vault"></i> Treasury Overview</h2>
+<div class="treasury-grid">
+  <div class="card">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text2)">Allocation</h3>
+    <div class="pie-chart"></div>
+    <div class="pie-legend">
+      <div class="pie-legend-item"><span class="pie-dot" style="background:var(--neon)"></span> Development (40%) — $960K</div>
+      <div class="pie-legend-item"><span class="pie-dot" style="background:var(--purple)"></span> Marketing (25%) — $600K</div>
+      <div class="pie-legend-item"><span class="pie-dot" style="background:var(--orange)"></span> Liquidity (20%) — $480K</div>
+      <div class="pie-legend-item"><span class="pie-dot" style="background:var(--pink)"></span> Reserves (15%) — $360K</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text2)">Recent Transactions</h3>
+    <div class="tx-list">
+      <div class="tx-item"><span class="tx-desc">Audit — OtterSec</span><span class="tx-amt out">-45,000 SEND</span></div>
+      <div class="tx-item"><span class="tx-desc">Platform Fees Collected</span><span class="tx-amt in">+128,400 SEND</span></div>
+      <div class="tx-item"><span class="tx-desc">Marketing — KOL Campaign</span><span class="tx-amt out">-22,000 SEND</span></div>
+      <div class="tx-item"><span class="tx-desc">Bug Bounty Payout</span><span class="tx-amt out">-5,000 SEND</span></div>
+      <div class="tx-item"><span class="tx-desc">Staking Rewards Distribution</span><span class="tx-amt out">-80,000 SEND</span></div>
+      <div class="tx-item"><span class="tx-desc">LP Fees Revenue</span><span class="tx-amt in">+67,200 SEND</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Tiers -->
+<h2 class="section-title"><i class="fas fa-gem"></i> Premium Tiers</h2>
+<div class="tiers-grid">
+  <div class="card tier-card bronze">
+    <div class="tier-name">Bronze</div>
+    <div class="tier-req">Score 200+</div>
+    <ul class="tier-benefits">
+      <li><i class="fas fa-check"></i> 5% fee discount</li>
+      <li><i class="fas fa-check"></i> Basic analytics access</li>
+      <li><i class="fas fa-check"></i> Community chat badge</li>
+      <li><i class="fas fa-check"></i> 1 launch per week</li>
+    </ul>
+  </div>
+  <div class="card tier-card silver">
+    <div class="tier-name">Silver</div>
+    <div class="tier-req">Score 500+</div>
+    <ul class="tier-benefits">
+      <li><i class="fas fa-check"></i> 15% fee discount</li>
+      <li><i class="fas fa-check"></i> Advanced analytics</li>
+      <li><i class="fas fa-check"></i> Priority support</li>
+      <li><i class="fas fa-check"></i> 3 launches per week</li>
+      <li><i class="fas fa-check"></i> Custom token page theme</li>
+    </ul>
+  </div>
+  <div class="card tier-card gold">
+    <div class="tier-name">Gold</div>
+    <div class="tier-req">Score 750+</div>
+    <ul class="tier-benefits">
+      <li><i class="fas fa-check"></i> 25% fee discount</li>
+      <li><i class="fas fa-check"></i> Priority launch queue</li>
+      <li><i class="fas fa-check"></i> Dedicated account manager</li>
+      <li><i class="fas fa-check"></i> Unlimited launches</li>
+      <li><i class="fas fa-check"></i> Featured placement</li>
+      <li><i class="fas fa-check"></i> Early access to features</li>
+    </ul>
+  </div>
+  <div class="card tier-card platinum">
+    <div class="tier-name">Platinum</div>
+    <div class="tier-req">Score 950+</div>
+    <ul class="tier-benefits">
+      <li><i class="fas fa-check"></i> 40% fee discount</li>
+      <li><i class="fas fa-check"></i> Instant launches (no queue)</li>
+      <li><i class="fas fa-check"></i> Custom creator pages</li>
+      <li><i class="fas fa-check"></i> Governance council seat</li>
+      <li><i class="fas fa-check"></i> Revenue sharing bonus</li>
+      <li><i class="fas fa-check"></i> Private Discord channel</li>
+      <li><i class="fas fa-check"></i> White-glove onboarding</li>
+    </ul>
+  </div>
+</div>
+
+</main>
+</div>
+</body>
+</html>
