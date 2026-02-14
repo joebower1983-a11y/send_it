@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Advanced Trading</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e17;--bg2:#111827;--bg3:#1a1f2e;--bg4:#252a3a;
+  --accent:#00c896;--accent2:#00e6ad;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;--yellow:#ffc107;
+  --green:#00e676;--red:#ff4444;
+  --text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+  --border:rgba(255,255,255,.06);--glow:0 0 20px rgba(0,200,150,.3);
+  --radius:12px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden;background-image:
+  radial-gradient(ellipse 80% 60% at 50% -20%,rgba(0,200,150,.06),transparent),
+  linear-gradient(rgba(0,200,150,.02) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,200,150,.02) 1px,transparent 1px);
+  background-size:100% 100%,60px 60px,60px 60px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+header{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,200,150,.12);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{color:var(--accent);text-shadow:0 0 20px rgba(0,200,150,.4)}
+.logo .dot{color:var(--accent)}
+.logo-icon{font-size:24px;filter:drop-shadow(0 0 8px rgba(0,200,150,.5))}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.3s}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+
+nav{position:sticky;top:64px;z-index:99;background:rgba(10,14,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,200,150,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
+.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--accent);background:rgba(0,200,150,.08)}
+
+main{max-width:1400px;margin:0 auto;padding:20px 16px}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;transition:.25s}
+.card:hover{border-color:rgba(0,200,150,.15)}
+.card h2{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h2 i{color:var(--accent);font-size:14px}
+
+/* Token Search Bar */
+.token-search{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.search-box{flex:1;min-width:200px;display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px}
+.search-box input{background:transparent;border:none;color:var(--text);font-size:14px;width:100%;outline:none}
+.search-box i{color:var(--text2)}
+.pair-pills{display:flex;gap:8px;flex-wrap:wrap}
+.pair-pill{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--text2);transition:.2s}
+.pair-pill.active{background:rgba(0,200,150,.1);color:var(--accent);border-color:rgba(0,200,150,.3)}
+.pair-pill:hover{color:var(--text);border-color:rgba(0,200,150,.2)}
+.price-display{display:flex;align-items:baseline;gap:12px}
+.price-display .price{font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.price-display .change{font-size:16px;font-weight:700;padding:4px 12px;border-radius:6px}
+.change.up{color:var(--green);background:rgba(0,230,118,.1)}
+.change.down{color:var(--red);background:rgba(255,68,68,.1)}
+
+/* Trading Layout */
+.trading-grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+@media(max-width:1000px){.trading-grid{grid-template-columns:1fr}}
+.chart-area{min-height:350px;position:relative}
+.chart-area canvas{width:100%!important;height:300px!important}
+
+/* Order Book */
+.orderbook{font-family:'JetBrains Mono',monospace;font-size:12px}
+.ob-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:6px 0;color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.ob-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:3px 0;position:relative;font-size:12px}
+.ob-row .depth{position:absolute;top:0;bottom:0;right:0;opacity:.08;border-radius:2px}
+.ob-row.ask .depth{background:var(--red)}
+.ob-row.bid .depth{background:var(--green)}
+.ob-row.ask .price{color:var(--red)}
+.ob-row.bid .price{color:var(--green)}
+.ob-spread{text-align:center;padding:8px;color:var(--text2);font-size:11px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:4px 0}
+
+/* Order Panel */
+.order-tabs{display:flex;gap:0;margin-bottom:16px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.order-tab{flex:1;padding:10px;text-align:center;font-weight:700;font-size:13px;transition:.2s;background:var(--bg2)}
+.order-tab.buy.active{background:rgba(0,230,118,.12);color:var(--green)}
+.order-tab.sell.active{background:rgba(255,68,68,.12);color:var(--red)}
+.order-tab:hover{opacity:.8}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.form-group label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
+.form-group input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--text);width:100%;transition:.2s}
+.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,200,150,.15)}
+.buy-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:800;color:#000;background:linear-gradient(135deg,#00e676,#00c853);transition:.3s}
+.buy-btn:hover{transform:translateY(-1px);box-shadow:0 6px 25px rgba(0,230,118,.3)}
+.sell-btn{width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:800;color:#fff;background:linear-gradient(135deg,#ff4444,#d32f2f);transition:.3s}
+.sell-btn:hover{transform:translateY(-1px);box-shadow:0 6px 25px rgba(255,68,68,.3)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 10px;border-bottom:1px solid var(--border)}
+td{padding:10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,200,150,.02)}
+.cancel-btn{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;color:var(--red);background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.15);cursor:pointer;transition:.2s}
+.cancel-btn:hover{background:rgba(255,68,68,.15)}
+
+/* Prediction Markets */
+.market-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.market-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:.2s}
+.market-card:hover{border-color:rgba(0,200,150,.2)}
+.market-q{font-weight:700;font-size:15px;margin-bottom:12px;line-height:1.4}
+.market-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:12px}
+.market-pools{display:flex;gap:8px;margin-bottom:12px}
+.pool-bar{flex:1;border-radius:6px;padding:8px;text-align:center;font-weight:700;font-size:13px;font-family:'JetBrains Mono',monospace}
+.pool-yes{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.pool-no{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.2)}
+.market-btns{display:flex;gap:8px}
+.bet-btn{flex:1;padding:10px;border-radius:8px;font-weight:700;font-size:13px;transition:.2s}
+.bet-yes{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.bet-yes:hover{background:rgba(0,230,118,.25)}
+.bet-no{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.2)}
+.bet-no:hover{background:rgba(255,68,68,.25)}
+.countdown{font-family:'JetBrains Mono',monospace;color:var(--orange);font-weight:700}
+
+/* Portfolio Sidebar */
+.portfolio-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.portfolio-item:last-child{border-bottom:none}
+.port-token{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.port-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000}
+.port-values{text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px}
+.port-values .amt{font-weight:600}
+.port-values .usd{font-size:11px;color:var(--text2)}
+
+.pnl-box{background:var(--bg2);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px}
+.pnl-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:4px}
+.pnl-value{font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace}
+
+.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--bg),#1a2332,var(--bg));padding:8px;text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(0,200,150,.2)}
+#app{padding-top:32px}
+
+footer{text-align:center;padding:40px 24px;color:var(--text3);font-size:13px;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent)}
+
+@media(max-width:600px){
+  .price-display .price{font-size:24px}
+  .market-cards{grid-template-columns:1fr}
+  table{font-size:11px}
+  th,td{padding:8px 6px}
+  nav{gap:2px;padding:6px 8px}
+  .nav-item{padding:8px 14px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="testnet-banner">⚡ Devnet — Trading is simulated ⚡</div>
+
+<header>
+  <a href="index.html" class="logo"><span class="logo-icon">🚀</span><span>Send<span class="dot">.</span>it</span></a>
+  <button class="wallet-btn" onclick="this.textContent=this.textContent.includes('Connect')?'7xK3...f9mQ':'⚡ Connect Wallet'">⚡ Connect Wallet</button>
+</header>
+
+<nav>
+  <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launch</a>
+  <a href="staking.html" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+  <a href="trading.html" class="nav-item active"><i class="fas fa-chart-line"></i> Trading</a>
+  <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
+</nav>
+
+<!-- Token Search -->
+<div style="max-width:1400px;margin:0 auto;padding:20px 16px 0">
+  <div class="token-search">
+    <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search tokens... (SEND, SOL, USDC)"></div>
+    <div class="pair-pills">
+      <button class="pair-pill active">SEND/SOL</button>
+      <button class="pair-pill">SEND/USDC</button>
+      <button class="pair-pill">SOL/USDC</button>
+      <button class="pair-pill">BONK/SOL</button>
+    </div>
+  </div>
+  <div class="price-display" style="margin-bottom:16px">
+    <span class="price" style="color:var(--accent)">$0.0842</span>
+    <span class="change up">▲ +12.4%</span>
+    <span style="color:var(--text2);font-size:13px;margin-left:8px">24h Vol: <span style="color:var(--text);font-weight:600">$1.2M</span></span>
+    <span style="color:var(--text2);font-size:13px;margin-left:8px">MCap: <span style="color:var(--text);font-weight:600">$8.4M</span></span>
+  </div>
+</div>
+
+<main>
+<div class="trading-grid">
+  <!-- Left Column -->
+  <div>
+    <!-- Chart -->
+    <div class="card">
+      <h2><i class="fas fa-chart-area"></i> SEND/SOL — Price Chart</h2>
+      <div class="chart-area"><canvas id="priceChart"></canvas></div>
+    </div>
+
+    <!-- Order Book + Limit Orders side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Order Book -->
+      <div class="card">
+        <h2><i class="fas fa-book"></i> Order Book</h2>
+        <div class="orderbook">
+          <div class="ob-header"><span>Price (SOL)</span><span>Size</span><span>Total</span></div>
+          <div class="ob-row ask"><span class="price">0.000548</span><span>12,400</span><span>6.80</span><div class="depth" style="width:45%"></div></div>
+          <div class="ob-row ask"><span class="price">0.000546</span><span>8,200</span><span>4.48</span><div class="depth" style="width:32%"></div></div>
+          <div class="ob-row ask"><span class="price">0.000544</span><span>25,100</span><span>13.65</span><div class="depth" style="width:78%"></div></div>
+          <div class="ob-row ask"><span class="price">0.000543</span><span>5,800</span><span>3.15</span><div class="depth" style="width:22%"></div></div>
+          <div class="ob-row ask"><span class="price">0.000542</span><span>18,300</span><span>9.92</span><div class="depth" style="width:58%"></div></div>
+          <div class="ob-spread">Spread: 0.000001 (0.18%)</div>
+          <div class="ob-row bid"><span class="price">0.000541</span><span>22,600</span><span>12.23</span><div class="depth" style="width:70%"></div></div>
+          <div class="ob-row bid"><span class="price">0.000540</span><span>15,400</span><span>8.32</span><div class="depth" style="width:48%"></div></div>
+          <div class="ob-row bid"><span class="price">0.000539</span><span>31,200</span><span>16.82</span><div class="depth" style="width:95%"></div></div>
+          <div class="ob-row bid"><span class="price">0.000538</span><span>9,800</span><span>5.27</span><div class="depth" style="width:30%"></div></div>
+          <div class="ob-row bid"><span class="price">0.000536</span><span>19,500</span><span>10.45</span><div class="depth" style="width:60%"></div></div>
+        </div>
+      </div>
+
+      <!-- Limit Order -->
+      <div class="card">
+        <h2><i class="fas fa-exchange-alt"></i> Place Order</h2>
+        <div class="order-tabs">
+          <button class="order-tab buy active" onclick="document.querySelectorAll('.order-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('buySection').style.display='block';document.getElementById('sellSection').style.display='none'">Buy</button>
+          <button class="order-tab sell" onclick="document.querySelectorAll('.order-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');document.getElementById('sellSection').style.display='block';document.getElementById('buySection').style.display='none'">Sell</button>
+        </div>
+        <div id="buySection">
+          <div class="form-group"><label>Limit Price (SOL)</label><input type="text" value="0.000540"></div>
+          <div class="form-group"><label>Amount (SEND)</label><input type="text" value="5,000"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:14px">
+            <span>Total: <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">2.70 SOL</span></span>
+            <span>Balance: <span style="font-family:'JetBrains Mono',monospace">14.2 SOL</span></span>
+          </div>
+          <button class="buy-btn">Buy SEND</button>
+        </div>
+        <div id="sellSection" style="display:none">
+          <div class="form-group"><label>Limit Price (SOL)</label><input type="text" value="0.000548"></div>
+          <div class="form-group"><label>Amount (SEND)</label><input type="text" value="3,000"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:14px">
+            <span>Total: <span style="color:var(--red);font-family:'JetBrains Mono',monospace">1.64 SOL</span></span>
+            <span>Balance: <span style="font-family:'JetBrains Mono',monospace">12,450 SEND</span></span>
+          </div>
+          <button class="sell-btn">Sell SEND</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Orders -->
+    <div class="card">
+      <h2><i class="fas fa-list-alt"></i> Active Orders</h2>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Pair</th><th>Side</th><th>Price</th><th>Amount</th><th>Filled</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600">SEND/SOL</td><td style="color:var(--green);font-weight:700">BUY</td><td style="font-family:'JetBrains Mono',monospace">0.000530</td><td style="font-family:'JetBrains Mono',monospace">10,000</td><td>0%</td><td style="font-family:'JetBrains Mono',monospace">5.30 SOL</td><td><button class="cancel-btn">Cancel</button></td></tr>
+          <tr><td style="font-weight:600">SEND/SOL</td><td style="color:var(--red);font-weight:700">SELL</td><td style="font-family:'JetBrains Mono',monospace">0.000600</td><td style="font-family:'JetBrains Mono',monospace">5,000</td><td>0%</td><td style="font-family:'JetBrains Mono',monospace">3.00 SOL</td><td><button class="cancel-btn">Cancel</button></td></tr>
+          <tr><td style="font-weight:600">SEND/USDC</td><td style="color:var(--green);font-weight:700">BUY</td><td style="font-family:'JetBrains Mono',monospace">0.0800</td><td style="font-family:'JetBrains Mono',monospace">8,000</td><td>32%</td><td style="font-family:'JetBrains Mono',monospace">640 USDC</td><td><button class="cancel-btn">Cancel</button></td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Trade History -->
+    <div class="card">
+      <h2><i class="fas fa-clock"></i> Recent Trades</h2>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Time</th><th>Pair</th><th>Side</th><th>Price</th><th>Amount</th><th>Total</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--text2);font-size:12px">14:42:18</td><td>SEND/SOL</td><td style="color:var(--green)">BUY</td><td style="font-family:'JetBrains Mono',monospace">0.000541</td><td style="font-family:'JetBrains Mono',monospace">2,400</td><td>1.30</td></tr>
+          <tr><td style="color:var(--text2);font-size:12px">14:41:05</td><td>SEND/SOL</td><td style="color:var(--red)">SELL</td><td style="font-family:'JetBrains Mono',monospace">0.000540</td><td style="font-family:'JetBrains Mono',monospace">8,100</td><td>4.37</td></tr>
+          <tr><td style="color:var(--text2);font-size:12px">14:39:52</td><td>SEND/SOL</td><td style="color:var(--green)">BUY</td><td style="font-family:'JetBrains Mono',monospace">0.000542</td><td style="font-family:'JetBrains Mono',monospace">5,600</td><td>3.04</td></tr>
+          <tr><td style="color:var(--text2);font-size:12px">14:38:11</td><td>SEND/SOL</td><td style="color:var(--green)">BUY</td><td style="font-family:'JetBrains Mono',monospace">0.000541</td><td style="font-family:'JetBrains Mono',monospace">12,000</td><td>6.49</td></tr>
+          <tr><td style="color:var(--text2);font-size:12px">14:36:44</td><td>SEND/SOL</td><td style="color:var(--red)">SELL</td><td style="font-family:'JetBrains Mono',monospace">0.000539</td><td style="font-family:'JetBrains Mono',monospace">3,200</td><td>1.72</td></tr>
+          <tr><td style="color:var(--text2);font-size:12px">14:35:02</td><td>SEND/SOL</td><td style="color:var(--red)">SELL</td><td style="font-family:'JetBrains Mono',monospace">0.000538</td><td style="font-family:'JetBrains Mono',monospace">7,800</td><td>4.20</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- Prediction Markets -->
+    <div class="card">
+      <h2><i class="fas fa-crystal-ball" style="color:var(--purple)"></i> <i class="fas fa-bolt" style="color:var(--purple)"></i> Prediction Markets</h2>
+      <div class="market-cards">
+        <div class="market-card">
+          <div class="market-q">Will SEND reach $0.10 by March 2026?</div>
+          <div class="market-meta"><span>Pool: <strong style="color:var(--text)">$24,500</strong></span><span class="countdown">⏱ 14d 6h 32m</span></div>
+          <div class="market-pools"><div class="pool-bar pool-yes">YES 67%</div><div class="pool-bar pool-no">NO 33%</div></div>
+          <div class="market-btns"><button class="bet-btn bet-yes">Bet YES</button><button class="bet-btn bet-no">Bet NO</button></div>
+        </div>
+        <div class="market-card">
+          <div class="market-q">Will Solana TVL exceed $20B in Q1 2026?</div>
+          <div class="market-meta"><span>Pool: <strong style="color:var(--text)">$18,200</strong></span><span class="countdown">⏱ 28d 12h 15m</span></div>
+          <div class="market-pools"><div class="pool-bar pool-yes">YES 54%</div><div class="pool-bar pool-no">NO 46%</div></div>
+          <div class="market-btns"><button class="bet-btn bet-yes">Bet YES</button><button class="bet-btn bet-no">Bet NO</button></div>
+        </div>
+        <div class="market-card">
+          <div class="market-q">Will SEND launch on a CEX before April 2026?</div>
+          <div class="market-meta"><span>Pool: <strong style="color:var(--text)">$31,800</strong></span><span class="countdown">⏱ 45d 3h 48m</span></div>
+          <div class="market-pools"><div class="pool-bar pool-yes">YES 78%</div><div class="pool-bar pool-no">NO 22%</div></div>
+          <div class="market-btns"><button class="bet-btn bet-yes">Bet YES</button><button class="bet-btn bet-no">Bet NO</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar: Portfolio -->
+  <div>
+    <div class="card">
+      <h2><i class="fas fa-wallet"></i> Portfolio</h2>
+      <div class="pnl-box">
+        <div class="pnl-label">Total Value</div>
+        <div class="pnl-value" style="color:var(--text)">$4,821</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div class="pnl-box"><div class="pnl-label">24h PnL</div><div class="pnl-value" style="color:var(--green);font-size:18px">+$342</div></div>
+        <div class="pnl-box"><div class="pnl-label">Exposure</div><div class="pnl-value" style="color:var(--purple);font-size:18px">68%</div></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:10px">Holdings</div>
+      <div class="portfolio-item">
+        <div class="port-token"><div class="port-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">S</div>SEND</div>
+        <div class="port-values"><div class="amt">12,450</div><div class="usd">$1,048</div></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="port-token"><div class="port-icon" style="background:linear-gradient(135deg,#9945FF,#14F195)">◎</div>SOL</div>
+        <div class="port-values"><div class="amt">14.2</div><div class="usd">$2,189</div></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="port-token"><div class="port-icon" style="background:linear-gradient(135deg,#00D2FF,#0099FF)">U</div>USDC</div>
+        <div class="port-values"><div class="amt">1,250</div><div class="usd">$1,250</div></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="port-token"><div class="port-icon" style="background:linear-gradient(135deg,#ff8800,#ffaa00)">B</div>BONK</div>
+        <div class="port-values"><div class="amt">8.2M</div><div class="usd">$334</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-info-circle"></i> Market Info</h2>
+      <div style="font-size:13px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">24h High</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">$0.0891</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">24h Low</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">$0.0724</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">24h Volume</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">$1.24M</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Liquidity</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">$892K</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Holders</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">3,421</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Txns (24h)</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">8,742</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <p>Send.it — Built on Solana | <a href="index.html">Home</a> · <a href="staking.html">Staking</a> · <a href="trading.html">Trading</a> · <a href="creator-dashboard.html">Creator</a></p>
+</footer>
+</div>
+
+<script>
+// Mock price chart
+const ctx = document.getElementById('priceChart').getContext('2d');
+const labels = [];
+const data = [];
+let price = 0.065;
+for(let i=0;i<60;i++){
+  labels.push(i%10===0?`${14-Math.floor((60-i)/10)}:00`:'');
+  price += (Math.random()-0.45)*0.003;
+  price = Math.max(0.04,Math.min(0.10,price));
+  data.push(price);
+}
+new Chart(ctx,{
+  type:'line',
+  data:{labels,datasets:[{
+    label:'SEND/USD',data,
+    borderColor:'#00c896',backgroundColor:'rgba(0,200,150,.08)',
+    borderWidth:2,fill:true,tension:.4,pointRadius:0,pointHitRadius:10
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#555570',font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:11},callback:v=>'$'+v.toFixed(4)},position:'right'}
+    },
+    interaction:{intersect:false,mode:'index'}
+  }
+});
+</script>
+</body>
+</html>

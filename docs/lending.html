@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send.it — Lending & Borrowing</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0f1117;--bg2:#151820;--bg3:#1c1f2e;--bg4:#252838;
+--neon:#00e87b;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+--text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+--glow:0 0 20px rgba(0,232,123,.3);
+--radius:12px;--radius2:8px;
+}
+html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
+body{min-height:100vh;overflow-x:hidden;background-image:
+  linear-gradient(rgba(0,232,123,.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,232,123,.03) 1px,transparent 1px);
+  background-size:60px 60px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,select{font-family:inherit;outline:none;border:none;background:var(--bg2);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
+input:focus,select:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#0f1117,#1a2332,#0f1117);padding:10px 16px;text-align:center;font-weight:800;font-size:14px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 20px rgba(0,232,123,.2);border-bottom:1px solid rgba(0,232,123,.3);animation:bannerPulse 3s ease-in-out infinite}
+@keyframes bannerPulse{0%,100%{box-shadow:0 2px 20px rgba(0,232,123,.2)}50%{box-shadow:0 2px 30px rgba(0,232,123,.4)}}
+
+#app{display:flex;flex-direction:column;min-height:100vh;padding-top:40px}
+
+header{position:sticky;top:40px;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,232,123,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
+.logo span{color:var(--neon);text-shadow:0 0 20px rgba(0,232,123,.4)}
+.logo-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;animation:pulse-glow 2s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{filter:drop-shadow(0 0 6px rgba(0,232,123,.4))}50%{filter:drop-shadow(0 0 14px rgba(0,232,123,.7))}}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s}
+.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+
+nav{position:sticky;top:104px;z-index:99;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,232,123,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
+.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px;position:relative;white-space:nowrap}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--neon);background:rgba(0,255,136,.08)}
+.nav-item.active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--neon);border-radius:1px}
+
+main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
+.card:hover{border-color:rgba(0,255,136,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
+
+/* Hero */
+.hero{text-align:center;padding:48px 24px 16px}
+.hero h1{font-size:48px;font-weight:900;background:linear-gradient(135deg,var(--neon),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;margin-bottom:8px}
+.hero p{color:var(--text2);font-size:16px;margin-bottom:24px}
+@media(max-width:480px){.hero h1{font-size:32px}}
+
+/* Stats row */
+.stats-row{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-bottom:32px}
+.stat-box{text-align:center}
+.stat-box .stat-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:900;color:var(--neon)}
+.stat-box .stat-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* Section title */
+.section-title{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-title i{color:var(--neon);font-size:18px}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+.mb-20{margin-bottom:20px}
+.mb-32{margin-bottom:32px}
+
+/* Panel form */
+.panel-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.panel-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.panel-row label{font-size:12px;font-weight:600;color:var(--text2);min-width:60px}
+.apy-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.apy-green{background:rgba(0,232,123,.1);color:var(--neon);border:1px solid rgba(0,232,123,.2)}
+.apy-orange{background:rgba(255,136,0,.1);color:var(--orange);border:1px solid rgba(255,136,0,.2)}
+.action-btn{width:100%;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:800;transition:.3s;text-transform:uppercase;letter-spacing:1px}
+.action-btn:hover{transform:translateY(-1px)}
+.supply-btn{color:#000;background:linear-gradient(135deg,var(--neon),#00cc66)}
+.supply-btn:hover{box-shadow:0 6px 30px rgba(0,232,123,.3)}
+.borrow-btn{color:#fff;background:linear-gradient(135deg,var(--purple),var(--pink))}
+.borrow-btn:hover{box-shadow:0 6px 30px rgba(168,85,247,.3)}
+
+/* Deposits list */
+.deposit-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg);border-radius:var(--radius2);margin-bottom:6px;font-size:13px}
+.deposit-item .dep-asset{font-weight:700;display:flex;align-items:center;gap:8px}
+.deposit-item .dep-val{font-family:'JetBrains Mono',monospace;color:var(--neon);font-weight:700}
+
+/* Health factor */
+.health-gauge{margin:16px 0}
+.health-bar{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon));position:relative;overflow:visible}
+.health-marker{position:absolute;top:-4px;width:4px;height:22px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.5);transition:left .5s}
+.health-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px}
+.health-value{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:900;margin-bottom:4px}
+.health-good{color:var(--neon)}
+.health-warn{color:var(--orange)}
+.health-danger{color:var(--pink)}
+
+/* Tables */
+.data-table{width:100%;border-collapse:separate;border-spacing:0 4px}
+.data-table th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
+.data-table td{padding:12px 16px;background:var(--bg2);font-size:13px}
+.data-table tr td:first-child{border-radius:10px 0 0 10px}
+.data-table tr td:last-child{border-radius:0 10px 10px 0}
+.data-table tbody tr{transition:.2s}
+.data-table tbody tr:hover td{background:var(--bg3)}
+.data-table .mono{font-family:'JetBrains Mono',monospace;font-weight:600}
+.data-table .green{color:var(--neon)}
+.data-table .orange{color:var(--orange)}
+.data-table .pink{color:var(--pink)}
+
+/* Utilization bar in table */
+.util-bar{width:80px;height:6px;background:var(--bg4);border-radius:3px;display:inline-block;vertical-align:middle;margin-right:6px}
+.util-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--purple))}
+
+/* Liquidation zone */
+.liq-card{background:var(--bg3);border-radius:var(--radius2);padding:14px;border-left:3px solid var(--pink);margin-bottom:8px}
+.liq-card .liq-user{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.liq-card .liq-stats{display:flex;gap:16px;margin-top:6px;font-size:12px}
+.liq-card .liq-stat{display:flex;flex-direction:column}
+.liq-card .liq-stat .liq-label{color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.liq-card .liq-stat .liq-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--pink)}
+
+/* Chart container */
+.chart-wrap{background:var(--bg);border-radius:var(--radius);padding:20px;height:320px;position:relative}
+
+/* Overflow */
+.table-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="testnet-banner"><span>⚡ Devnet Testnet — Not Real Funds ⚡</span></div>
+
+  <header>
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🚀</div>
+      <div>Send<span class="dot">.</span><span>it</span></div>
+    </a>
+    <button class="wallet-btn"><i class="fas fa-wallet"></i>&nbsp; Connect Wallet</button>
+  </header>
+
+  <nav>
+    <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launchpad</a>
+    <a href="staking.html" class="nav-item"><i class="fas fa-coins"></i> Staking</a>
+    <a href="trading.html" class="nav-item"><i class="fas fa-chart-line"></i> Trading</a>
+    <a href="social.html" class="nav-item"><i class="fas fa-users"></i> Social</a>
+    <a href="lending.html" class="nav-item active"><i class="fas fa-hand-holding-usd"></i> Lending</a>
+    <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
+  </nav>
+
+  <main>
+    <!-- Hero -->
+    <div class="hero">
+      <h1>Lend & Borrow</h1>
+      <p>Earn yield on your assets or borrow against your holdings — powered by Solana</p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">$24.8M</div><div class="stat-label">Total Supplied</div></div>
+      <div class="stat-box"><div class="stat-val">$12.3M</div><div class="stat-label">Total Borrowed</div></div>
+      <div class="stat-box"><div class="stat-val">49.6%</div><div class="stat-label">Utilization</div></div>
+      <div class="stat-box"><div class="stat-val">1,247</div><div class="stat-label">Active Lenders</div></div>
+    </div>
+
+    <!-- Supply & Borrow Panels -->
+    <div class="grid-2 mb-32">
+      <!-- Supply Panel -->
+      <div class="card">
+        <div class="panel-title"><i class="fas fa-arrow-circle-down"></i> Supply Assets</div>
+        <div class="panel-row">
+          <label>Asset</label>
+          <select style="flex:1"><option>SOL</option><option>USDC</option><option>$SEND</option><option>mSOL</option><option>RAY</option></select>
+        </div>
+        <div class="panel-row">
+          <label>Amount</label>
+          <input type="text" placeholder="0.00" style="flex:1;font-family:'JetBrains Mono',monospace">
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0">
+          <span style="font-size:12px;color:var(--text2)">Current Supply APY</span>
+          <span class="apy-badge apy-green"><i class="fas fa-chart-line"></i> 8.42%</span>
+        </div>
+        <button class="action-btn supply-btn">Supply</button>
+
+        <div style="margin-top:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Your Deposits</div>
+          <div class="deposit-item"><div class="dep-asset">◎ SOL</div><div class="dep-val">24.5 SOL ($2,450)</div></div>
+          <div class="deposit-item"><div class="dep-asset">💲 USDC</div><div class="dep-val">5,000.00 USDC</div></div>
+          <div class="deposit-item"><div class="dep-asset">🚀 $SEND</div><div class="dep-val">50,000 $SEND ($1,250)</div></div>
+        </div>
+      </div>
+
+      <!-- Borrow Panel -->
+      <div class="card">
+        <div class="panel-title"><i class="fas fa-arrow-circle-up"></i> Borrow Assets</div>
+        <div class="panel-row">
+          <label>Asset</label>
+          <select style="flex:1"><option>USDC</option><option>SOL</option><option>$SEND</option><option>USDT</option></select>
+        </div>
+        <div class="panel-row">
+          <label>Amount</label>
+          <input type="text" placeholder="0.00" style="flex:1;font-family:'JetBrains Mono',monospace">
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0">
+          <span style="font-size:12px;color:var(--text2)">Current Borrow APR</span>
+          <span class="apy-badge apy-orange"><i class="fas fa-percent"></i> 5.67%</span>
+        </div>
+        <button class="action-btn borrow-btn">Borrow</button>
+
+        <div style="margin-top:20px">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Health Factor</div>
+          <div class="health-value health-good">1.82</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Liquidation below 1.00</div>
+          <div class="health-gauge">
+            <div class="health-bar"><div class="health-marker" style="left:72%"></div></div>
+            <div class="health-labels"><span>Liquidation</span><span>Safe</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Your Positions -->
+    <div class="section-title"><i class="fas fa-wallet"></i> Your Positions</div>
+    <div class="card mb-32 table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Asset</th><th>Type</th><th>Amount</th><th>Value</th><th>APY/APR</th><th>Collateral Ratio</th><th>Liq. Price</th></tr></thead>
+        <tbody>
+          <tr><td><strong>◎ SOL</strong></td><td><span class="green">Supplied</span></td><td class="mono">24.500</td><td class="mono">$2,450.00</td><td class="mono green">8.42%</td><td class="mono">—</td><td class="mono">—</td></tr>
+          <tr><td><strong>💲 USDC</strong></td><td><span class="green">Supplied</span></td><td class="mono">5,000.00</td><td class="mono">$5,000.00</td><td class="mono green">4.21%</td><td class="mono">—</td><td class="mono">—</td></tr>
+          <tr><td><strong>🚀 $SEND</strong></td><td><span class="green">Supplied</span></td><td class="mono">50,000</td><td class="mono">$1,250.00</td><td class="mono green">12.80%</td><td class="mono">—</td><td class="mono">—</td></tr>
+          <tr><td><strong>💲 USDC</strong></td><td><span class="pink">Borrowed</span></td><td class="mono">3,200.00</td><td class="mono">$3,200.00</td><td class="mono orange">5.67%</td><td class="mono">272%</td><td class="mono pink">$62.40</td></tr>
+          <tr><td><strong>◎ SOL</strong></td><td><span class="pink">Borrowed</span></td><td class="mono">5.000</td><td class="mono">$500.00</td><td class="mono orange">6.12%</td><td class="mono">185%</td><td class="mono pink">$54.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Market Overview -->
+    <div class="section-title"><i class="fas fa-globe"></i> Market Overview</div>
+    <div class="card mb-32 table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Asset</th><th>Supply APY</th><th>Borrow APR</th><th>Total Supplied</th><th>Total Borrowed</th><th>Utilization</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>◎ SOL</strong></td>
+            <td class="mono green">8.42%</td>
+            <td class="mono orange">6.12%</td>
+            <td class="mono">$8.2M</td>
+            <td class="mono">$4.1M</td>
+            <td><div class="util-bar"><div class="fill" style="width:50%"></div></div><span class="mono" style="font-size:12px">50.0%</span></td>
+          </tr>
+          <tr>
+            <td><strong>💲 USDC</strong></td>
+            <td class="mono green">4.21%</td>
+            <td class="mono orange">5.67%</td>
+            <td class="mono">$10.5M</td>
+            <td class="mono">$6.8M</td>
+            <td><div class="util-bar"><div class="fill" style="width:65%"></div></div><span class="mono" style="font-size:12px">64.8%</span></td>
+          </tr>
+          <tr>
+            <td><strong>🚀 $SEND</strong></td>
+            <td class="mono green">12.80%</td>
+            <td class="mono orange">9.45%</td>
+            <td class="mono">$3.1M</td>
+            <td class="mono">$0.8M</td>
+            <td><div class="util-bar"><div class="fill" style="width:26%"></div></div><span class="mono" style="font-size:12px">25.8%</span></td>
+          </tr>
+          <tr>
+            <td><strong>🌊 mSOL</strong></td>
+            <td class="mono green">6.15%</td>
+            <td class="mono orange">4.82%</td>
+            <td class="mono">$2.1M</td>
+            <td class="mono">$0.4M</td>
+            <td><div class="util-bar"><div class="fill" style="width:19%"></div></div><span class="mono" style="font-size:12px">19.0%</span></td>
+          </tr>
+          <tr>
+            <td><strong>✨ RAY</strong></td>
+            <td class="mono green">10.30%</td>
+            <td class="mono orange">7.88%</td>
+            <td class="mono">$0.9M</td>
+            <td class="mono">$0.2M</td>
+            <td><div class="util-bar"><div class="fill" style="width:22%"></div></div><span class="mono" style="font-size:12px">22.2%</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Liquidation Zone + Interest Rate Curve -->
+    <div class="grid-2 mb-32">
+      <!-- Liquidation Zone -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-exclamation-triangle" style="color:var(--pink)"></i> Liquidation Zone</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Positions approaching liquidation threshold</p>
+
+        <div class="liq-card">
+          <div class="liq-user">7xK2...9fQ1</div>
+          <div class="liq-stats">
+            <div class="liq-stat"><span class="liq-label">Health</span><span class="liq-val">1.04</span></div>
+            <div class="liq-stat"><span class="liq-label">Borrowed</span><span class="liq-val">$48,200</span></div>
+            <div class="liq-stat"><span class="liq-label">Collateral</span><span class="liq-val">$50,128</span></div>
+            <div class="liq-stat"><span class="liq-label">Liq. Price</span><span class="liq-val">$96.20 SOL</span></div>
+          </div>
+        </div>
+        <div class="liq-card">
+          <div class="liq-user">3mN8...pL7e</div>
+          <div class="liq-stats">
+            <div class="liq-stat"><span class="liq-label">Health</span><span class="liq-val">1.08</span></div>
+            <div class="liq-stat"><span class="liq-label">Borrowed</span><span class="liq-val">$22,400</span></div>
+            <div class="liq-stat"><span class="liq-label">Collateral</span><span class="liq-val">$24,192</span></div>
+            <div class="liq-stat"><span class="liq-label">Liq. Price</span><span class="liq-val">$92.80 SOL</span></div>
+          </div>
+        </div>
+        <div class="liq-card">
+          <div class="liq-user">9vR5...kW2d</div>
+          <div class="liq-stats">
+            <div class="liq-stat"><span class="liq-label">Health</span><span class="liq-val">1.12</span></div>
+            <div class="liq-stat"><span class="liq-label">Borrowed</span><span class="liq-val">$15,800</span></div>
+            <div class="liq-stat"><span class="liq-label">Collateral</span><span class="liq-val">$17,696</span></div>
+            <div class="liq-stat"><span class="liq-label">Liq. Price</span><span class="liq-val">$89.40 SOL</span></div>
+          </div>
+        </div>
+        <div class="liq-card">
+          <div class="liq-user">5tP1...nJ4m</div>
+          <div class="liq-stats">
+            <div class="liq-stat"><span class="liq-label">Health</span><span class="liq-val">1.15</span></div>
+            <div class="liq-stat"><span class="liq-label">Borrowed</span><span class="liq-val">$8,600</span></div>
+            <div class="liq-stat"><span class="liq-label">Collateral</span><span class="liq-val">$9,890</span></div>
+            <div class="liq-stat"><span class="liq-label">Liq. Price</span><span class="liq-val">$87.10 SOL</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interest Rate Curve -->
+      <div class="card">
+        <div class="section-title"><i class="fas fa-chart-area"></i> Interest Rate Model</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Supply & Borrow rates vs. Utilization (SOL pool)</p>
+        <div class="chart-wrap">
+          <canvas id="rateChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer style="text-align:center;padding:24px;color:var(--text3);font-size:12px;border-top:1px solid rgba(255,255,255,.04)">
+    <div>Send.it — Built on Solana ⚡</div>
+    <div style="margin-top:4px">© 2025 Send.it Protocol. All rights reserved.</div>
+  </footer>
+</div>
+
+<script>
+// Interest Rate Curve Chart
+const ctx = document.getElementById('rateChart').getContext('2d');
+const utilization = Array.from({length:101}, (_,i) => i);
+const supplyRate = utilization.map(u => {
+  if(u <= 80) return (u / 80) * 8;
+  return 8 + ((u - 80) / 20) * 42;
+});
+const borrowRate = utilization.map(u => {
+  if(u <= 80) return 2 + (u / 80) * 6;
+  return 8 + ((u - 80) / 20) * 52;
+});
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: utilization.map(u => u + '%'),
+    datasets: [
+      {
+        label: 'Supply APY',
+        data: supplyRate,
+        borderColor: '#00e87b',
+        backgroundColor: 'rgba(0,232,123,.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
+      },
+      {
+        label: 'Borrow APR',
+        data: borrowRate,
+        borderColor: '#a855f7',
+        backgroundColor: 'rgba(168,85,247,.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    plugins: {
+      legend: { labels: { color: '#8888aa', font: { family: 'Inter', weight: 600 } } },
+      tooltip: {
+        backgroundColor: '#1c1f2e',
+        titleColor: '#e8e8f0',
+        bodyColor: '#8888aa',
+        borderColor: 'rgba(0,232,123,.2)',
+        borderWidth: 1,
+        callbacks: {
+          title: (items) => 'Utilization: ' + items[0].label,
+          label: (item) => item.dataset.label + ': ' + item.raw.toFixed(2) + '%'
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,.03)' },
+        ticks: { color: '#555570', maxTicksLimit: 11, font: { family: 'JetBrains Mono', size: 10 } },
+        title: { display: true, text: 'Utilization %', color: '#555570', font: { family: 'Inter', size: 11 } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,.03)' },
+        ticks: { color: '#555570', callback: v => v + '%', font: { family: 'JetBrains Mono', size: 10 } },
+        title: { display: true, text: 'Rate %', color: '#555570', font: { family: 'Inter', size: 11 } }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -28,6 +28,10 @@ pub mod token_chat;
 pub mod token_videos;
 pub mod voting;
 
+pub mod fee_splitting;
+pub mod content_claims;
+pub mod embeddable_widgets;
+
 declare_id!("SendiTLaunchPad111111111111111111111111111");
 
 // ============================================================================
