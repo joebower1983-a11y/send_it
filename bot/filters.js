@@ -558,7 +558,9 @@ async function poll() {
         continue;
       }
       
-      const text = msg.text.trim();
+      const rawText = msg.text.trim();
+      // Strip @botname suffix from commands in groups (e.g. /modlist@SendItBot → /modlist)
+      const text = rawText.replace(/^(\/\w+)@\w+/, '$1');
       const chatId = msg.chat.id;
       
       // Raid commands
