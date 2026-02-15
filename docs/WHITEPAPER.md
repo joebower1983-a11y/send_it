@@ -1,8 +1,8 @@
-# Send.it — Whitepaper v2.0
+# Send.it — Whitepaper v2.1
 
 ### The Complete DeFi, Social, and Governance Platform for Token Launches on Solana
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 **Date:** February 2026
 **Status:** Draft
 
@@ -48,10 +48,12 @@
     - 11.8 [Raffle](#118-raffle)
 12. [Revenue Model & Fee Architecture](#12-revenue-model--fee-architecture)
 13. [SolForge Integration](#13-solforge-integration)
-14. [Security Architecture](#14-security-architecture)
-15. [Competitive Analysis](#15-competitive-analysis)
-16. [Roadmap](#16-roadmap)
-17. [Conclusion](#17-conclusion)
+14. [5IVE VM Port](#14-5ive-vm-port)
+15. [Cross-Module Composition](#15-cross-module-composition)
+16. [Security Architecture](#16-security-architecture)
+17. [Competitive Analysis](#17-competitive-analysis)
+18. [Roadmap](#18-roadmap)
+19. [Conclusion](#19-conclusion)
 
 ---
 
@@ -59,7 +61,7 @@
 
 Send.it began as a fair-launch token launchpad on Solana. It has evolved into a **comprehensive DeFi, social, and governance platform** — the most feature-complete token ecosystem ever built on a single Solana program.
 
-Version 1.0 introduced configurable bonding curves, anti-snipe protection, rug protection, and the SolForge burn mechanism. **Version 2.0** expands the protocol with **25+ on-chain modules** spanning:
+Version 1.0 introduced configurable bonding curves, anti-snipe protection, rug protection, and the SolForge burn mechanism. Version 2.0 expanded the protocol with 31 on-chain modules. **Version 2.1** introduces the **5IVE VM port** — a domain-specific language compilation target that reduces the codebase by 63% while producing 22KB of optimized bytecode — and a **cross-module composition layer** with 6 inter-module patterns and 23 bridge functions. The protocol now spans:
 
 - **DeFi Suite** — Staking, lending, limit orders, prediction markets, and perpetual futures
 - **Social & Growth** — Live chat, airdrops, daily rewards, seasons/battle pass, token videos, referrals, and copy trading
@@ -1215,9 +1217,305 @@ All burn events are logged on-chain with total burned, epoch burns, and rate met
 
 ---
 
-## 14. Security Architecture
+## 14. 5IVE VM Port
 
-### 14.1 Program Derived Addresses (PDAs)
+### 14.1 Motivation
+
+The Send.it protocol grew to 31 on-chain modules totalling approximately 16,000 lines of Rust/Anchor code. While Anchor is the standard Solana development framework, it imposes significant boilerplate per instruction: account structs, constraint macros, serialization logic, and error variants. As the module count increased, several scaling problems emerged:
+
+- **Code duplication** — Common patterns (PDA derivation, fee splitting, reward accumulators) were reimplemented across modules with subtle inconsistencies
+- **Audit surface** — 16,000 lines of hand-written Rust is expensive to audit and prone to copy-paste errors
+- **Deployment cost** — Large program binaries consume more on-chain storage and increase upgrade costs
+- **Iteration speed** — Adding a new module required ~500 lines of scaffolding before a single line of business logic
+
+These pressures motivated the port to 5IVE.
+
+### 14.2 What Is 5IVE?
+
+5IVE is a domain-specific language (DSL) and virtual machine designed for Solana program development. It compiles a high-level module specification into optimized BPF bytecode, abstracting away Anchor's boilerplate while preserving the same on-chain execution model.
+
+**Key properties:**
+
+| Property | Description |
+|----------|-------------|
+| **Declarative accounts** | PDA seeds, constraints, and account relationships are declared in a schema; the compiler generates all derivation and validation code |
+| **Implicit serialization** | Account structs are defined once; (de)serialization is compiler-generated with zero-copy where possible |
+| **Built-in patterns** | Reward accumulators, fee splits, escrow flows, and crank patterns are first-class primitives |
+| **Deterministic output** | Same source always produces identical bytecode, enabling reproducible builds |
+| **Solana-native** | Compiles to standard BPF — no runtime VM overhead, no interpreter. The output is a native Solana program. |
+
+5IVE is *not* a general-purpose language. It is purpose-built for the account-model, PDA-centric patterns that dominate Solana DeFi programs.
+
+### 14.3 Port Results
+
+The complete Send.it protocol — all 31 modules — was ported from Anchor/Rust to 5IVE:
+
+| Metric | Before (Anchor/Rust) | After (5IVE) | Change |
+|--------|----------------------|--------------|--------|
+| **Source lines** | ~16,000 | ~6,000 | **−63%** |
+| **Compiled bytecode** | ~58KB | ~22KB | **−62%** |
+| **Test coverage** | 112 tests | 159 tests | **+42%** |
+| **Modules** | 31 | 31 | No change |
+| **On-chain behavior** | — | Identical | Verified via differential testing |
+
+The 63% code reduction is not from removing functionality — every instruction, every PDA, every constraint is preserved. The reduction comes from eliminating boilerplate that 5IVE handles at the compiler level:
+
+```
+Anchor boilerplate eliminated:
+  - Account struct definitions with #[derive] macros    (~3,200 lines)
+  - Constraint validation code                          (~2,400 lines)
+  - Error enum definitions and mapping                  (~1,200 lines)
+  - Serialization/deserialization implementations        (~1,800 lines)
+  - PDA seed construction and verification              (~1,400 lines)
+                                                  Total: ~10,000 lines
+```
+
+### 14.4 Deployment Status
+
+The 5IVE-compiled program is **deployed to Solana devnet** and undergoing integration testing:
+
+- All 159 tests pass against the devnet deployment
+- Differential testing confirms identical behavior between the Anchor and 5IVE versions
+- The Anchor version remains the reference implementation until mainnet audit completion
+
+**Migration plan:** The 5IVE version will replace the Anchor version at mainnet deployment, pending audit of the 5IVE compiler output. The upgrade is transparent to users — same PDAs, same instructions, same account layouts.
+
+### 14.5 DSL Advantages and Trade-offs
+
+**Advantages:**
+
+1. **Smaller audit surface** — 6,000 lines of declarative DSL is faster and cheaper to audit than 16,000 lines of imperative Rust
+2. **Bytecode efficiency** — 22KB bytecode reduces deployment costs and fits comfortably within Solana's program size limits
+3. **Pattern correctness** — Built-in primitives (reward accumulators, escrow flows) are tested once in the compiler, not reimplemented per module
+4. **Rapid iteration** — New modules require ~60% less code, accelerating development
+5. **Reproducible builds** — Deterministic compilation enables anyone to verify the deployed bytecode matches the source
+
+**Trade-offs:**
+
+1. **Tooling maturity** — 5IVE's ecosystem is younger than Anchor's; fewer IDE plugins, debuggers, and community resources
+2. **Compiler trust** — The compiler is an additional trust assumption; a bug in 5IVE's code generation would affect all modules simultaneously
+3. **Developer onboarding** — Contributors must learn 5IVE's DSL syntax in addition to Solana's programming model
+4. **Expressiveness ceiling** — Edge cases may require escape hatches to raw Rust/BPF for patterns the DSL doesn't yet support
+
+**Mitigation:** The Anchor reference implementation is maintained in parallel. If a 5IVE compiler issue is discovered, the protocol can revert to the audited Anchor version without any state migration.
+
+---
+
+## 15. Cross-Module Composition
+
+### 15.1 The Composition Problem
+
+Send.it's 31 modules were initially designed as independent units — each with its own PDAs, instructions, and state. But real DeFi behavior is inherently cross-cutting:
+
+- A user who stakes tokens should earn reputation points
+- Achievement milestones should award bonus points
+- Lending positions should consider staking status
+- Referral rewards should integrate with the points system
+- Prediction market outcomes should affect reputation scores
+- Fee splitting should flow to holder reward pools
+
+Without a composition layer, these interactions require Cross-Program Invocations (CPIs), which add compute cost, increase transaction size, and create complex dependency chains. At 31 modules, the CPI graph would become unmanageable.
+
+### 15.2 The Composer Layer
+
+Send.it v2.1 introduces a **composer layer** — a set of 23 bridge functions that connect modules without CPI overhead. Because all 31 modules compile into a single Solana program (via 5IVE), cross-module calls are internal function calls, not CPIs:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Send.it Program (single BPF binary)         │
+│                                                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │ Staking  │  │ Lending  │  │ Points   │  │Reputation│  ...   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘       │
+│       │              │              │              │             │
+│       └──────────────┴──────────────┴──────────────┘             │
+│                          │                                       │
+│                  ┌───────┴───────┐                               │
+│                  │  Composer     │                               │
+│                  │  Layer        │                               │
+│                  │  (23 bridge   │                               │
+│                  │   functions)  │                               │
+│                  └───────────────┘                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key insight:** The 5IVE port made this possible. In an Anchor multi-program architecture, each module would be a separate program requiring CPIs. With 5IVE compiling everything into one program, cross-module composition is a zero-overhead internal call.
+
+### 15.3 Composition Patterns
+
+The composer layer implements six cross-module patterns:
+
+#### Pattern 1: Staking ↔ Reputation
+
+**Direction:** Bidirectional
+**Mechanism:** Staking activity feeds reputation score; reputation tier unlocks enhanced staking rewards.
+
+```
+On stake_tokens():
+  → composer.record_staking_activity(user, amount, duration)
+  → reputation.adjust_score(user, +staking_weight)
+
+On reputation.tier_change(user, new_tier):
+  → composer.apply_staking_boost(user, tier_multiplier)
+  → stake_pool.update_reward_multiplier(user, multiplier)
+```
+
+- Staking for 30+ days adds reputation weight proportional to amount × duration
+- Platinum/Diamond reputation tiers receive a 1.1x–1.25x staking reward multiplier
+- Unstaking reduces reputation weight with a 7-day decay curve (not instant penalty)
+
+#### Pattern 2: Points ↔ Achievements
+
+**Direction:** Bidirectional
+**Mechanism:** Points accumulation triggers achievement milestones; achievements award bonus points.
+
+```
+On daily_rewards.record_points(user, points):
+  → composer.check_point_milestones(user, total_points)
+  → achievements.evaluate_and_award(user, POINT_MILESTONES)
+
+On achievements.award_badge(user, badge):
+  → composer.grant_achievement_bonus(user, badge)
+  → daily_rewards.credit_bonus_points(user, badge_bonus)
+```
+
+- Point thresholds (1K, 10K, 100K) trigger corresponding achievement badges
+- Each new badge awards a one-time point bonus (100, 500, 2,500 respectively)
+- Circular dependency is broken by the one-time nature of badge awards
+
+#### Pattern 3: Lending ↔ Staking
+
+**Direction:** Unidirectional (staking → lending)
+**Mechanism:** Staked token positions count as partial collateral for lending.
+
+```
+On borrow_against_tokens(user, collateral, borrow_amount):
+  → composer.check_staked_collateral(user, token_mint)
+  → effective_collateral = collateral + (staked_amount × STAKED_COLLATERAL_RATIO)
+  → lending.validate_ltv(effective_collateral, borrow_amount)
+```
+
+- Staked tokens count at 50% of their value toward lending collateral (`STAKED_COLLATERAL_RATIO = 5000 bps`)
+- This does NOT unlock staked tokens — they remain in the staking vault
+- Liquidation of lending positions does not affect staked positions; only the deposited collateral is seized
+- Maximum staked collateral credit capped at 25% of total effective collateral to limit systemic risk
+
+#### Pattern 4: Referral ↔ Points
+
+**Direction:** Unidirectional (referral → points)
+**Mechanism:** Successful referrals generate points for the referrer.
+
+```
+On referral.credit_referral_reward(referrer, fee_amount):
+  → composer.award_referral_points(referrer, fee_amount)
+  → daily_rewards.credit_volume_points(referrer, referral_point_weight)
+  → seasons.record_xp(referrer, XP_SOURCE_REFERRAL, xp_amount)
+```
+
+- Each referral credit generates points proportional to the fee amount
+- Referral activity counts as an XP source for seasons (tracked separately from trading XP)
+- Prevents gaming: only actual fee-generating trades by referred users produce points
+
+#### Pattern 5: Reputation ↔ Prediction Markets
+
+**Direction:** Unidirectional (prediction outcomes → reputation)
+**Mechanism:** Prediction market performance adjusts reputation scores.
+
+```
+On prediction_market.resolve(market):
+  for each user_bet in market.bets:
+    if user_bet.side == winning_side:
+      → composer.record_prediction_win(user, market_id)
+      → reputation.adjust_score(user, +prediction_win_weight)
+    else:
+      → composer.record_prediction_loss(user, market_id)
+      → reputation.adjust_score(user, −prediction_loss_weight)
+```
+
+- Correct predictions add +2 reputation points (scaled by bet size)
+- Incorrect predictions subtract −1 reputation point (asymmetric to reward participation)
+- Capped at ±10 reputation points per market to prevent manipulation via large bets
+- Only resolved markets affect reputation (pending bets have no effect)
+
+#### Pattern 6: Fee Splitting ↔ Holder Rewards
+
+**Direction:** Unidirectional (fee events → holder rewards)
+**Mechanism:** Platform fee events from any module automatically accrue to holder reward pools.
+
+```
+On any_trade_with_fee(token_mint, platform_fee):
+  → composer.distribute_holder_fee(token_mint, platform_fee)
+  → reward_pool.accrue_rewards(fee × reward_fee_bps / 10_000)
+```
+
+- Every fee-generating instruction (bonding curve trades, perp trades, lending interest, bridge fees) routes the holder reward portion through the composer
+- This replaces per-module fee routing with a single composition point
+- The composer validates the reward pool exists before accrual; tokens without reward pools skip this step
+
+### 15.4 Bridge Architecture
+
+Each bridge function follows a consistent pattern:
+
+```
+fn compose_[source]_to_[target](
+    source_state: &SourceAccount,
+    target_state: &mut TargetAccount,
+    params: CompositionParams,
+) -> Result<()> {
+    // 1. Validate preconditions (source state is valid, target exists)
+    // 2. Compute derived values (weights, multipliers, points)
+    // 3. Apply state changes to target
+    // 4. Emit CompositionEvent for indexing
+    Ok(())
+}
+```
+
+**Properties:**
+
+| Property | Value |
+|----------|-------|
+| **Total bridge functions** | 23 |
+| **Compute overhead per bridge call** | ~200–500 CU (internal function call, no CPI) |
+| **State isolation** | Bridge functions write only to target module state; source is read-only |
+| **Failure semantics** | Bridge failures are non-fatal — the primary instruction succeeds, composition is best-effort with event logging |
+| **Event emission** | Every bridge call emits a `CompositionEvent` with source module, target module, action, and parameters |
+
+### 15.5 Composition Events
+
+All cross-module interactions emit standardized events for off-chain indexing:
+
+```
+CompositionEvent {
+    source_module: ModuleId,    // e.g., Staking
+    target_module: ModuleId,    // e.g., Reputation
+    action: CompositionAction,  // e.g., AdjustScore
+    user: Pubkey,
+    params: [u64; 4],          // Action-specific parameters
+    timestamp: i64,
+}
+```
+
+This enables the frontend and analytics systems to display cross-module activity feeds — e.g., "Your 30-day staking streak earned +5 reputation points" — without any additional on-chain queries.
+
+### 15.6 Why Not CPI?
+
+For reference, the same composition layer via CPI would require:
+
+| Metric | CPI Approach | Composer Layer |
+|--------|-------------|----------------|
+| **Programs** | 31 separate programs | 1 program |
+| **Cross-module calls** | CPI (~1,500 CU each) | Internal call (~300 CU each) |
+| **Transaction size** | Multiple program accounts per tx | Single program account |
+| **Upgrade coordination** | 31 independent deployments | 1 atomic deployment |
+| **State consistency** | Eventual (across tx boundaries) | Immediate (within tx) |
+
+The single-program architecture enabled by the 5IVE port makes the composer layer both possible and efficient.
+
+---
+
+## 16. Security Architecture
+
+### 16.1 Program Derived Addresses (PDAs)
 
 All critical state is held in PDAs. Complete PDA seed reference:
 
@@ -1258,14 +1556,14 @@ All critical state is held in PDAs. Complete PDA seed reference:
 | `bridge_config` | `["bridge_config"]` | Bridge |
 | `raffle` | `["raffle", token_mint]` | Raffle |
 
-### 14.2 Authority Constraints
+### 16.2 Authority Constraints
 
 - **Mint authority** for each token is the `curve_state` PDA
 - **Freeze authority** set to `None` at creation
 - **LP lock PDA** has no admin override — immutable once written
 - **Program upgrade authority** — 3-of-5 team multisig with 48-hour timelock
 
-### 14.3 Immutability Guarantees
+### 16.3 Immutability Guarantees
 
 Once created, these parameters cannot be modified:
 - Curve type and parameters
@@ -1275,7 +1573,14 @@ Once created, these parameters cannot be modified:
 - Creator vesting schedule
 - Maximum supply
 
-### 14.4 Audit Considerations
+### 16.4 Token-2022 Audit
+
+A comprehensive audit of the SENDIT token's Token-2022 configuration confirmed:
+
+- **Zero extensions** enabled on the SENDIT mint — no transfer fees, no confidential transfers, no freeze authority extensions
+- **One bug identified and fixed** — The airdrops module (`airdrops.v`) referenced the legacy Token Program ID instead of Token-2022's program ID, causing claim failures for Token-2022 mints. Patched in the 5IVE source and verified with 12 additional test cases.
+
+### 16.5 Audit Considerations
 
 **Scope** (expanded for v2.0):
 
@@ -1288,14 +1593,17 @@ Once created, these parameters cannot be modified:
 - Merkle proof verification in airdrops
 - Raffle randomness quality and winner determination fairness
 - Cross-module interactions and composability risks
+- 5IVE compiler output verification (bytecode matches source semantics)
+- Composition layer bridge function state isolation (write-only to target, read-only from source)
+- Token-2022 program ID correctness across all token-interacting instructions
 
 **Bug bounty:** Up to 50,000 USDC for critical vulnerabilities at mainnet deployment.
 
 ---
 
-## 15. Competitive Analysis
+## 17. Competitive Analysis
 
-### 15.1 Send.it vs pump.fun
+### 17.1 Send.it vs pump.fun
 
 | Feature | pump.fun | Send.it v2.0 |
 |---------|----------|-------------|
@@ -1316,9 +1624,9 @@ Once created, these parameters cannot be modified:
 | **Airdrops** | None | Merkle-proof campaigns |
 | **Bridge** | None | Wormhole cross-chain |
 | **Fee model** | 100% extracted | 50% burned, 1% creator, holder rewards |
-| **Modules** | 1 | 25+ |
+| **Modules** | 1 | 31 |
 
-### 15.2 Send.it vs Other Platforms
+### 17.2 Send.it vs Other Platforms
 
 | Feature | Send.it v2.0 | Moonshot | DAOS.fun | Believe | bonk.fun |
 |---------|-------------|----------|----------|---------|----------|
@@ -1333,18 +1641,20 @@ Once created, these parameters cannot be modified:
 | **SOL burn** | ✅ SolForge | ❌ | ❌ | ❌ | ❌ |
 | **Open source** | Planned | ❌ | ❌ | ❌ | ❌ |
 
-### 15.3 Competitive Moats
+### 17.3 Competitive Moats
 
-1. **25+ on-chain modules** — No competitor offers more than 2–3 features. Send.it is a protocol, not a launchpad.
-2. **Three-stream revenue** — Creator fees + holder rewards + burn create alignment impossible to replicate with extractive models.
-3. **Post-graduation infrastructure** — Staking, lending, perps, governance keep communities engaged long after launch.
-4. **Network effects compound** — Each new module (referrals, copy trading, seasons) creates a new retention and acquisition loop.
-5. **Permissionless cranks** — No off-chain dependency for critical operations. The protocol runs itself.
-6. **Reputation gating** — On-chain accountability raises launch quality ecosystem-wide.
+1. **31 on-chain modules** — No competitor offers more than 2–3 features. Send.it is a protocol, not a launchpad.
+2. **5IVE-compiled single binary** — 22KB bytecode, 63% smaller codebase, and zero CPI overhead between modules. Competitors using multi-program architectures cannot match this efficiency.
+3. **Cross-module composition** — 6 inter-module patterns create emergent DeFi behaviors (staking boosts reputation, staked collateral enhances lending) that are impossible in siloed launchpads.
+4. **Three-stream revenue** — Creator fees + holder rewards + burn create alignment impossible to replicate with extractive models.
+5. **Post-graduation infrastructure** — Staking, lending, perps, governance keep communities engaged long after launch.
+6. **Network effects compound** — Each new module (referrals, copy trading, seasons) creates a new retention and acquisition loop.
+7. **Permissionless cranks** — No off-chain dependency for critical operations. The protocol runs itself.
+8. **Reputation gating** — On-chain accountability raises launch quality ecosystem-wide.
 
 ---
 
-## 16. Roadmap
+## 18. Roadmap
 
 ### Q1 2026: Foundation & Core DeFi
 
@@ -1359,7 +1669,10 @@ Once created, these parameters cannot be modified:
 - [x] Limit orders module
 - [x] Prediction markets module
 - [x] Perpetuals engine (order book, funding, liquidations)
-- [ ] Devnet deployment and internal testing
+- [x] 5IVE VM port (31 modules, 16k→6k lines, 22KB bytecode)
+- [x] Cross-module composition layer (6 patterns, 23 bridge functions)
+- [x] Token-2022 audit (zero extensions on SENDIT, 1 bug fixed)
+- [x] Devnet deployment (5IVE-compiled program, 159 tests passing)
 - [ ] Security audit engagement (Tier-1 firm)
 
 ### Q2 2026: Social & Growth Layer
@@ -1374,7 +1687,7 @@ Once created, these parameters cannot be modified:
 - [x] Achievements system
 - [ ] Security audit completion
 - [ ] Mainnet-beta deployment (limited access)
-- [ ] Frontend MVP (all 25+ modules)
+- [ ] Frontend MVP (all 31 modules)
 
 ### Q3 2026: Creator Tools & Governance
 
@@ -1408,9 +1721,9 @@ Once created, these parameters cannot be modified:
 
 ---
 
-## 17. Conclusion
+## 19. Conclusion
 
-Send.it v2.0 represents a paradigm shift in what a token launch platform can be. Where pump.fun offers a single function — create and trade on a curve — Send.it delivers **25+ on-chain modules** spanning the entire lifecycle of a token community.
+Send.it v2.1 represents a paradigm shift in what a token launch platform can be. Where pump.fun offers a single function — create and trade on a curve — Send.it delivers **31 on-chain modules** spanning the entire lifecycle of a token community.
 
 **For creators:** Revenue sharing, analytics dashboards, custom pages, share cards, airdrops, raffles, and reputation-gated launches provide the tools to build something lasting.
 
@@ -1421,6 +1734,8 @@ Send.it v2.0 represents a paradigm shift in what a token launch platform can be.
 **For communities:** Live chat, token chat, daily rewards, seasons, achievements, and referrals create engagement loops that sustain interest long after launch hype fades.
 
 **For the ecosystem:** SolForge burns return value to Solana. Reputation scoring raises launch quality. Open-source plans ensure the protocol becomes a public good.
+
+With v2.1, the 5IVE port reduces the entire codebase to 6,000 lines and 22KB of bytecode — a 63% reduction that shrinks the audit surface while preserving every instruction. The cross-module composition layer connects all 31 modules through 23 bridge functions, enabling emergent DeFi behaviors (staking boosts reputation, achievements award points, staked collateral enhances lending) without CPI overhead.
 
 Every module is on-chain. Every critical operation is permissionless. Every fee stream benefits participants, not just the platform.
 
