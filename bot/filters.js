@@ -196,7 +196,8 @@ async function handleContestCommand(msg, chatId, text) {
       if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
       const days = parseInt(parts[3]) || 7;
       c.active = true; c.scores = new Map(); c.endsAt = Date.now() + days * 86400000; c.chatId = chatId;
-      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: `🏆 Invite Contest started! ${days} days to go.\n\nInvite friends — they'll be tracked automatically!`}) });
+      const startTxt = `🏆 *Invite Contest started!* ${days} days to go.\n\nInvite friends — they'll be tracked automatically!\n\n💰 *Prize Pool (Points):*\n🥇 1st Place: 5,000 pts\n🥈 2nd Place: 2,500 pts\n🥉 3rd Place: 1,000 pts\n⭐ Top 10: 500 pts each\n✅ All participants (1+ invite): 100 pts\n\nCheck standings: /contest invite leaderboard`;
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: startTxt, parse_mode: "Markdown"}) });
     } else if (sub === "leaderboard") {
       if (c.scores.size === 0) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "No invite scores yet.", reply_to_message_id: msg.message_id}) }); return; }
       const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
@@ -206,11 +207,41 @@ async function handleContestCommand(msg, chatId, text) {
     } else if (sub === "end") {
       if (!isMod(msg.from.id)) { await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id}) }); return; }
       c.active = false;
-      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points).slice(0, 10);
+      const sorted = [...c.scores.values()].sort((a, b) => b.points - a.points);
+      const top10 = sorted.slice(0, 10);
+
+      // Award points based on placement
+      const pointsAwarded = new Map();
+      sorted.forEach((e, i) => {
+        let pts = 0;
+        if (i === 0) pts = 5000;       // 🥇 1st place
+        else if (i === 1) pts = 2500;  // 🥈 2nd place
+        else if (i === 2) pts = 1000;  // 🥉 3rd place
+        else if (i < 10) pts = 500;    // Top 10
+        else if (e.points > 0) pts = 100; // All participants with 1+ invite
+        if (pts > 0) pointsAwarded.set(e.name, pts);
+      });
+
       let txt = "🏆 Invite Contest OVER! Final standings:\n\n";
-      sorted.forEach((e, i) => { txt += `${["🥇","🥈","🥉"][i] || `${i+1}.`} ${e.name} — ${e.points} invites\n`; });
-      if (sorted.length === 0) txt += "No invites tracked.";
-      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt}) });
+      if (top10.length > 0) {
+        txt += "📊 *Results & Points Awarded:*\n\n";
+        top10.forEach((e, i) => {
+          const medal = ["🥇","🥈","🥉"][i] || `${i+1}.`;
+          const pts = pointsAwarded.get(e.name) || 0;
+          txt += `${medal} ${e.name} — ${e.points} invites → *+${pts} points*\n`;
+        });
+        const remaining = sorted.slice(10).filter(e => e.points > 0);
+        if (remaining.length > 0) {
+          txt += `\n...and ${remaining.length} more participants each earn *+100 points*\n`;
+        }
+        txt += "\n💰 *Prize Pool:*\n";
+        txt += "🥇 1st: 5,000 pts | 🥈 2nd: 2,500 pts | 🥉 3rd: 1,000 pts\n";
+        txt += "Top 10: 500 pts | All participants: 100 pts\n";
+        txt += "\nPoints will be credited to your Send.it account! 🚀";
+      } else {
+        txt += "No invites tracked.";
+      }
+      await fetch(`${BASE}/sendMessage`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({chat_id: chatId, text: txt, parse_mode: "Markdown"}) });
     }
     return;
   }
