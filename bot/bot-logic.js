@@ -40,8 +40,12 @@ const SPAM_PATTERNS = [
   /bit\.ly|tinyurl/i,
 ];
 
-// In-memory state — resets per serverless invocation
-const botMods = new Set();
+// Hardcoded defaults persist across Vercel cold starts
+const botMods = new Set([
+  6541770845,  // ZED⚡️
+  6312896742,  // Crypto
+  6260568591,  // Shuñ2.0🗿
+]);
 const raidLeaders = new Set();
 const OWNER_IDS = [7920028061];
 const contests = {
@@ -387,7 +391,8 @@ async function handleUpdate(update) {
     return;
   }
 
-  const text = msg.text.trim();
+  // Strip @botname suffix from commands in groups (e.g. /modlist@SendItBot → /modlist)
+  const text = msg.text.trim().replace(/^(\/\w+)@\w+/, '$1');
   const chatId = msg.chat.id;
 
   // Raid commands
