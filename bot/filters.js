@@ -43,7 +43,12 @@ const SPAM_PATTERNS = [
 ];
 
 // Bot moderators and raid leaders
-const botMods = new Set();
+// Hardcoded mods persist across Vercel cold starts (in-memory Set resets otherwise)
+const botMods = new Set([
+  6541770845,  // ZED⚡️
+  6312896742,  // Crypto
+  6260568591,  // Shuñ2.0🗿
+]);
 const raidLeaders = new Set(); // can start raids but not mod
 const OWNER_IDS = [7920028061]; // Joe's Telegram ID
 
