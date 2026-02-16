@@ -21,6 +21,25 @@
 
 ---
 
+## 🏆 For Hackathon Judges
+
+| What | Link |
+|------|------|
+| **Live Demo** | [send-it-seven-sigma.vercel.app](https://send-it-seven-sigma.vercel.app) |
+| **Launchpad (Devnet)** | [send-it-seven-sigma.vercel.app/launchpad.html](https://send-it-seven-sigma.vercel.app/launchpad.html) |
+| **Social Hub (Tapestry)** | [send-it-seven-sigma.vercel.app/social.html](https://send-it-seven-sigma.vercel.app/social.html) |
+| **Devnet Program** | [`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`](https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet) |
+| **SENDIT Token** | [`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump`](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
+| **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
+| **Docs & Whitepaper** | [GitHub Pages](https://joebower1983-a11y.github.io/send_it/) |
+| **CLI Tool** | `scripts/sendit-cli.mjs` — interact with devnet from terminal |
+
+**Try it:** Connect Phantom/Solflare (set to devnet) → Create token → Buy → Sell — all on-chain.
+
+**Verified transactions:** `create_token`, `buy`, `sell` — all confirmed on Solana devnet with real PDA-signed transfers.
+
+---
+
 ## 🔗 Devnet Deployment — LIVE & TESTED ✅
 
 | | Address |
