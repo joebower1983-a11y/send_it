@@ -1,0 +1,33 @@
+name: Sec3 X-Ray Security Scan
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'programs/**/*.rs'
+
+jobs:
+  xray:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan send_it_slim
+        run: |
+          docker run --rm --volume "${{ github.workspace }}:/workspace" \
+            ghcr.io/sec3-product/x-ray:latest \
+            /workspace/programs/send_it_slim 2>&1 | tee xray-slim-report.txt
+
+      - name: Scan send_it (full)
+        run: |
+          docker run --rm --volume "${{ github.workspace }}:/workspace" \
+            ghcr.io/sec3-product/x-ray:latest \
+            /workspace/programs/send_it 2>&1 | tee xray-full-report.txt
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: xray-security-reports
+          path: |
+            xray-slim-report.txt
+            xray-full-report.txt
