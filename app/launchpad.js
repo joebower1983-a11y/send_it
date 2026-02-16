@@ -130,7 +130,7 @@ async function createToken() {
 
   const name = document.getElementById('tokenName')?.value?.trim() || 'SendIt Token';
   const symbol = document.getElementById('tokenSymbol')?.value?.trim() || 'SENDIT';
-  const uri = 'https://send-it-seven-sigma.vercel.app';
+  const uri = 'https://itsolana.io';
 
   const launchBtn = document.getElementById('launchBtn');
   launchBtn.disabled = true;

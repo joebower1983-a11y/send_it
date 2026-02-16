@@ -23,7 +23,7 @@ Joseph Bower
 | Field | Value |
 |-------|-------|
 | GitHub | https://github.com/joebower1983-a11y/send_it |
-| Website | https://send-it-seven-sigma.vercel.app / https://itsolana.io |
+| Website | https://itsolana.io / https://itsolana.io |
 | Twitter | [@SendItSolana420](https://twitter.com/SendItSolana420) |
 | Discord | https://discord.gg/vKRTyG85 |
 | Telegram Bot | @senditsol42069bot |

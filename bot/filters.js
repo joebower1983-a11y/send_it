@@ -6,13 +6,13 @@ const MINT = "F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump";
 const responses = {
   "/price": `📊 *SENDIT Token*\n\n• Mint: \`${MINT}\`\n• Chain: Solana\n• Platform: Pump\\.fun\n\n[View on Pump\\.fun](https://pump.fun/coin/${MINT})\n[View on DexScreener](https://dexscreener.com/solana/${MINT})`,
 
-  "/links": `🔗 *Official Links*\n\n🟢 [Pump\\.fun Token](https://pump.fun/coin/${MINT})\n📦 [GitHub](https://github.com/joebower1983-a11y/send_it)\n🌐 [Live Demo](https://send-it-seven-sigma.vercel.app)\n💬 [Discord](https://discord.gg/vKRTyG85)\n🐦 [Twitter](https://twitter.com/SendItSolana420)\n📱 [Telegram](https://t.me/+Xw4E2sJ0Z3Q5ZDYx)`,
+  "/links": `🔗 *Official Links*\n\n🟢 [Pump\\.fun Token](https://pump.fun/coin/${MINT})\n📦 [GitHub](https://github.com/joebower1983-a11y/send_it)\n🌐 [Live Demo](https://itsolana.io)\n💬 [Discord](https://discord.gg/vKRTyG85)\n🐦 [Twitter](https://twitter.com/SendItSolana420)\n📱 [Telegram](https://t.me/+Xw4E2sJ0Z3Q5ZDYx)`,
 
   "/tokeninfo": `💰 *SENDIT Token Info*\n\n• Name: Send It\n• Ticker: SENDIT\n• Chain: Solana\n• Mint: \`${MINT}\`\n\n*Fee Structure \\(launchpad\\):*\n• 1% platform fee → treasury\n• 1% creator fee → token creators\n• Holder rewards → redistributed\n\n*Modules:* 29 on\\-chain \\| 13k\\+ lines of Rust`,
 
   "/rules": `📜 *Group Rules*\n\n1️⃣ Be respectful\n2️⃣ No scams, phishing, or unsolicited DMs\n3️⃣ No shilling other projects\n4️⃣ Nothing here is financial advice — DYOR\n5️⃣ English only\n6️⃣ No spam\n7️⃣ Have fun and send it\\! 🚀\n\n_Breaking rules \\= warn → mute → ban_`,
 
-  "/website": `🌐 *Send\\.it Website*\n\n• Main: [send\\-it\\-seven\\-sigma\\.vercel\\.app](https://send-it-seven-sigma.vercel.app)\n• GitHub Pages: [joebower1983\\-a11y\\.github\\.io/send\\_it](https://joebower1983-a11y.github.io/send_it/)\n• Pitch Deck: [View](https://joebower1983-a11y.github.io/send_it/pitch-deck.html)`,
+  "/website": `🌐 *Send\\.it Website*\n\n• Main: [send\\-it\\-seven\\-sigma\\.vercel\\.app](https://itsolana.io)\n• GitHub Pages: [joebower1983\\-a11y\\.github\\.io/send\\_it](https://joebower1983-a11y.github.io/send_it/)\n• Pitch Deck: [View](https://joebower1983-a11y.github.io/send_it/pitch-deck.html)`,
 
   "/chart": `📈 *SENDIT Chart*\n\n[DexScreener](https://dexscreener.com/solana/${MINT})\n[Pump\\.fun](https://pump.fun/coin/${MINT})\n[Birdeye](https://birdeye.so/token/${MINT}?chain=solana)`,
 

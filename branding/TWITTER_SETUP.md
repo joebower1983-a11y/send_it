@@ -42,7 +42,7 @@ Community-first token launchpad on Solana 🟢 Fair launches only. No presales. 
 | Field | Value |
 |-------|-------|
 | **Location** | Solana |
-| **Website** | https://joebower1983-a11y.github.io/send_it/ |
+| **Website** | https://itsolana.io/ |
 | **Birthday** | Set to launch date |
 
 ## 6. Category / Topics

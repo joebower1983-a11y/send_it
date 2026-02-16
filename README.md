@@ -13,8 +13,8 @@
     <em>31 on-chain Anchor modules · ~16,000 lines of Rust · 13 frontend pages · Ported to 5IVE VM · Built for the next era of DeFi</em>
   </p>
   <p align="center">
-    <a href="https://joebower1983-a11y.github.io/send_it/">📄 GitHub Pages</a> ·
-    <a href="https://send-it-seven-sigma.vercel.app">🌐 Live App</a> ·
+    <a href="https://itsolana.io/">📄 GitHub Pages</a> ·
+    <a href="https://itsolana.io">🌐 Live App</a> ·
     <a href="https://itsolana.io">🔗 itsolana.io (coming soon)</a>
   </p>
 </p>
@@ -25,13 +25,13 @@
 
 | What | Link |
 |------|------|
-| **Live Demo** | [send-it-seven-sigma.vercel.app](https://send-it-seven-sigma.vercel.app) |
-| **Launchpad (Devnet)** | [send-it-seven-sigma.vercel.app/launchpad.html](https://send-it-seven-sigma.vercel.app/launchpad.html) |
-| **Social Hub (Tapestry)** | [send-it-seven-sigma.vercel.app/social.html](https://send-it-seven-sigma.vercel.app/social.html) |
+| **Live Demo** | [itsolana.io](https://itsolana.io) |
+| **Launchpad (Devnet)** | [itsolana.io/launchpad.html](https://itsolana.io/launchpad.html) |
+| **Social Hub (Tapestry)** | [itsolana.io/social.html](https://itsolana.io/social.html) |
 | **Devnet Program** | [`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`](https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet) |
 | **SENDIT Token** | [`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump`](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
-| **Docs & Whitepaper** | [GitHub Pages](https://joebower1983-a11y.github.io/send_it/) |
+| **Docs & Whitepaper** | [GitHub Pages](https://itsolana.io/) |
 | **CLI Tool** | `scripts/sendit-cli.mjs` — interact with devnet from terminal |
 
 **Try it:** Connect Phantom/Solflare (set to devnet) → Create token → Buy → Sell — all on-chain.
@@ -325,8 +325,8 @@ anchor deploy --provider.cluster devnet
 
 | | |
 |---|---|
-| **GitHub Pages** | [joebower1983-a11y.github.io/send_it](https://joebower1983-a11y.github.io/send_it/) |
-| **Live App** | [send-it-seven-sigma.vercel.app](https://send-it-seven-sigma.vercel.app) |
+| **GitHub Pages** | [joebower1983-a11y.github.io/send_it](https://itsolana.io/) |
+| **Live App** | [itsolana.io](https://itsolana.io) |
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
 | **PYUSD Monitor** | [github.com/joebower1983-a11y/pyusd-monitor](https://github.com/joebower1983-a11y/pyusd-monitor) |
 | **SENDIT Token** | [pump.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
