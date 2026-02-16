@@ -6,6 +6,7 @@
     <img src="https://img.shields.io/badge/Rust_LOC-16k%2B-orange" alt="Rust LOC">
     <img src="https://img.shields.io/badge/Solana-Anchor-9945FF?logo=solana" alt="Solana Anchor">
     <img src="https://img.shields.io/badge/devnet-live-brightgreen" alt="Devnet Live">
+    <img src="https://img.shields.io/badge/Sec3_X--Ray-0_vulnerabilities-00c896" alt="Sec3 X-Ray Clean">
     <img src="https://img.shields.io/badge/5IVE_VM-ported-blueviolet" alt="5IVE VM Port">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License">
   </p>
@@ -33,6 +34,7 @@
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
 | **Docs & Whitepaper** | [GitHub Pages](https://senditsolana.io/) |
 | **CLI Tool** | `scripts/sendit-cli.mjs` — interact with devnet from terminal |
+| **Security Scan** | Sec3 X-Ray — **0 vulnerabilities** ([workflow](.github/workflows/xray-scan.yml)) |
 
 **Try it:** Connect Phantom/Solflare (set to devnet) → Create token → Buy → Sell — all on-chain.
 
@@ -311,13 +313,33 @@ anchor deploy --provider.cluster devnet
 - [x] PYUSD vault integration
 - [x] Tapestry social integration (profiles, follows, feeds, likes)
 - [x] Devnet CLI tool (`scripts/sendit-cli.mjs`)
-- [ ] Security audit
+- [x] Sec3 X-Ray automated security scan (0 vulnerabilities)
+- [x] senditsolana.io custom domain
+- [ ] Full manual security audit
 - [ ] Mainnet launch (target: April 2026)
-- [ ] senditsolana.io custom domain
 - [ ] Full Raydium CPI integration
 - [ ] Mobile app
 - [ ] Multi-chain bridge activation
 - [ ] DAO governance launch
+
+---
+
+## 🛡️ Security
+
+Send.it passes [Sec3 X-Ray](https://github.com/sec3-product/x-ray) automated security analysis with **0 vulnerabilities** across both the slim core (deployed on devnet) and the full 29-module program.
+
+**Scan coverage (14 rules):**
+- ✅ Integer overflow/underflow (checked arithmetic throughout)
+- ✅ Unverified parsed accounts (all accounts validated via seeds, owner, or constraints)
+- ✅ Type cosplay attacks
+- ✅ Bump seed canonicalization
+- ✅ Insecure PDA sharing
+- ✅ Arbitrary CPI calls
+- ✅ Malicious simulation detection
+
+X-Ray runs automatically on every push via [GitHub Actions](.github/workflows/xray-scan.yml). Reports are available as CI artifacts.
+
+See also: [`SECURITY.md`](SECURITY.md) · [`.well-known/security.txt`](.well-known/security.txt)
 
 ---
 
