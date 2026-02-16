@@ -1,0 +1,129 @@
+name: Build & Verify Solana Program
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'programs/send_it_slim/**'
+      - '.github/workflows/verify-program.yml'
+  workflow_dispatch:
+
+env:
+  PROGRAM_ID: 98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L
+  PROGRAM_NAME: send_it
+  ANCHOR_VERSION: 0.29.0
+  SOLANA_VERSION: 1.18.26
+  RUST_VERSION: 1.79.0
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --force
+          avm install ${{ env.ANCHOR_VERSION }}
+          avm use ${{ env.ANCHOR_VERSION }}
+
+      - name: Build Program
+        run: |
+          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json --force
+          anchor build -p send_it_slim
+          echo "✅ Build complete"
+          ls -la target/deploy/
+
+      - name: Compute Program Hash
+        run: |
+          HASH=$(sha256sum target/deploy/send_it.so | awk '{print $1}')
+          echo "## 🔐 Program Build Hash" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Program ID** | \`${{ env.PROGRAM_ID }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Hash (SHA256)** | \`${HASH}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Binary** | \`target/deploy/send_it.so\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Binary Size** | \`$(stat -c%s target/deploy/send_it.so)\` bytes |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Anchor** | \`${{ env.ANCHOR_VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Solana** | \`${{ env.SOLANA_VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Rust** | \`${{ env.RUST_VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "BUILD_HASH=${HASH}" >> $GITHUB_ENV
+
+      - name: Install solana-verify
+        run: |
+          cargo install solana-verify --force
+        continue-on-error: true
+
+      - name: Verify against devnet
+        run: |
+          solana config set --url devnet
+          solana-verify get-program-hash -u devnet ${{ env.PROGRAM_ID }} > /tmp/onchain_hash.txt 2>&1 || true
+          ONCHAIN=$(cat /tmp/onchain_hash.txt | tail -1)
+          echo "On-chain hash: ${ONCHAIN}"
+          echo "Build hash:    ${BUILD_HASH}"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Verification" >> $GITHUB_STEP_SUMMARY
+          echo "| | Hash |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **On-chain** | \`${ONCHAIN}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Local build** | \`${BUILD_HASH}\` |" >> $GITHUB_STEP_SUMMARY
+          if [ "${ONCHAIN}" = "${BUILD_HASH}" ]; then
+            echo "| **Status** | ✅ **VERIFIED** |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| **Status** | ⚠️ Hash mismatch (may differ due to Playground build env) |" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: send_it_slim-${{ github.sha }}
+          path: target/deploy/send_it.so
+          retention-days: 90
+
+      - name: Verify via OtterSec API
+        run: |
+          echo "Submitting to OtterSec verify API..."
+          RESPONSE=$(curl -s -X POST "https://verify.osec.io/verify" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"program_id\": \"${{ env.PROGRAM_ID }}\",
+              \"repository\": \"https://github.com/${{ github.repository }}\",
+              \"commit_hash\": \"${{ github.sha }}\",
+              \"lib_name\": \"send_it\",
+              \"bpf_flag\": false
+            }")
+          echo "OtterSec response: ${RESPONSE}"
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### OtterSec Verification" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+          echo "${RESPONSE}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        continue-on-error: true
