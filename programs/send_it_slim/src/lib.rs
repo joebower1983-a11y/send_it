@@ -9,9 +9,13 @@ pub const TOKEN_LAUNCH_SEED: &[u8] = b"token_launch";
 pub const USER_POSITION_SEED: &[u8] = b"user_position";
 pub const PLATFORM_VAULT_SEED: &[u8] = b"platform_vault";
 pub const SOL_VAULT_SEED: &[u8] = b"sol_vault";
+pub const STAKE_SEED: &[u8] = b"stake";
 pub const DEFAULT_TOTAL_SUPPLY: u64 = 1_000_000_000_000_000;
 pub const TOKEN_DECIMALS: u8 = 6;
 pub const PRECISION: u128 = 1_000_000_000_000;
+pub const MIN_STAKE_DURATION: i64 = 60;
+
+pub const MPL_TOKEN_METADATA_ID: Pubkey = solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
 #[program]
 pub mod send_it {
@@ -50,9 +54,40 @@ pub mod send_it {
         l.total_volume_sol = 0;
         l.bump = ctx.bumps.token_launch;
         l.sol_vault_bump = ctx.bumps.launch_sol_vault;
+
         let mk = ctx.accounts.token_mint.key();
         let seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[l.bump]];
-        token::mint_to(CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), MintTo { mint: ctx.accounts.token_mint.to_account_info(), to: ctx.accounts.launch_token_vault.to_account_info(), authority: ctx.accounts.token_launch.to_account_info() }, &[seeds]), DEFAULT_TOTAL_SUPPLY)?;
+
+        // Mint total supply to launch vault
+        token::mint_to(CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), MintTo {
+            mint: ctx.accounts.token_mint.to_account_info(),
+            to: ctx.accounts.launch_token_vault.to_account_info(),
+            authority: ctx.accounts.token_launch.to_account_info(),
+        }, &[seeds]), DEFAULT_TOTAL_SUPPLY)?;
+
+        // Create Metaplex token metadata
+        let ix = mpl_create_metadata_ix(
+            ctx.accounts.metadata.key(),
+            ctx.accounts.token_mint.key(),
+            ctx.accounts.token_launch.key(),
+            ctx.accounts.creator.key(),
+            ctx.accounts.token_launch.key(),
+            l.name.clone(), l.symbol.clone(), l.uri.clone(),
+        );
+        anchor_lang::solana_program::program::invoke_signed(
+            &ix,
+            &[
+                ctx.accounts.metadata.to_account_info(),
+                ctx.accounts.token_mint.to_account_info(),
+                ctx.accounts.token_launch.to_account_info(),
+                ctx.accounts.creator.to_account_info(),
+                ctx.accounts.token_launch.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.rent.to_account_info(),
+            ],
+            &[seeds],
+        )?;
+
         let config = &mut ctx.accounts.platform_config;
         config.total_launches += 1;
         Ok(())
@@ -110,9 +145,7 @@ pub mod send_it {
         let cf = (sol_out as u128) * (launch.creator_fee_bps as u128) / 10_000;
         let net = sol_out - pf as u64 - cf as u64;
         require!(net <= launch.reserve_sol, SendItError::InsufficientReserve);
-        // Transfer tokens from seller to vault
         token::transfer(CpiContext::new(ctx.accounts.token_program.to_account_info(), Transfer { from: ctx.accounts.seller_token_account.to_account_info(), to: ctx.accounts.launch_token_vault.to_account_info(), authority: ctx.accounts.seller.to_account_info() }), token_amount)?;
-        // Transfer SOL from vault to seller using invoke_signed (vault is program-owned PDA)
         let mk = ctx.accounts.token_mint.key();
         let vault_seeds: &[&[u8]] = &[SOL_VAULT_SEED, mk.as_ref(), &[ctx.accounts.token_launch.sol_vault_bump]];
         anchor_lang::system_program::transfer(CpiContext::new_with_signer(ctx.accounts.system_program.to_account_info(), anchor_lang::system_program::Transfer { from: ctx.accounts.launch_sol_vault.to_account_info(), to: ctx.accounts.seller.to_account_info() }, &[vault_seeds]), net)?;
@@ -132,7 +165,50 @@ pub mod send_it {
         config.total_volume_sol += sol_out;
         Ok(())
     }
+
+    /// Stake tokens — lock for a duration, tracked on-chain
+    pub fn stake(ctx: Context<StakeTokens>, amount: u64, duration_seconds: i64) -> Result<()> {
+        require!(amount > 0, SendItError::ZeroAmount);
+        require!(duration_seconds >= MIN_STAKE_DURATION, SendItError::StakeTooShort);
+        let clock = Clock::get()?;
+        // Transfer tokens to the launch token vault (acts as staking pool)
+        token::transfer(CpiContext::new(ctx.accounts.token_program.to_account_info(), Transfer {
+            from: ctx.accounts.staker_token_account.to_account_info(),
+            to: ctx.accounts.launch_token_vault.to_account_info(),
+            authority: ctx.accounts.staker.to_account_info(),
+        }), amount)?;
+        let s = &mut ctx.accounts.stake_account;
+        s.staker = ctx.accounts.staker.key();
+        s.mint = ctx.accounts.token_mint.key();
+        s.amount = amount;
+        s.staked_at = clock.unix_timestamp;
+        s.unlock_at = clock.unix_timestamp + duration_seconds;
+        s.claimed = false;
+        s.bump = ctx.bumps.stake_account;
+        Ok(())
+    }
+
+    /// Unstake tokens — withdraw after lock period expires
+    pub fn unstake(ctx: Context<UnstakeTokens>) -> Result<()> {
+        let clock = Clock::get()?;
+        let s = &ctx.accounts.stake_account;
+        require!(clock.unix_timestamp >= s.unlock_at, SendItError::StakeLocked);
+        require!(!s.claimed, SendItError::AlreadyClaimed);
+        let amount = s.amount;
+        let mk = ctx.accounts.token_mint.key();
+        let seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[ctx.accounts.token_launch.bump]];
+        token::transfer(CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), Transfer {
+            from: ctx.accounts.launch_token_vault.to_account_info(),
+            to: ctx.accounts.staker_token_account.to_account_info(),
+            authority: ctx.accounts.token_launch.to_account_info(),
+        }, &[seeds]), amount)?;
+        let s = &mut ctx.accounts.stake_account;
+        s.claimed = true;
+        Ok(())
+    }
 }
+
+// ── Account Structs ──
 
 #[account]
 pub struct PlatformConfig { pub authority: Pubkey, pub platform_fee_bps: u16, pub migration_threshold: u64, pub total_launches: u64, pub total_volume_sol: u64, pub paused: bool, pub bump: u8 }
@@ -145,6 +221,12 @@ impl TokenLaunch { pub const SIZE: usize = 8+32+32+(4+32)+(4+10)+(4+200)+2+8+8+8
 #[account]
 pub struct UserPosition { pub owner: Pubkey, pub mint: Pubkey, pub tokens_bought: u64, pub sol_spent: u64, pub bump: u8 }
 impl UserPosition { pub const SIZE: usize = 8+32+32+8+8+1; }
+
+#[account]
+pub struct StakeAccount { pub staker: Pubkey, pub mint: Pubkey, pub amount: u64, pub staked_at: i64, pub unlock_at: i64, pub claimed: bool, pub bump: u8 }
+impl StakeAccount { pub const SIZE: usize = 8+32+32+8+8+8+1+1; }
+
+// ── Contexts ──
 
 #[derive(Accounts)]
 pub struct InitializePlatform<'info> {
@@ -162,9 +244,12 @@ pub struct CreateToken<'info> {
     pub token_mint: Account<'info, Mint>,
     #[account(init, payer=creator, associated_token::mint=token_mint, associated_token::authority=token_launch)]
     pub launch_token_vault: Account<'info, TokenAccount>,
-    /// CHECK: SOL vault PDA owned by this program
+    /// CHECK: SOL vault PDA
     #[account(mut, seeds=[SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
     pub launch_sol_vault: AccountInfo<'info>,
+    /// CHECK: Metaplex metadata PDA
+    #[account(mut)]
+    pub metadata: AccountInfo<'info>,
     #[account(mut, seeds=[PLATFORM_CONFIG_SEED], bump=platform_config.bump)]
     pub platform_config: Account<'info, PlatformConfig>,
     #[account(mut)] pub creator: Signer<'info>,
@@ -172,6 +257,9 @@ pub struct CreateToken<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = MPL_TOKEN_METADATA_ID)]
+    pub token_metadata_program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -229,6 +317,40 @@ pub struct SellTokens<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct StakeTokens<'info> {
+    #[account(init, payer=staker, space=StakeAccount::SIZE, seeds=[STAKE_SEED, staker.key().as_ref(), token_mint.key().as_ref()], bump)]
+    pub stake_account: Account<'info, StakeAccount>,
+    #[account(seeds=[TOKEN_LAUNCH_SEED, token_mint.key().as_ref()], bump=token_launch.bump)]
+    pub token_launch: Account<'info, TokenLaunch>,
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=staker)]
+    pub staker_token_account: Account<'info, TokenAccount>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=token_launch)]
+    pub launch_token_vault: Account<'info, TokenAccount>,
+    #[account(mut)] pub staker: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UnstakeTokens<'info> {
+    #[account(mut, seeds=[STAKE_SEED, staker.key().as_ref(), token_mint.key().as_ref()], bump=stake_account.bump, has_one=staker)]
+    pub stake_account: Account<'info, StakeAccount>,
+    #[account(seeds=[TOKEN_LAUNCH_SEED, token_mint.key().as_ref()], bump=token_launch.bump)]
+    pub token_launch: Account<'info, TokenLaunch>,
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=staker)]
+    pub staker_token_account: Account<'info, TokenAccount>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=token_launch)]
+    pub launch_token_vault: Account<'info, TokenAccount>,
+    #[account(mut)] pub staker: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+// ── Errors ──
+
 #[error_code]
 pub enum SendItError {
     #[msg("Fee too high")] FeeTooHigh,
@@ -239,4 +361,48 @@ pub enum SendItError {
     #[msg("Insufficient reserve")] InsufficientReserve,
     #[msg("Insufficient tokens sold")] InsufficientTokensSold,
     #[msg("Invalid creator")] InvalidCreator,
+    #[msg("Stake still locked")] StakeLocked,
+    #[msg("Already claimed")] AlreadyClaimed,
+    #[msg("Stake too short")] StakeTooShort,
+}
+
+// ── Metaplex CPI Helper ──
+
+fn mpl_create_metadata_ix(
+    metadata_account: Pubkey, mint: Pubkey, mint_authority: Pubkey,
+    payer: Pubkey, update_authority: Pubkey,
+    name: String, symbol: String, uri: String,
+) -> anchor_lang::solana_program::instruction::Instruction {
+    use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
+    // CreateMetadataAccountV3 discriminator = 33
+    let mut data = vec![33u8];
+    // Borsh-serialize DataV2
+    let nb = name.as_bytes();
+    data.extend_from_slice(&(nb.len() as u32).to_le_bytes());
+    data.extend_from_slice(nb);
+    let sb = symbol.as_bytes();
+    data.extend_from_slice(&(sb.len() as u32).to_le_bytes());
+    data.extend_from_slice(sb);
+    let ub = uri.as_bytes();
+    data.extend_from_slice(&(ub.len() as u32).to_le_bytes());
+    data.extend_from_slice(ub);
+    data.extend_from_slice(&0u16.to_le_bytes()); // seller_fee_basis_points
+    data.push(0); // creators: None
+    data.push(0); // collection: None
+    data.push(0); // uses: None
+    data.push(1); // is_mutable: true
+    data.push(0); // collection_details: None
+    Instruction {
+        program_id: MPL_TOKEN_METADATA_ID,
+        accounts: vec![
+            AccountMeta::new(metadata_account, false),
+            AccountMeta::new_readonly(mint, false),
+            AccountMeta::new_readonly(mint_authority, true),
+            AccountMeta::new(payer, true),
+            AccountMeta::new_readonly(update_authority, false),
+            AccountMeta::new_readonly(anchor_lang::solana_program::system_program::ID, false),
+            AccountMeta::new_readonly(anchor_lang::solana_program::sysvar::rent::ID, false),
+        ],
+        data,
+    }
 }
