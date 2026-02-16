@@ -156,6 +156,84 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 .mb-20{margin-bottom:20px}
 .mb-32{margin-bottom:32px}
 .gap-16{gap:16px}
+
+/* ─── Tapestry Social Feed ─── */
+.social-layout{display:grid;grid-template-columns:280px 1fr 260px;gap:24px;margin-bottom:32px}
+@media(max-width:1100px){.social-layout{grid-template-columns:1fr}}
+
+.profile-card{text-align:center;padding:28px 20px;position:sticky;top:120px}
+.profile-avatar-lg{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--neon),var(--purple));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#000;margin:0 auto 12px}
+.profile-username{font-size:18px;font-weight:800;margin-bottom:4px}
+.profile-bio{font-size:13px;color:var(--text2);margin-bottom:16px}
+.profile-stats{display:flex;justify-content:center;gap:24px;margin-bottom:16px}
+.stat{display:flex;flex-direction:column;align-items:center}
+.stat-num{font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--neon)}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.edit-profile-btn{padding:10px 20px;border-radius:var(--radius2);background:var(--bg3);color:var(--text);font-weight:600;font-size:13px;transition:.2s;width:100%}
+.edit-profile-btn:hover{background:var(--bg4)}
+.wallet-btn.connected{background:var(--bg3)!important;color:var(--neon)!important;border:1px solid rgba(0,232,123,.3)}
+.connect-prompt{text-align:center;padding:40px 20px;color:var(--text2)}
+.connect-prompt i{font-size:48px;color:var(--neon);margin-bottom:12px;display:block}
+.feed-section{min-width:0}
+.create-post-box{padding:16px;margin-bottom:20px}
+.create-post-box textarea{width:100%;min-height:80px;resize:vertical;padding:14px;border-radius:var(--radius2);background:var(--bg);font-size:14px}
+.create-post-box textarea:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
+.post-submit-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.post-type-tags{display:flex;gap:6px}
+.post-type-tag{padding:6px 12px;border-radius:16px;font-size:11px;font-weight:700;background:var(--bg);color:var(--text3);cursor:pointer;transition:.2s}
+.post-type-tag:hover,.post-type-tag.active{color:var(--neon);background:rgba(0,232,123,.1)}
+.post-submit-btn{padding:10px 24px;border-radius:var(--radius2);background:linear-gradient(135deg,var(--neon),#00cc66);color:#000;font-weight:700;font-size:13px}
+.post-submit-btn:hover{box-shadow:var(--glow)}
+.post-submit-btn:disabled{opacity:.5;cursor:not-allowed}
+#social-feed{display:flex;flex-direction:column;gap:16px}
+.feed-post{animation:fadeUp .3s ease-out}
+.post-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.post-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;flex-shrink:0}
+.post-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.post-author{font-weight:700;font-size:14px}
+.post-time{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.post-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px}
+.launch-badge{background:rgba(0,232,123,.12);color:var(--neon)}
+.trade-badge{background:rgba(168,85,247,.12);color:var(--purple)}
+.post-content{font-size:14px;line-height:1.6;margin-bottom:12px;word-break:break-word}
+.post-mint{font-size:12px;color:var(--text3);margin-bottom:12px}
+.mint-link{color:var(--purple);font-family:'JetBrains Mono',monospace;text-decoration:underline}
+.post-actions{display:flex;gap:16px;padding-top:10px;border-top:1px solid rgba(255,255,255,.04)}
+.post-action-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius2);font-size:13px;color:var(--text2);background:none;transition:.2s}
+.post-action-btn:hover{background:var(--bg3);color:var(--text)}
+.post-action-btn.liked{color:var(--pink)}
+.trade-action{color:var(--neon);font-weight:700;margin-left:auto}
+.post-comments-section{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.04)}
+.comments-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;max-height:200px;overflow-y:auto}
+.comment{display:flex;gap:8px;font-size:13px;align-items:baseline}
+.comment-author{font-weight:700;color:var(--neon);flex-shrink:0}
+.comment-text{color:var(--text)}
+.comment-time{font-size:10px;color:var(--text3);flex-shrink:0}
+.no-comments{color:var(--text3);font-size:12px;font-style:italic}
+.comment-input-row{display:flex;gap:8px}
+.comment-input-row input{flex:1;padding:8px 12px;font-size:12px}
+.comment-submit{padding:8px 14px;border-radius:var(--radius2);background:var(--bg3);color:var(--neon);font-size:12px}
+.suggested-card{position:sticky;top:120px}
+.suggested-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius2);transition:.2s}
+.suggested-user:hover{background:var(--bg3)}
+.su-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.su-info{flex:1;min-width:0}
+.su-name{font-size:13px;font-weight:700}
+.su-bio{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.follow-btn{padding:6px 14px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(0,232,123,.12);color:var(--neon);border:1px solid rgba(0,232,123,.3);flex-shrink:0;transition:.2s}
+.follow-btn:hover{background:rgba(0,232,123,.25)}
+.empty-feed{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-feed h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+.loading{text-align:center;padding:40px;color:var(--text3)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);color:var(--neon);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(0,232,123,.3);box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:10000;animation:fadeUp .3s ease-out}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9999}
+.modal{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:28px;width:100%;max-width:400px}
+.modal h3{margin-bottom:16px;font-size:18px}
+.modal label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px;margin-top:12px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.modal-cancel{padding:10px 20px;border-radius:var(--radius2);background:var(--bg3);color:var(--text);font-weight:600}
+.modal-save{padding:10px 20px;border-radius:var(--radius2);background:linear-gradient(135deg,var(--neon),#00cc66);color:#000;font-weight:700}
+.tapestry-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:16px;font-size:11px;font-weight:700;background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2);margin-top:12px}
 </style>
 </head>
 <body>
@@ -167,7 +245,7 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
       <div class="logo-icon">🚀</div>
       <div>Send<span class="dot">.</span><span>it</span></div>
     </a>
-    <button class="wallet-btn"><i class="fas fa-wallet"></i>&nbsp; Connect Wallet</button>
+    <button class="wallet-btn" id="wallet-btn"><i class="fas fa-wallet"></i>&nbsp; Connect Wallet</button>
   </header>
 
   <nav>
@@ -185,6 +263,68 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
     <div class="hero">
       <h1>Social Hub</h1>
       <p>Chat, earn, compete & connect with the Send.it community</p>
+    </div>
+
+    <!-- ═══ Tapestry Social Feed ═══ -->
+    <div class="social-layout mb-32">
+      <!-- Left: Profile Card -->
+      <div>
+        <div class="card profile-card" id="profile-card-content">
+          <div class="connect-prompt">
+            <i class="fas fa-wallet"></i>
+            <h3>Connect Wallet</h3>
+            <p>Link your Solana wallet to create your on-chain social profile</p>
+            <div class="tapestry-badge"><i class="fas fa-link"></i> Powered by Tapestry</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Feed -->
+      <div class="feed-section">
+        <div class="card create-post-box">
+          <div class="section-title"><i class="fas fa-pen"></i> Create Post</div>
+          <textarea id="new-post-input" placeholder="What's happening in DeFi? Share a launch, trade, or thought..."></textarea>
+          <div class="post-submit-row">
+            <div class="post-type-tags">
+              <span class="post-type-tag active">💬 Post</span>
+              <span class="post-type-tag">🚀 Launch</span>
+              <span class="post-type-tag">📈 Trade</span>
+            </div>
+            <button class="post-submit-btn" id="post-submit-btn"><i class="fas fa-paper-plane"></i> Post</button>
+          </div>
+        </div>
+        <div id="social-feed">
+          <div class="empty-feed">
+            <i class="fas fa-rocket" style="font-size:48px;color:var(--neon);margin-bottom:16px"></i>
+            <h3>Connect wallet to see your feed</h3>
+            <p>Follow creators, post launches, and engage with the community</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Suggested & Trending -->
+      <div>
+        <div class="card suggested-card">
+          <div class="section-title" style="font-size:14px"><i class="fas fa-user-plus"></i> Suggested Creators</div>
+          <div id="suggested-users"></div>
+          <div class="tapestry-badge" style="margin-top:16px"><i class="fas fa-globe"></i> On-chain social graph</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="edit-profile-modal">
+      <div class="modal">
+        <h3>✏️ Edit Profile</h3>
+        <label>Username</label>
+        <input type="text" id="edit-username" placeholder="Your username">
+        <label>Bio</label>
+        <textarea id="edit-bio" placeholder="Tell people about yourself..." style="min-height:60px"></textarea>
+        <div class="modal-actions">
+          <button class="modal-cancel" onclick="document.getElementById('edit-profile-modal').style.display='none'">Cancel</button>
+          <button class="modal-save" id="save-profile-btn">Save</button>
+        </div>
+      </div>
     </div>
 
     <!-- Daily Check-in + Live Chat -->
@@ -316,5 +456,6 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
     <div style="margin-top:4px">© 2025 Send.it Protocol. All rights reserved.</div>
   </footer>
 </div>
+<script src="social.js"></script>
 </body>
 </html>
