@@ -1,0 +1,18 @@
+{
+  "rewrites": [
+    { "source": "/social.html", "destination": "/app/social.html" },
+    { "source": "/staking.html", "destination": "/app/staking.html" },
+    { "source": "/trading.html", "destination": "/app/trading.html" },
+    { "source": "/lending.html", "destination": "/app/lending.html" },
+    { "source": "/launchpad.html", "destination": "/app/launchpad.html" },
+    { "source": "/composer.html", "destination": "/app/composer.html" },
+    { "source": "/creator-dashboard.html", "destination": "/app/creator-dashboard.html" },
+    { "source": "/governance.html", "destination": "/app/governance.html" },
+    { "source": "/analytics.html", "destination": "/app/analytics.html" },
+    { "source": "/airdrops.html", "destination": "/app/airdrops.html" },
+    { "source": "/portfolio.html", "destination": "/app/portfolio.html" },
+    { "source": "/mobile.html", "destination": "/app/mobile.html" },
+    { "source": "/links.html", "destination": "/app/links.html" },
+    { "source": "/social.js", "destination": "/app/social.js" }
+  ]
+}
