@@ -415,12 +415,15 @@ pub struct FillLimitOrders<'info> {
     )]
     pub user_order_counter: Account<'info, UserOrderCounter>,
 
-    /// Bonding curve account for on-chain price verification
-    /// CHECK: Validated by owner — must be owned by the launchpad program
+    /// Bonding curve (TokenLaunch PDA) for on-chain price verification
+    /// CHECK: Validated by seeds derivation from the order's token mint + owner check
     #[account(
+        seeds = [b"token_launch", limit_order.token.as_ref()],
+        bump,
+        seeds::program = crate::id(),
         owner = crate::id() @ LimitOrderError::InvalidBondingCurve
     )]
-    pub bonding_curve: UncheckedAccount<'info>,
+    pub bonding_curve: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
