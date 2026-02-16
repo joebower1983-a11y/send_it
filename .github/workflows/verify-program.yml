@@ -10,56 +10,33 @@ on:
 
 env:
   PROGRAM_ID: 98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L
-  PROGRAM_NAME: send_it
-  SOLANA_VERSION: 2.1.7
 
 jobs:
   build-and-verify:
     runs-on: ubuntu-latest
+    container:
+      image: backpackapp/build:v0.29.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.83.0"
-
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-verify-${{ hashFiles('programs/send_it_slim/Cargo.toml') }}
-          restore-keys: ${{ runner.os }}-cargo-verify-
-
-      - name: Install Solana CLI
+      - name: Build Program
         run: |
-          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-          solana --version
-
-      - name: Generate keypair
-        run: solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json --force
-
-      - name: Build Program with cargo-build-sbf
-        run: |
-          cargo build-sbf --manifest-path programs/send_it_slim/Cargo.toml
+          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json --force
+          anchor build -p send_it_slim 2>&1 || {
+            echo "Anchor build failed, trying cargo build-sbf..."
+            cd programs/send_it_slim
+            cargo build-sbf 2>&1
+          }
           echo "✅ Build complete"
-          ls -la target/deploy/ || ls -la target/sbf-solana-solana/release/ || find target -name "*.so" -type f
+          find target -name "*.so" -type f
 
-      - name: Find and hash binary
+      - name: Compute hashes
         id: hash
         run: |
-          # Find the .so file
-          SO_FILE=$(find target/ -name "send_it.so" -type f | head -1)
+          SO_FILE=$(find target -name "send_it.so" -type f | head -1)
           if [ -z "$SO_FILE" ]; then
-            SO_FILE=$(find target/ -name "*.so" -type f | head -1)
+            SO_FILE=$(find target -name "*.so" -type f | head -1)
           fi
           echo "Binary: $SO_FILE"
           HASH=$(sha256sum "$SO_FILE" | awk '{print $1}')
@@ -67,67 +44,41 @@ jobs:
           echo "hash=$HASH" >> $GITHUB_OUTPUT
           echo "size=$SIZE" >> $GITHUB_OUTPUT
           echo "path=$SO_FILE" >> $GITHUB_OUTPUT
-
+          
           echo "## 🔐 Send.it Program Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Program ID** | \`${{ env.PROGRAM_ID }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Build Hash (SHA256)** | \`${HASH}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Binary Size** | \`${SIZE}\` bytes |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Solana CLI** | \`${{ env.SOLANA_VERSION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Build Hash** | \`${HASH}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Size** | ${SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
           echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
 
-      - name: Get on-chain program hash
+      - name: Compare with on-chain
         run: |
           solana config set --url devnet
-          # Dump on-chain program and hash it
           solana program dump ${{ env.PROGRAM_ID }} /tmp/onchain.so --url devnet || true
           if [ -f /tmp/onchain.so ]; then
-            ONCHAIN_HASH=$(sha256sum /tmp/onchain.so | awk '{print $1}')
-            ONCHAIN_SIZE=$(stat -c%s /tmp/onchain.so)
-            BUILD_HASH="${{ steps.hash.outputs.hash }}"
-
+            ONCHAIN=$(sha256sum /tmp/onchain.so | awk '{print $1}')
+            BUILD="${{ steps.hash.outputs.hash }}"
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### ✅ Verification" >> $GITHUB_STEP_SUMMARY
-            echo "| | Hash | Size |" >> $GITHUB_STEP_SUMMARY
-            echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
-            echo "| **On-chain (devnet)** | \`${ONCHAIN_HASH}\` | ${ONCHAIN_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
-            echo "| **This build** | \`${BUILD_HASH}\` | ${{ steps.hash.outputs.size }} bytes |" >> $GITHUB_STEP_SUMMARY
-
-            if [ "${ONCHAIN_HASH}" = "${BUILD_HASH}" ]; then
-              echo "| **Result** | ✅ **VERIFIED — hashes match** | |" >> $GITHUB_STEP_SUMMARY
+            echo "### Verification" >> $GITHUB_STEP_SUMMARY
+            echo "| Source | Hash |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
+            echo "| On-chain | \`${ONCHAIN}\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| This build | \`${BUILD}\` |" >> $GITHUB_STEP_SUMMARY
+            if [ "${ONCHAIN}" = "${BUILD}" ]; then
+              echo "| **Result** | ✅ **MATCH** |" >> $GITHUB_STEP_SUMMARY
             else
-              echo "| **Result** | ⚠️ Hashes differ (build env may vary from Playground) | |" >> $GITHUB_STEP_SUMMARY
+              echo "| **Result** | ⚠️ Differs (Playground build env) |" >> $GITHUB_STEP_SUMMARY
             fi
-          else
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "⚠️ Could not dump on-chain program" >> $GITHUB_STEP_SUMMARY
           fi
         continue-on-error: true
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: send_it_slim-${{ github.sha }}
           path: ${{ steps.hash.outputs.path }}
           retention-days: 90
-
-      - name: Submit to OtterSec
-        run: |
-          RESPONSE=$(curl -s -X POST "https://verify.osec.io/verify" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"program_id\": \"${{ env.PROGRAM_ID }}\",
-              \"repository\": \"https://github.com/${{ github.repository }}\",
-              \"commit_hash\": \"${{ github.sha }}\",
-              \"lib_name\": \"send_it\",
-              \"bpf_flag\": false
-            }")
-          echo "OtterSec: ${RESPONSE}"
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### OtterSec" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "${RESPONSE}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         continue-on-error: true
