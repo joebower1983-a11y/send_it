@@ -13,7 +13,7 @@ env:
   PROGRAM_NAME: send_it
   ANCHOR_VERSION: 0.29.0
   SOLANA_VERSION: 1.18.26
-  RUST_VERSION: 1.79.0
+  RUST_VERSION: 1.83.0
 
 jobs:
   build-and-verify:
@@ -47,9 +47,7 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
-          cargo install --git https://github.com/coral-xyz/anchor avm --force
-          avm install ${{ env.ANCHOR_VERSION }}
-          avm use ${{ env.ANCHOR_VERSION }}
+          cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli --locked --force
 
       - name: Build Program
         run: |
