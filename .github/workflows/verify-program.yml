@@ -47,10 +47,9 @@ jobs:
 
       - name: Build Program with cargo-build-sbf
         run: |
-          cd programs/send_it_slim
-          cargo build-sbf
+          cargo build-sbf --manifest-path programs/send_it_slim/Cargo.toml
           echo "✅ Build complete"
-          ls -la ../../target/deploy/ || ls -la ../../target/sbf-solana-solana/release/
+          ls -la target/deploy/ || ls -la target/sbf-solana-solana/release/ || find target -name "*.so" -type f
 
       - name: Find and hash binary
         id: hash
