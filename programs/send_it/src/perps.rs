@@ -85,6 +85,8 @@ pub enum PerpError {
     StaleOracle,
     #[msg("Invalid margin account")]
     InvalidMarginAccount,
+    #[msg("Invalid oracle account — does not match market")]
+    InvalidOracleAccount,
 }
 
 // ============================================================================
@@ -1343,7 +1345,7 @@ pub struct InitializePerpMarket<'info> {
     pub token_mint: AccountInfo<'info>,
     /// CHECK: Collateral token mint
     pub collateral_mint: AccountInfo<'info>,
-    /// CHECK: Raydium AMM pool for oracle
+    /// CHECK: Raydium AMM pool for oracle — stored on-chain during init, validated in subsequent use
     pub raydium_pool: AccountInfo<'info>,
     /// CHECK: SolForge vault for burns
     pub solforge_vault: AccountInfo<'info>,
@@ -1589,7 +1591,10 @@ pub struct UpdateOraclePrice<'info> {
     #[account(mut)]
     pub market: Account<'info, PerpMarket>,
 
-    /// CHECK: Raydium pool account to read price from
+    /// CHECK: Raydium pool account — validated by constraint matching market's stored pool key
+    #[account(
+        constraint = raydium_pool.key() == market.raydium_pool @ PerpError::InvalidOracleAccount
+    )]
     pub raydium_pool: AccountInfo<'info>,
 }
 

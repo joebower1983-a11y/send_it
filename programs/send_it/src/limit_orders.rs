@@ -123,6 +123,8 @@ pub enum LimitOrderError {
     MathOverflow,
     #[msg("Invalid order side")]
     InvalidSide,
+    #[msg("Invalid bonding curve account")]
+    InvalidBondingCurve,
 }
 
 // ---------------------------------------------------------------------------
@@ -342,8 +344,12 @@ pub struct PlaceLimitOrder<'info> {
     pub escrow_vault: Account<'info, TokenAccount>,
 
     /// SOL escrow for buy orders
-    /// CHECK: PDA used as SOL escrow
-    #[account(mut)]
+    /// CHECK: PDA used as SOL escrow — validated by seeds
+    #[account(
+        mut,
+        seeds = [b"sol_escrow", mint.key().as_ref()],
+        bump,
+    )]
     pub sol_escrow: UncheckedAccount<'info>,
 
     pub token_program: Program<'info, Token>,
@@ -378,8 +384,12 @@ pub struct CancelLimitOrder<'info> {
     pub user_token_account: Account<'info, TokenAccount>,
 
     /// SOL escrow for buy refund
-    /// CHECK: PDA used as SOL escrow
-    #[account(mut)]
+    /// CHECK: PDA used as SOL escrow — validated by seeds
+    #[account(
+        mut,
+        seeds = [b"sol_escrow", limit_order.token.as_ref()],
+        bump,
+    )]
     pub sol_escrow: UncheckedAccount<'info>,
 
     pub token_program: Program<'info, Token>,
@@ -406,7 +416,10 @@ pub struct FillLimitOrders<'info> {
     pub user_order_counter: Account<'info, UserOrderCounter>,
 
     /// Bonding curve account for on-chain price verification
-    /// CHECK: Validated in instruction logic
+    /// CHECK: Validated by owner — must be owned by the launchpad program
+    #[account(
+        owner = crate::id() @ LimitOrderError::InvalidBondingCurve
+    )]
     pub bonding_curve: UncheckedAccount<'info>,
 
     pub token_program: Program<'info, Token>,

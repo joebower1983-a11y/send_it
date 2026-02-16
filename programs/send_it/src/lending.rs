@@ -304,8 +304,10 @@ pub mod lending {
             &[pool.sol_vault_bump],
         ];
         let signer_seeds = &[&seeds[..]];
-        **ctx.accounts.sol_vault.to_account_info().try_borrow_mut_lamports()? -= borrow_amount;
-        **ctx.accounts.user.to_account_info().try_borrow_mut_lamports()? += borrow_amount;
+        let vault_lamports = **ctx.accounts.sol_vault.to_account_info().try_borrow_lamports()?;
+        require!(vault_lamports >= borrow_amount, LendingError::InsufficientLiquidity);
+        **ctx.accounts.sol_vault.to_account_info().try_borrow_mut_lamports()? = vault_lamports.checked_sub(borrow_amount).ok_or(LendingError::MathOverflow)?;
+        **ctx.accounts.user.to_account_info().try_borrow_mut_lamports()? = (**ctx.accounts.user.to_account_info().try_borrow_lamports()?).checked_add(borrow_amount).ok_or(LendingError::MathOverflow)?;
 
         // Update state
         position.user = ctx.accounts.user.key();
@@ -390,9 +392,11 @@ pub mod lending {
 
         let clock = Clock::get()?;
 
-        // Transfer SOL back
-        **ctx.accounts.sol_vault.to_account_info().try_borrow_mut_lamports()? -= amount;
-        **ctx.accounts.user.to_account_info().try_borrow_mut_lamports()? += amount;
+        // Transfer SOL back (checked arithmetic)
+        let vault_lamports = **ctx.accounts.sol_vault.to_account_info().try_borrow_lamports()?;
+        require!(vault_lamports >= amount, LendingError::InsufficientLiquidity);
+        **ctx.accounts.sol_vault.to_account_info().try_borrow_mut_lamports()? = vault_lamports.checked_sub(amount).ok_or(LendingError::MathOverflow)?;
+        **ctx.accounts.user.to_account_info().try_borrow_mut_lamports()? = (**ctx.accounts.user.to_account_info().try_borrow_lamports()?).checked_add(amount).ok_or(LendingError::MathOverflow)?;
 
         position.deposited = position.deposited.saturating_sub(amount);
         pool.total_deposited = pool.total_deposited.saturating_sub(amount);

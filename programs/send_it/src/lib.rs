@@ -301,7 +301,7 @@ pub mod send_it {
 
         // Update platform stats
         let config = &mut ctx.accounts.platform_config;
-        config.total_launches += 1;
+        config.total_launches = config.total_launches.checked_add(1).ok_or(SendItError::MathOverflow)?;
 
         emit!(TokenCreated {
             mint: launch.mint,
@@ -834,7 +834,7 @@ pub fn calculate_sol_for_tokens(
 ) -> Result<u64> {
     require!(token_amount <= tokens_sold, SendItError::InsufficientTokensSold);
 
-    let new_sold = tokens_sold - token_amount;
+    let new_sold = tokens_sold.checked_sub(token_amount).ok_or(SendItError::MathOverflow)?;
 
     // Calculate what it would cost to buy from new_sold to tokens_sold
     // That's the SOL returned (area under curve between those points)

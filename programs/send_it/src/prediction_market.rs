@@ -137,6 +137,8 @@ pub enum PredictionError {
     SameTokens,
     #[msg("User already has a bet on this market")]
     AlreadyBet,
+    #[msg("Invalid token account — does not match market")]
+    InvalidTokenAccount,
 }
 
 // ---------------------------------------------------------------------------
@@ -409,10 +411,16 @@ pub struct ResolvePrediction<'info> {
     )]
     pub prediction_market: Account<'info, PredictionMarket>,
 
-    /// CHECK: Token A launch account to verify graduation
+    /// CHECK: Token A launch account — validated by constraint matching stored pubkey
+    #[account(
+        constraint = token_a_launch.key() == prediction_market.token_a @ PredictionError::InvalidTokenAccount
+    )]
     pub token_a_launch: UncheckedAccount<'info>,
 
-    /// CHECK: Token B launch account to verify graduation
+    /// CHECK: Token B launch account — validated by constraint matching stored pubkey
+    #[account(
+        constraint = token_b_launch.key() == prediction_market.token_b @ PredictionError::InvalidTokenAccount
+    )]
     pub token_b_launch: UncheckedAccount<'info>,
 }
 

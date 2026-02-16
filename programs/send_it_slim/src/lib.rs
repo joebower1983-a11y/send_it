@@ -165,7 +165,7 @@ pub mod send_it {
         });
 
         let config = &mut ctx.accounts.platform_config;
-        config.total_launches += 1;
+        config.total_launches = config.total_launches.checked_add(1).ok_or(SendItError::MathOverflow)?;
         Ok(())
     }
 
