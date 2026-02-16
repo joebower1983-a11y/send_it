@@ -680,8 +680,8 @@ async function handleUpdate(update) {
     return;
   }
 
-  // Check for spam
-  if (SPAM_PATTERNS.some(p => p.test(text))) {
+  // Check for spam (skip for mods/owner)
+  if (!isMod(msg.from.id) && SPAM_PATTERNS.some(p => p.test(text))) {
     try { await tgApi("deleteMessage", { chat_id: chatId, message_id: msg.message_id }); } catch (e) {}
     console.log(`Deleted spam from ${msg.from?.username || msg.from?.id}`);
     return;
