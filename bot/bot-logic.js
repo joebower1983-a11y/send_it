@@ -403,6 +403,7 @@ async function handleUpdate(update) {
   // Strip @botname suffix from commands in groups (e.g. /modlist@SendItBot → /modlist)
   const text = msg.text.trim().replace(/^(\/\w+)@\w+/, '$1');
   const chatId = msg.chat.id;
+  const cmd = text.split("@")[0].split(" ")[0].toLowerCase();
 
   // Raid commands
   if (text.startsWith("/raids") || text === "/raid") {
@@ -664,7 +665,6 @@ async function handleUpdate(update) {
   }
 
   // Check for commands
-  const cmd = text.split("@")[0].split(" ")[0].toLowerCase();
   if (responses[cmd]) {
     const opts = {
       chat_id: chatId, text: responses[cmd],
