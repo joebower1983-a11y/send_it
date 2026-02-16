@@ -180,7 +180,64 @@ programs/send_it/src/
 
 ---
 
+## 🌐 Tapestry Social Integration — NEW
+
+Send.it integrates with [Tapestry](https://www.usetapestry.dev) — Solana's leading social protocol — to add an on-chain social layer:
+
+| Feature | Description |
+|---------|-------------|
+| **Creator Profiles** | Wallet-linked profiles via Tapestry's unified social graph |
+| **Follow Creators** | Follow token creators, get feed updates on new launches |
+| **Launch Posts** | Each token launch generates a social post on the graph |
+| **Likes & Comments** | Engage with token launches — like, comment, discuss |
+| **Personal Feed** | See launches from creators you follow |
+
+All social data is on-chain via Tapestry and composable with other Solana apps in the ecosystem.
+
+```js
+import { SendItSocial } from './lib/tapestry.mjs';
+const social = new SendItSocial(TAPESTRY_API_KEY);
+
+// Create a profile
+await social.findOrCreateProfile(walletAddress, 'username', 'DeFi builder');
+
+// Post a token launch to the social graph
+await social.postTokenLaunch('username', { mint, name: 'MyToken', symbol: 'MTK' });
+
+// Follow a creator
+await social.follow('myProfile', 'creatorProfile');
+```
+
+---
+
 ## 🚀 Quick Start
+
+### CLI Tool (Devnet)
+Interact with Send.it on devnet directly from the command line:
+
+```bash
+cd scripts/
+
+# Check wallet balance
+node sendit-cli.mjs balance
+
+# Initialize the platform
+node sendit-cli.mjs init
+
+# Create a new token launch
+node sendit-cli.mjs create --name "MyToken" --symbol MTK
+
+# Buy tokens (0.01 SOL)
+node sendit-cli.mjs buy --mint <MINT_ADDRESS> --sol 0.01
+
+# Sell tokens
+node sendit-cli.mjs sell --mint <MINT_ADDRESS> --tokens 5000000
+
+# View token launch info
+node sendit-cli.mjs info --mint <MINT_ADDRESS>
+```
+
+Set `KEYPAIR_PATH` to your Solana keypair JSON, or place `deployer.json` in the working directory.
 
 ### Build with Solana Playground
 The easiest way to build and deploy is via [Solana Playground](https://beta.solpg.io/):
@@ -230,9 +287,11 @@ anchor deploy --provider.cluster devnet
 - [x] Vercel frontend deployment
 - [x] 5IVE VM port (63% code reduction)
 - [x] Cross-module composition layer (6 bridge patterns)
-- [x] Devnet deployment (`8adJJGqnVcNJ1DexXVxbr4RZtohtanCsYeytDRFoG1u6`)
+- [x] Devnet deployment (`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`)
 - [x] Token-2022 audit (SENDIT token)
 - [x] PYUSD vault integration
+- [x] Tapestry social integration (profiles, follows, feeds, likes)
+- [x] Devnet CLI tool (`scripts/sendit-cli.mjs`)
 - [ ] Security audit
 - [ ] Mainnet launch (target: April 2026)
 - [ ] itsolana.net custom domain
