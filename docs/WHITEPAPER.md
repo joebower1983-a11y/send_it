@@ -74,6 +74,18 @@ Send.it's **three-stream revenue model** — 1% platform fee, 1% creator fee, an
 
 This is no longer a launchpad. It is a **protocol**.
 
+### Devnet Deployment
+
+The Anchor core program is **live and verified on Solana devnet**:
+
+| | Address |
+|---|---|
+| **Program ID** | `98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L` |
+| **SENDIT Token** | `F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump` |
+| **Network** | Solana Devnet |
+
+All core instructions verified on-chain: `initialize_platform`, `create_token`, `buy` (bonding curve), and `sell` (reverse curve with fee distribution).
+
 ---
 
 ## 2. Problem Statement
