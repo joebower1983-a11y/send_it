@@ -13,6 +13,7 @@
     { "source": "/portfolio.html", "destination": "/app/portfolio.html" },
     { "source": "/mobile.html", "destination": "/app/mobile.html" },
     { "source": "/links.html", "destination": "/app/links.html" },
-    { "source": "/social.js", "destination": "/app/social.js" }
+    { "source": "/social.js", "destination": "/app/social.js" },
+    { "source": "/launchpad.js", "destination": "/app/launchpad.js" }
   ]
 }

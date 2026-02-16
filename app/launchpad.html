@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -162,7 +163,7 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 
 <header>
   <a href="index.html" class="logo"><span class="logo-icon">🚀</span><span>Send<span style="color:var(--accent)">.it</span></span></a>
-  <button class="wallet-btn">Connect Wallet</button>
+  <button class="wallet-btn" onclick="connectWallet()"><i class="fas fa-wallet"></i>&nbsp; Connect Wallet</button>
 </header>
 
 <nav>
@@ -186,9 +187,9 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
   <h1>Launch Your Token</h1>
   <p>Create, launch, and graduate tokens on the fairest bonding curve platform on Solana</p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="num">247</div><div class="lbl">Launched Today</div></div>
-    <div class="hero-stat"><div class="num">$4.2M</div><div class="lbl">Total Volume</div></div>
-    <div class="hero-stat"><div class="num">18m</div><div class="lbl">Avg Graduation</div></div>
+    <div class="hero-stat"><div class="num" id="stat-launched">—</div><div class="lbl">On-Chain Accounts</div></div>
+    <div class="hero-stat"><div class="num" id="wallet-balance">—</div><div class="lbl">Your Balance</div></div>
+    <div class="hero-stat"><div class="num" style="font-size:16px">Devnet</div><div class="lbl">Network</div></div>
   </div>
 </div>
 
@@ -206,8 +207,8 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
   <h2 class="section-title"><i class="fas fa-plus-circle"></i> Create New Token</h2>
 
   <div class="form-row">
-    <div class="form-group"><label>Token Name</label><input type="text" placeholder="e.g. MoonCat"></div>
-    <div class="form-group"><label>Symbol</label><input type="text" placeholder="e.g. MCAT" maxlength="10"></div>
+    <div class="form-group"><label>Token Name</label><input type="text" id="tokenName" placeholder="e.g. MoonCat"></div>
+    <div class="form-group"><label>Symbol</label><input type="text" id="tokenSymbol" placeholder="e.g. MCAT" maxlength="10"></div>
   </div>
 
   <div class="form-group"><label>Description</label><textarea placeholder="What's your token about?"></textarea></div>
@@ -264,7 +265,11 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
     <button class="btn-outline" style="margin-top:8px" onclick="addCoCreator()"><i class="fas fa-plus"></i> Add Co-Creator</button>
   </div>
 
-  <button class="btn-primary">🚀 Launch Token</button>
+  <div id="tx-result" style="display:none"></div>
+  <button class="btn-primary" id="launchBtn" onclick="createToken()">🚀 Launch Token</button>
+  <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text3)">
+    <i class="fas fa-info-circle"></i> Launches on Solana Devnet — Program: <span class="mono">98Vxqk...Rm1L</span>
+  </div>
 </div>
 
 <!-- Token Search -->
@@ -275,8 +280,8 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
 </div>
 
 <!-- Live Launches -->
-<h2 class="section-title"><i class="fas fa-broadcast-tower" style="color:var(--accent)"></i> Live on Bonding Curve</h2>
-<div class="token-grid">
+<h2 class="section-title"><i class="fas fa-broadcast-tower" style="color:var(--accent)"></i> Live on Devnet</h2>
+<div class="token-grid" id="liveTokenGrid">
   <div class="card token-card">
     <div class="token-head"><div class="token-img">🌙</div><div><div class="token-name">MoonDog</div><div class="token-sym">MDOG</div><div class="token-time">12m ago</div></div></div>
     <div class="token-stats"><div class="stat"><div class="label">Price</div><div class="value">$0.0042</div></div><div class="stat"><div class="label">Volume</div><div class="value">$84K</div></div><div class="stat"><div class="label">Holders</div><div class="value">342</div></div></div>
@@ -467,5 +472,6 @@ drawSparkline('trend3', [4,5,4,6,7,8,7,9,10,9,11,10], '#22c55e');
 drawSparkline('trend4', [1,2,2,3,4,3,5,6,5,7,8,7], '#22c55e');
 drawSparkline('trend5', [8,7,8,6,7,5,6,4,5,4,5,4], '#ef4444');
 </script>
+<script src="launchpad.js"></script>
 </body>
 </html>
