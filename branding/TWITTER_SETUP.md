@@ -42,7 +42,7 @@ Community-first token launchpad on Solana 🟢 Fair launches only. No presales. 
 | Field | Value |
 |-------|-------|
 | **Location** | Solana |
-| **Website** | https://itsolana.io/ |
+| **Website** | https://senditsolana.io/ |
 | **Birthday** | Set to launch date |
 
 ## 6. Category / Topics

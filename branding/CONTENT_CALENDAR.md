@@ -108,7 +108,7 @@ Launch your token in under 60 seconds:
 3. Fund the bonding curve
 4. Send it 🚀
 
-→ https://itsolana.io/
+→ https://senditsolana.io/
 ```
 
 ### Tweet 10
@@ -136,7 +136,7 @@ Early = cheaper. Late = pricier. No manipulation.
 
 The market decides the price. Not insiders.
 
-Try it → https://itsolana.io/
+Try it → https://senditsolana.io/
 
 #Solana #SendIt
 ```
@@ -293,7 +293,7 @@ No gas wars. No failed txns. No $50 deployment costs.
 
 Just... send it.
 
-→ https://itsolana.io/
+→ https://senditsolana.io/
 
 #Solana #SendIt
 ```
@@ -376,7 +376,7 @@ Time to launch something stupid and see what happens.
 
 Send.it is ready when you are 🚀
 
-→ https://itsolana.io/
+→ https://senditsolana.io/
 
 #Solana #SendIt
 ```
@@ -441,7 +441,7 @@ When this thing blows up — and it will — you were here first.
 ```
 Quick guide — How to launch a token on Send.it:
 
-1️⃣ Go to https://itsolana.io/
+1️⃣ Go to https://senditsolana.io/
 2️⃣ Connect your Solana wallet
 3️⃣ Choose a name and ticker
 4️⃣ Set your bonding curve parameters

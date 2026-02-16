@@ -13,9 +13,9 @@
     <em>31 on-chain Anchor modules · ~16,000 lines of Rust · 13 frontend pages · Ported to 5IVE VM · Built for the next era of DeFi</em>
   </p>
   <p align="center">
-    <a href="https://itsolana.io/">📄 GitHub Pages</a> ·
-    <a href="https://itsolana.io">🌐 Live App</a> ·
-    <a href="https://itsolana.io">🔗 itsolana.io (coming soon)</a>
+    <a href="https://senditsolana.io/">📄 GitHub Pages</a> ·
+    <a href="https://senditsolana.io">🌐 Live App</a> ·
+    <a href="https://senditsolana.io">🔗 sendsenditsolana.io</a>
   </p>
 </p>
 
@@ -25,13 +25,13 @@
 
 | What | Link |
 |------|------|
-| **Live Demo** | [itsolana.io](https://itsolana.io) |
-| **Launchpad (Devnet)** | [itsolana.io/launchpad.html](https://itsolana.io/launchpad.html) |
-| **Social Hub (Tapestry)** | [itsolana.io/social.html](https://itsolana.io/social.html) |
+| **Live Demo** | [senditsolana.io](https://senditsolana.io) |
+| **Launchpad (Devnet)** | [senditsolana.io/launchpad.html](https://senditsolana.io/launchpad.html) |
+| **Social Hub (Tapestry)** | [senditsolana.io/social.html](https://senditsolana.io/social.html) |
 | **Devnet Program** | [`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`](https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet) |
 | **SENDIT Token** | [`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump`](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
-| **Docs & Whitepaper** | [GitHub Pages](https://itsolana.io/) |
+| **Docs & Whitepaper** | [GitHub Pages](https://senditsolana.io/) |
 | **CLI Tool** | `scripts/sendit-cli.mjs` — interact with devnet from terminal |
 
 **Try it:** Connect Phantom/Solflare (set to devnet) → Create token → Buy → Sell — all on-chain.
@@ -313,7 +313,7 @@ anchor deploy --provider.cluster devnet
 - [x] Devnet CLI tool (`scripts/sendit-cli.mjs`)
 - [ ] Security audit
 - [ ] Mainnet launch (target: April 2026)
-- [ ] itsolana.io custom domain
+- [ ] senditsolana.io custom domain
 - [ ] Full Raydium CPI integration
 - [ ] Mobile app
 - [ ] Multi-chain bridge activation
@@ -325,15 +325,15 @@ anchor deploy --provider.cluster devnet
 
 | | |
 |---|---|
-| **GitHub Pages** | [joebower1983-a11y.github.io/send_it](https://itsolana.io/) |
-| **Live App** | [itsolana.io](https://itsolana.io) |
+| **GitHub Pages** | [joebower1983-a11y.github.io/send_it](https://senditsolana.io/) |
+| **Live App** | [senditsolana.io](https://senditsolana.io) |
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
 | **PYUSD Monitor** | [github.com/joebower1983-a11y/pyusd-monitor](https://github.com/joebower1983-a11y/pyusd-monitor) |
 | **SENDIT Token** | [pump.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
 | **Discord** | [discord.gg/vKRTyG85](https://discord.gg/vKRTyG85) |
 | **Telegram** | [t.me/+Xw4E2sJ0Z3Q5ZDYx](https://t.me/+Xw4E2sJ0Z3Q5ZDYx) |
 | **Twitter** | [@SendItSolana420](https://x.com/SendItSolana420) |
-| **Custom Domain** | [itsolana.io](https://itsolana.io) *(coming soon)* |
+| **Custom Domain** | [senditsolana.io](https://senditsolana.io) ✅ |
 
 ---
 
