@@ -2,13 +2,15 @@
   <h1 align="center">🚀 Send.it</h1>
   <p align="center"><strong>The Most Feature-Rich Token Launchpad on Solana</strong></p>
   <p align="center">
-    <img src="https://img.shields.io/badge/modules-29-00c896-00c896" alt="28+ modules">
-    <img src="https://img.shields.io/badge/Rust_LOC-13k%2B-orange" alt="Rust LOC">
+    <img src="https://img.shields.io/badge/modules-31-00c896-00c896" alt="31 modules">
+    <img src="https://img.shields.io/badge/Rust_LOC-16k%2B-orange" alt="Rust LOC">
     <img src="https://img.shields.io/badge/Solana-Anchor-9945FF?logo=solana" alt="Solana Anchor">
+    <img src="https://img.shields.io/badge/devnet-live-brightgreen" alt="Devnet Live">
+    <img src="https://img.shields.io/badge/5IVE_VM-ported-blueviolet" alt="5IVE VM Port">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License">
   </p>
   <p align="center">
-    <em>29 on-chain Anchor modules · ~13,000 lines of Rust · 8 frontend dashboards · Built for the next era of DeFi</em>
+    <em>31 on-chain Anchor modules · ~16,000 lines of Rust · 13 frontend pages · Ported to 5IVE VM · Built for the next era of DeFi</em>
   </p>
   <p align="center">
     <a href="https://joebower1983-a11y.github.io/send_it/">📄 GitHub Pages</a> ·
@@ -16,6 +18,20 @@
     <a href="https://itsolana.net">🔗 itsolana.net (coming soon)</a>
   </p>
 </p>
+
+---
+
+## 🔗 Devnet Deployment
+
+| | Address |
+|---|---|
+| **Program ID** | `8adJJGqnVcNJ1DexXVxbr4RZtohtanCsYeytDRFoG1u6` |
+| **Platform Config** | `GNUN81Yh7G3YUShfocDqbrnhQAADR7es8UXAj3UrCZmB` |
+| **Network** | Solana Devnet |
+| **SENDIT Token** | `F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump` (Token-2022, pump.fun) |
+
+### 5IVE VM Port
+The entire protocol has also been ported to [5IVE DSL](https://github.com/joebower1983-a11y/sendit-5ive) — 63% code reduction (16k → 6k lines), 25KB total bytecode, 159 integration tests.
 
 ---
 
@@ -178,11 +194,15 @@ anchor deploy --provider.cluster devnet
 
 | Metric | Value |
 |--------|-------|
-| On-chain modules | **29** |
-| Lines of Rust | **~11,800** |
+| On-chain modules | **31** |
+| Lines of Rust | **~16,000** |
+| Lines of 5IVE DSL | **~6,000** |
 | Bonding curve types | **3** (Linear, Exponential, Sigmoid) |
 | Core instructions | **11** |
 | PDA account types | **8+** |
+| Frontend pages | **13** |
+| Integration tests | **159** (5IVE) + **4,300+** (Anchor) |
+| 5IVE bytecode | **25KB** |
 
 ---
 
@@ -193,11 +213,17 @@ anchor deploy --provider.cluster devnet
 - [x] Creator vesting & rug protection
 - [x] Auto-migration to Raydium
 - [x] Leaderboard system
-- [x] 29 feature modules (staking, perps, lending, social, governance…)
+- [x] 31 feature modules (staking, perps, lending, social, governance, PYUSD…)
 - [x] FairScale reputation integration
 - [x] GitHub Pages deployment
 - [x] Vercel frontend deployment
-- [ ] Mainnet launch
+- [x] 5IVE VM port (63% code reduction)
+- [x] Cross-module composition layer (6 bridge patterns)
+- [x] Devnet deployment (`8adJJGqnVcNJ1DexXVxbr4RZtohtanCsYeytDRFoG1u6`)
+- [x] Token-2022 audit (SENDIT token)
+- [x] PYUSD vault integration
+- [ ] Security audit
+- [ ] Mainnet launch (target: April 2026)
 - [ ] itsolana.net custom domain
 - [ ] Full Raydium CPI integration
 - [ ] Mobile app
@@ -212,6 +238,12 @@ anchor deploy --provider.cluster devnet
 |---|---|
 | **GitHub Pages** | [joebower1983-a11y.github.io/send_it](https://joebower1983-a11y.github.io/send_it/) |
 | **Live App** | [send-it-seven-sigma.vercel.app](https://send-it-seven-sigma.vercel.app) |
+| **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
+| **PYUSD Monitor** | [github.com/joebower1983-a11y/pyusd-monitor](https://github.com/joebower1983-a11y/pyusd-monitor) |
+| **SENDIT Token** | [pump.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
+| **Discord** | [discord.gg/vKRTyG85](https://discord.gg/vKRTyG85) |
+| **Telegram** | [t.me/+Xw4E2sJ0Z3Q5ZDYx](https://t.me/+Xw4E2sJ0Z3Q5ZDYx) |
+| **Twitter** | [@SendItSolana420](https://x.com/SendItSolana420) |
 | **Custom Domain** | [itsolana.net](https://itsolana.net) *(coming soon)* |
 
 ---

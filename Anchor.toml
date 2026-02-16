@@ -6,13 +6,13 @@ skip-lint = false
 send_it = "SendiTLaunchPad111111111111111111111111111"
 
 [programs.devnet]
-send_it = "SendiTLaunchPad111111111111111111111111111"
+send_it = "8adJJGqnVcNJ1DexXVxbr4RZtohtanCsYeytDRFoG1u6"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
