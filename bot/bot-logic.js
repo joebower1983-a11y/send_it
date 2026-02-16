@@ -80,6 +80,29 @@ async function tgApi(method, body) {
   return res.json();
 }
 
+/** Helper: send a reply that works in both regular groups and forum topics */
+async function reply(msg, text, opts = {}) {
+  const body = {
+    chat_id: msg.chat.id,
+    text,
+    reply_to_message_id: msg.message_id,
+    ...opts
+  };
+  if (msg.message_thread_id) body.message_thread_id = msg.message_thread_id;
+  return tgApi("sendMessage", body);
+}
+
+/** Helper: send to a chat (not a reply) that works in forum topics */
+async function sendToChat(msg, text, opts = {}) {
+  const body = {
+    chat_id: msg.chat.id,
+    text,
+    ...opts
+  };
+  if (msg.message_thread_id) body.message_thread_id = msg.message_thread_id;
+  return tgApi("sendMessage", body);
+}
+
 async function handleContestCommand(msg, chatId, text) {
   const parts = text.split(/\s+/);
   const type = parts[1]?.toLowerCase();
@@ -590,12 +613,12 @@ async function handleUpdate(update) {
     try {
       const result = await points.checkin(msg.from.id, msg.from.first_name || "Anon");
       if (result.ok) {
-        await tgApi("sendMessage", { chat_id: chatId, text: `✅ Daily check-in! +${result.earned} pts\n\n🏆 Your total: ${result.total} pts`, reply_to_message_id: msg.message_id });
+        await reply(msg, `✅ Daily check-in! +${result.earned} pts\n\n🏆 Your total: ${result.total} pts`);
       } else if (result.reason === "already_checked_in") {
-        await tgApi("sendMessage", { chat_id: chatId, text: `⏰ Already checked in! Come back in ~${result.hoursLeft}h`, reply_to_message_id: msg.message_id });
+        await reply(msg, `⏰ Already checked in! Come back in ~${result.hoursLeft}h`);
       }
     } catch (e) {
-      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline. Try again later.", reply_to_message_id: msg.message_id });
+      await reply(msg, "❌ Points system offline. Try again later.");
     }
     return;
   }
@@ -603,9 +626,9 @@ async function handleUpdate(update) {
   if (cmd === "/points") {
     try {
       const pts = await points.getPoints(msg.from.id);
-      await tgApi("sendMessage", { chat_id: chatId, text: `🏆 ${msg.from.first_name || "You"}: ${pts} pts`, reply_to_message_id: msg.message_id });
+      await reply(msg, `🏆 ${msg.from.first_name || "You"}: ${pts} pts`);
     } catch (e) {
-      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+      await reply(msg, "❌ Points system offline.");
     }
     return;
   }
@@ -614,7 +637,7 @@ async function handleUpdate(update) {
     try {
       const top = await points.getLeaderboard(10);
       if (top.length === 0) {
-        await tgApi("sendMessage", { chat_id: chatId, text: "🏆 No points earned yet. Use /checkin to start!", reply_to_message_id: msg.message_id });
+        await reply(msg, "🏆 No points earned yet. Use /checkin to start!");
       } else {
         const medals = ["🥇", "🥈", "🥉"];
         let txt = "🏆 *Send\\.it Leaderboard*\n\n";
@@ -623,36 +646,36 @@ async function handleUpdate(update) {
           const name = e.name.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
           txt += `${prefix} ${name} — ${e.points} pts\n`;
         });
-        await tgApi("sendMessage", { chat_id: chatId, text: txt, parse_mode: "MarkdownV2", reply_to_message_id: msg.message_id });
+        await reply(msg, txt, { parse_mode: "MarkdownV2" });
       }
     } catch (e) {
-      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+      await reply(msg, "❌ Points system offline.");
     }
     return;
   }
 
   if (cmd === "/award") {
-    if (!isMod(msg.from.id)) { await tgApi("sendMessage", { chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id }); return; }
-    if (!msg.reply_to_message) { await tgApi("sendMessage", { chat_id: chatId, text: "↩️ Reply to a user to award 15 pts.", reply_to_message_id: msg.message_id }); return; }
+    if (!isMod(msg.from.id)) { await reply(msg, "⛔ Mods only."); return; }
+    if (!msg.reply_to_message) { await reply(msg, "↩️ Reply to a user to award 15 pts."); return; }
     try {
       const target = msg.reply_to_message.from;
       const result = await points.modAward(target.id, target.first_name || "Anon");
-      await tgApi("sendMessage", { chat_id: chatId, text: `🎁 ${target.first_name || "User"} awarded +${result.earned} pts! (Total: ${result.total})` });
+      await sendToChat(msg, `🎁 ${target.first_name || "User"} awarded +${result.earned} pts! (Total: ${result.total})`);
     } catch (e) {
-      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+      await reply(msg, "❌ Points system offline.");
     }
     return;
   }
 
   if (cmd === "/bugreport") {
-    if (!isMod(msg.from.id)) { await tgApi("sendMessage", { chat_id: chatId, text: "⛔ Mods only — reply to a bug reporter to award 50 pts.", reply_to_message_id: msg.message_id }); return; }
-    if (!msg.reply_to_message) { await tgApi("sendMessage", { chat_id: chatId, text: "↩️ Reply to the bug reporter to award 50 pts.", reply_to_message_id: msg.message_id }); return; }
+    if (!isMod(msg.from.id)) { await reply(msg, "⛔ Mods only — reply to a bug reporter to award 50 pts."); return; }
+    if (!msg.reply_to_message) { await reply(msg, "↩️ Reply to the bug reporter to award 50 pts."); return; }
     try {
       const target = msg.reply_to_message.from;
       const result = await points.bugReward(target.id, target.first_name || "Anon");
-      await tgApi("sendMessage", { chat_id: chatId, text: `🐛 ${target.first_name || "User"} awarded +${result.earned} pts for bug report! (Total: ${result.total})` });
+      await sendToChat(msg, `🐛 ${target.first_name || "User"} awarded +${result.earned} pts for bug report! (Total: ${result.total})`);
     } catch (e) {
-      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+      await reply(msg, "❌ Points system offline.");
     }
     return;
   }
@@ -666,14 +689,8 @@ async function handleUpdate(update) {
 
   // Check for commands
   if (responses[cmd]) {
-    const opts = {
-      chat_id: chatId, text: responses[cmd],
-      disable_web_page_preview: true,
-      reply_to_message_id: msg.message_id
-    };
-    if (cmd === "/filters") opts.parse_mode = "HTML";
-    else opts.parse_mode = "MarkdownV2";
-    await tgApi("sendMessage", opts);
+    const parseMode = cmd === "/filters" ? "HTML" : "MarkdownV2";
+    await reply(msg, responses[cmd], { disable_web_page_preview: true, parse_mode: parseMode });
     console.log(`Replied to ${cmd} from ${msg.from?.username || msg.from?.id}`);
   }
 }
