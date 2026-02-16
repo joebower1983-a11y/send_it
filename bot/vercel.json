@@ -5,6 +5,7 @@
   ],
   "routes": [
     { "src": "/api/webhook", "dest": "/api/webhook.js" },
-    { "src": "/api/set-webhook", "dest": "/api/set-webhook.js" }
+    { "src": "/api/set-webhook", "dest": "/api/set-webhook.js" },
+    { "src": "/api/test", "dest": "/api/test.js" }
   ]
 }
