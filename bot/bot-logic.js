@@ -618,7 +618,7 @@ async function handleUpdate(update) {
         await reply(msg, `⏰ Already checked in! Come back in ~${result.hoursLeft}h`);
       }
     } catch (e) {
-      await reply(msg, "❌ Points system offline. Try again later.");
+      await reply(msg, `❌ Points error: ${e.message}`);
     }
     return;
   }
