@@ -9,6 +9,8 @@
  * would be needed for full functionality.
  */
 
+const points = require("./points");
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8562369283:AAEG2hfV6vOCzSwcxEmpHtVBYxRxBYS_ejI";
 const BASE = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
@@ -25,7 +27,7 @@ const responses = {
   "/socials": `📱 *Send\\.it Socials*\n\n🐦 Twitter: [@SendItSolana420](https://twitter.com/SendItSolana420)\n💬 Discord: [discord\\.gg/vKRTyG85](https://discord.gg/vKRTyG85)\n📱 Telegram: [Join Group](https://t.me/+Xw4E2sJ0Z3Q5ZDYx)\n📦 GitHub: [send\\_it](https://github.com/joebower1983-a11y/send_it)`,
   "/whitepaper": `📄 *Send\\.it Whitepaper v2\\.0*\n\nRead the full whitepaper covering all 29 modules:\n[View on GitHub](https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md)`,
   "/ca": `📋 *Contract Address*\n\n\`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n[Buy on Pump\\.fun](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump)`,
-  "/filters": "🤖 <b>Bot Commands</b>\n\n📊 /price — Token price &amp; stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract &amp; fee info\n📜 /rules — Group rules\n🌐 /website — Send.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🟢 /devnet — Devnet program status\n🚨 /raids — Raid coordinator\n📣 /shill — Copy-paste shill message\n🤖 /filters — This list\n\n🛡️ <b>Mod Commands (admin/mod only):</b>\n/warn — Warn a user (reply)\n/mute [min] — Mute user (reply, default 60min)\n/unmute — Unmute user (reply)\n/ban — Ban user (reply)\n/unban — Unban user (reply)\n\n⚔️ <b>Raid Leader Commands (mod/owner):</b>\n/addraidleader — Add raid leader (reply)\n/removeraidleader — Remove raid leader (reply)\n/raidleaders — List raid leaders\n\n📣 <b>Roles (mod):</b>\n/shiller — Give Shiller 📣 badge (reply)\n/unshiller — Remove Shiller badge (reply)\n/fundraiser — Give Fundraiser 💰 badge (reply)\n/unfundraiser — Remove Fundraiser badge (reply)\n/pm — Give Project Manager 📋 badge (reply)\n/unpm — Remove Project Manager badge (reply)\n/raider — Give Raider ⚔️ badge (reply)\n/unraider — Remove Raider badge (reply)\n/communitylead — Give Community Lead 🌟 badge (reply)\n/uncommunitylead — Remove Community Lead badge (reply)\n\n👑 <b>Owner Commands:</b>\n/addmod — Add bot moderator (reply)\n/removemod — Remove bot moderator (reply)\n/modlist — List all bot moderators\n\n🏆 <b>Contest Commands:</b>\n/contest — Show active contests &amp; help\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — End all contests (mod)",
+  "/filters": "🤖 <b>Bot Commands</b>\n\n📊 /price — Token price &amp; stats\n📋 /ca — Contract address\n🔗 /links — Official links\n💰 /tokeninfo — Contract &amp; fee info\n📜 /rules — Group rules\n🌐 /website — Send.it website\n📈 /chart — Price charts\n🛒 /buy — How to buy SENDIT\n📱 /socials — Social media links\n📄 /whitepaper — Read the whitepaper\n🗺️ /roadmap — Project roadmap\n🟢 /devnet — Devnet program status\n🚨 /raids — Raid coordinator\n📣 /shill — Copy-paste shill message\n🤖 /filters — This list\n\n🏆 <b>Points System:</b>\n/checkin — Daily check-in (+5 pts)\n/points — Check your balance\n/leaderboard — Top 10 holders\n\n<i>Earn points:</i>\n• Daily check-in: 5 pts\n• First message of the day: 2 pts\n• Invite a member: 25 pts\n• Mod award: 15 pts\n• Bug report: 50 pts\n\n🛡️ <b>Mod Commands (admin/mod only):</b>\n/warn — Warn a user (reply)\n/mute [min] — Mute user (reply, default 60min)\n/unmute — Unmute user (reply)\n/ban — Ban user (reply)\n/unban — Unban user (reply)\n/award — Award 15 pts (reply)\n/bugreport — Award 50 pts for bug report (reply)\n\n⚔️ <b>Raid Leader Commands (mod/owner):</b>\n/addraidleader — Add raid leader (reply)\n/removeraidleader — Remove raid leader (reply)\n/raidleaders — List raid leaders\n\n📣 <b>Roles (mod):</b>\n/shiller — Give Shiller 📣 badge (reply)\n/unshiller — Remove Shiller badge (reply)\n/fundraiser — Give Fundraiser 💰 badge (reply)\n/unfundraiser — Remove Fundraiser badge (reply)\n/pm — Give Project Manager 📋 badge (reply)\n/unpm — Remove Project Manager badge (reply)\n/raider — Give Raider ⚔️ badge (reply)\n/unraider — Remove Raider badge (reply)\n/communitylead — Give Community Lead 🌟 badge (reply)\n/uncommunitylead — Remove Community Lead badge (reply)\n\n👑 <b>Owner Commands:</b>\n/addmod — Add bot moderator (reply)\n/removemod — Remove bot moderator (reply)\n/modlist — List all bot moderators\n\n🏆 <b>Contest Commands:</b>\n/contest — Show active contests &amp; help\n/contest shill start|enter|entries|end\n/contest raid start|leaderboard|end\n/contest meme start|enter|entries|end\n/contest invite start|leaderboard|end\n/contest end all — End all contests (mod)",
   "/shill": `📣 *Copy \\& paste this everywhere:*\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\n🚀 Send\\.it — The fairest token launchpad on Solana\n\n✅ No insiders \\| No presales \\| Anti\\-snipe\n✅ 29 on\\-chain modules \\| 13k\\+ lines of Rust\n✅ Auto Raydium migration\n✅ Creator rewards \\+ holder rewards\n\n📋 CA: F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n🐦 twitter\\.com/SendItSolana420\n💬 t\\.me/\\+Xw4E2sJ0Z3Q5ZDYx\n💎 discord\\.gg/vKRTyG85\n📈 pump\\.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\n\n\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\\-\n\nSend it\\! 🔥`,
   "/devnet": `🟢 *Send\\.it Devnet Status*\n\n*Program:* \`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L\`\n[View on Solscan](https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet)\n\n*Verified Instructions:*\n✅ initialize\\_platform — config \\+ fees\n✅ create\\_token — bonding curve launch\n✅ buy — bonding curve pricing \\+ fee split\n✅ sell — reverse curve \\+ SOL refund\n\n*SENDIT Token:* \`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump\`\n\n*Stats:*\n• 31 on\\-chain modules \\(16k lines Rust\\)\n• 5IVE DSL port \\(6k lines, 25KB bytecode\\)\n• Full DeFi loop tested on\\-chain\n\n🔜 Full 31\\-module deploy coming soon`,
   "/roadmap": `🗺️ *Send\\.it Roadmap*\n\n*Q1 2026* ← WE ARE HERE\n• Core program \\+ community building\n• Token launch on Pump\\.fun ✅\n• Grant applications ✅\n\n*Q2 2026*\n• Mainnet deployment\n• First token launches\n• Mobile PWA\n\n*Q3 2026*\n• DeFi suite live \\(staking, lending, perps\\)\n• Solana dApp Store\n\n*Q4 2026*\n• Cross\\-chain bridge\n• DAO governance\n• Ecosystem partnerships`
@@ -289,12 +291,18 @@ async function handleRaidCommand(msg, chatId, text) {
 
 async function handleNewMember(msg) {
   const chatId = msg.chat.id;
-  if (contests.invite.active && msg.from) {
+  // Invite points (always) + contest tracking
+  if (msg.from) {
     for (const member of msg.new_chat_members || []) {
       if (member.is_bot || member.id === msg.from.id) continue;
-      const ic = contests.invite.scores;
-      const existing = ic.get(msg.from.id);
-      if (existing) { existing.points++; } else { ic.set(msg.from.id, { name: msg.from.first_name || "Anon", points: 1 }); }
+      // Award 25 pts for invite
+      try { await points.inviteReward(msg.from.id, msg.from.first_name || "Anon"); } catch (e) {}
+      // Contest tracking
+      if (contests.invite.active) {
+        const ic = contests.invite.scores;
+        const existing = ic.get(msg.from.id);
+        if (existing) { existing.points++; } else { ic.set(msg.from.id, { name: msg.from.first_name || "Anon", points: 1 }); }
+      }
     }
   }
   for (const member of msg.new_chat_members || []) {
@@ -566,6 +574,85 @@ async function handleUpdate(update) {
   // Contest commands
   if (text.startsWith("/contest")) {
     await handleContestCommand(msg, chatId, text);
+    return;
+  }
+
+  // Points: first message of the day (silent, no notification)
+  if (msg.from) {
+    try {
+      await points.firstMessage(msg.from.id, msg.from.first_name || "Anon");
+    } catch (e) { /* ignore points errors */ }
+  }
+
+  // Points commands
+  if (cmd === "/checkin") {
+    try {
+      const result = await points.checkin(msg.from.id, msg.from.first_name || "Anon");
+      if (result.ok) {
+        await tgApi("sendMessage", { chat_id: chatId, text: `✅ Daily check-in! +${result.earned} pts\n\n🏆 Your total: ${result.total} pts`, reply_to_message_id: msg.message_id });
+      } else if (result.reason === "already_checked_in") {
+        await tgApi("sendMessage", { chat_id: chatId, text: `⏰ Already checked in! Come back in ~${result.hoursLeft}h`, reply_to_message_id: msg.message_id });
+      }
+    } catch (e) {
+      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline. Try again later.", reply_to_message_id: msg.message_id });
+    }
+    return;
+  }
+
+  if (cmd === "/points") {
+    try {
+      const pts = await points.getPoints(msg.from.id);
+      await tgApi("sendMessage", { chat_id: chatId, text: `🏆 ${msg.from.first_name || "You"}: ${pts} pts`, reply_to_message_id: msg.message_id });
+    } catch (e) {
+      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+    }
+    return;
+  }
+
+  if (cmd === "/leaderboard") {
+    try {
+      const top = await points.getLeaderboard(10);
+      if (top.length === 0) {
+        await tgApi("sendMessage", { chat_id: chatId, text: "🏆 No points earned yet. Use /checkin to start!", reply_to_message_id: msg.message_id });
+      } else {
+        const medals = ["🥇", "🥈", "🥉"];
+        let txt = "🏆 *Send\\.it Leaderboard*\n\n";
+        top.forEach((e, i) => {
+          const prefix = medals[i] || `${i + 1}\\.`;
+          const name = e.name.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+          txt += `${prefix} ${name} — ${e.points} pts\n`;
+        });
+        await tgApi("sendMessage", { chat_id: chatId, text: txt, parse_mode: "MarkdownV2", reply_to_message_id: msg.message_id });
+      }
+    } catch (e) {
+      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+    }
+    return;
+  }
+
+  if (cmd === "/award") {
+    if (!isMod(msg.from.id)) { await tgApi("sendMessage", { chat_id: chatId, text: "⛔ Mods only.", reply_to_message_id: msg.message_id }); return; }
+    if (!msg.reply_to_message) { await tgApi("sendMessage", { chat_id: chatId, text: "↩️ Reply to a user to award 15 pts.", reply_to_message_id: msg.message_id }); return; }
+    try {
+      const target = msg.reply_to_message.from;
+      const result = await points.modAward(target.id, target.first_name || "Anon");
+      await tgApi("sendMessage", { chat_id: chatId, text: `🎁 ${target.first_name || "User"} awarded +${result.earned} pts! (Total: ${result.total})` });
+    } catch (e) {
+      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+    }
+    return;
+  }
+
+  if (cmd === "/bugreport") {
+    if (!isMod(msg.from.id)) { await tgApi("sendMessage", { chat_id: chatId, text: "⛔ Mods only — reply to a bug reporter to award 50 pts.", reply_to_message_id: msg.message_id }); return; }
+    if (!msg.reply_to_message) { await tgApi("sendMessage", { chat_id: chatId, text: "↩️ Reply to the bug reporter to award 50 pts.", reply_to_message_id: msg.message_id }); return; }
+    try {
+      const target = msg.reply_to_message.from;
+      const result = await points.bugReward(target.id, target.first_name || "Anon");
+      await tgApi("sendMessage", { chat_id: chatId, text: `🐛 ${target.first_name || "User"} awarded +${result.earned} pts for bug report! (Total: ${result.total})` });
+    } catch (e) {
+      await tgApi("sendMessage", { chat_id: chatId, text: "❌ Points system offline.", reply_to_message_id: msg.message_id });
+    }
     return;
   }
 

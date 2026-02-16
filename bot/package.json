@@ -8,5 +8,8 @@
   "scripts": {
     "dev": "node filters.js",
     "lint": "node --check bot-logic.js api/webhook.js api/set-webhook.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.36.2"
   }
 }
