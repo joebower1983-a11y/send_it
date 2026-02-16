@@ -105,25 +105,34 @@ pub mod send_it {
         let config = &ctx.accounts.platform_config;
         require!(!config.paused, SendItError::PlatformPaused);
         let clock = Clock::get()?;
-        let l = &mut ctx.accounts.token_launch;
-        l.creator = ctx.accounts.creator.key();
-        l.mint = ctx.accounts.token_mint.key();
-        l.name = name;
-        l.symbol = symbol;
-        l.uri = uri;
-        l.creator_fee_bps = creator_fee_bps;
-        l.total_supply = DEFAULT_TOTAL_SUPPLY;
-        l.tokens_sold = 0;
-        l.total_staked = 0;
-        l.reserve_sol = 0;
-        l.created_at = clock.unix_timestamp;
-        l.migrated = false;
-        l.total_volume_sol = 0;
-        l.bump = ctx.bumps.token_launch;
-        l.sol_vault_bump = ctx.bumps.launch_sol_vault;
-
+        let bump = ctx.bumps.token_launch;
+        let sol_vault_bump = ctx.bumps.launch_sol_vault;
         let mk = ctx.accounts.token_mint.key();
-        let seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[l.bump]];
+        let launch_key = ctx.accounts.token_launch.key();
+        let creator_key = ctx.accounts.creator.key();
+
+        // Initialize launch account fields
+        {
+            let l = &mut ctx.accounts.token_launch;
+            l.creator = creator_key;
+            l.mint = mk;
+            l.name = name.clone();
+            l.symbol = symbol.clone();
+            l.uri = uri.clone();
+            l.creator_fee_bps = creator_fee_bps;
+            l.total_supply = DEFAULT_TOTAL_SUPPLY;
+            l.tokens_sold = 0;
+            l.total_staked = 0;
+            l.reserve_sol = 0;
+            l.created_at = clock.unix_timestamp;
+            l.migrated = false;
+            l.total_volume_sol = 0;
+            l.bump = bump;
+            l.sol_vault_bump = sol_vault_bump;
+        }
+        // Mutable borrow dropped — safe to use ctx.accounts immutably now
+
+        let seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[bump]];
 
         // Mint total supply to launch vault
         token::mint_to(CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), MintTo {
@@ -135,11 +144,11 @@ pub mod send_it {
         // Create Metaplex token metadata
         let ix = mpl_create_metadata_ix(
             ctx.accounts.metadata.key(),
-            ctx.accounts.token_mint.key(),
-            ctx.accounts.token_launch.key(),
-            ctx.accounts.creator.key(),
-            ctx.accounts.token_launch.key(),
-            l.name.clone(), l.symbol.clone(), l.uri.clone(),
+            mk,
+            launch_key,
+            creator_key,
+            launch_key,
+            name.clone(), symbol.clone(), uri,
         );
         anchor_lang::solana_program::program::invoke_signed(
             &ix,
@@ -156,11 +165,11 @@ pub mod send_it {
         )?;
 
         emit!(TokenCreated {
-            mint: ctx.accounts.token_mint.key(),
-            creator: ctx.accounts.creator.key(),
-            name: l.name.clone(),
-            symbol: l.symbol.clone(),
-            creator_fee_bps: l.creator_fee_bps,
+            mint: mk,
+            creator: creator_key,
+            name,
+            symbol,
+            creator_fee_bps,
             timestamp: clock.unix_timestamp,
         });
 
