@@ -15,7 +15,7 @@
   <p align="center">
     <a href="https://joebower1983-a11y.github.io/send_it/">📄 GitHub Pages</a> ·
     <a href="https://send-it-seven-sigma.vercel.app">🌐 Live App</a> ·
-    <a href="https://itsolana.net">🔗 itsolana.net (coming soon)</a>
+    <a href="https://itsolana.io">🔗 itsolana.io (coming soon)</a>
   </p>
 </p>
 
@@ -313,7 +313,7 @@ anchor deploy --provider.cluster devnet
 - [x] Devnet CLI tool (`scripts/sendit-cli.mjs`)
 - [ ] Security audit
 - [ ] Mainnet launch (target: April 2026)
-- [ ] itsolana.net custom domain
+- [ ] itsolana.io custom domain
 - [ ] Full Raydium CPI integration
 - [ ] Mobile app
 - [ ] Multi-chain bridge activation
@@ -333,7 +333,7 @@ anchor deploy --provider.cluster devnet
 | **Discord** | [discord.gg/vKRTyG85](https://discord.gg/vKRTyG85) |
 | **Telegram** | [t.me/+Xw4E2sJ0Z3Q5ZDYx](https://t.me/+Xw4E2sJ0Z3Q5ZDYx) |
 | **Twitter** | [@SendItSolana420](https://x.com/SendItSolana420) |
-| **Custom Domain** | [itsolana.net](https://itsolana.net) *(coming soon)* |
+| **Custom Domain** | [itsolana.io](https://itsolana.io) *(coming soon)* |
 
 ---
 

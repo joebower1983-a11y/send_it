@@ -23,7 +23,7 @@ Joseph Bower
 | Field | Value |
 |-------|-------|
 | GitHub | https://github.com/joebower1983-a11y/send_it |
-| Website | https://send-it-seven-sigma.vercel.app / https://itsolana.net |
+| Website | https://send-it-seven-sigma.vercel.app / https://itsolana.io |
 | Twitter | [@SendItSolana420](https://twitter.com/SendItSolana420) |
 | Discord | https://discord.gg/vKRTyG85 |
 | Telegram Bot | @senditsol42069bot |
@@ -88,7 +88,7 @@ Additional contributors and auditors will be brought on as the project scales, f
 | Milestone | Timeline | Deliverables | Verification |
 |-----------|----------|--------------|--------------|
 | **M1 — Mainnet Deployment** | Month 1 | Core launch program deployed to mainnet; full devnet test suite passing; deployment scripts documented | Program ID on mainnet; passing CI; deployment guide in repo |
-| **M2 — Frontend & Bots Live** | Month 2 | Production frontend wired to live program; Telegram bot (@senditsol42069bot) and Discord bot operational; SDK v1.0 published to npm | Live site at itsolana.net; working bot demos; npm package |
+| **M2 — Frontend & Bots Live** | Month 2 | Production frontend wired to live program; Telegram bot (@senditsol42069bot) and Discord bot operational; SDK v1.0 published to npm | Live site at itsolana.io; working bot demos; npm package |
 | **M3 — Perps & Rewards** | Month 3–4 | Perpetual trading module live for graduated tokens; holder rewards distribution operational; documentation complete | On-chain perps trades; reward claim transactions; SDK docs |
 | **M4 — Bridge & Audit** | Month 5–6 | Cross-chain bridge module deployed (testnet minimum); full third-party security audit completed and published; audit remediation merged | Audit report (public); bridge testnet demo; remediation commits |
 
@@ -160,7 +160,7 @@ Send.it is not competing to be the "next pump.fun." It is building the open-sour
 | Why Solana? | Section 7 (Why Solana) |
 | Additional Information | Section 8 (Competitive Advantage) |
 | GitHub URL | https://github.com/joebower1983-a11y/send_it |
-| Website | https://itsolana.net |
+| Website | https://itsolana.io |
 | Twitter | @SendItSolana420 |
 | Grant Amount Requested | $12,500 USD |
 
