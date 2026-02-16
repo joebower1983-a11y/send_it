@@ -21,14 +21,25 @@
 
 ---
 
-## 🔗 Devnet Deployment
+## 🔗 Devnet Deployment — LIVE & TESTED ✅
 
 | | Address |
 |---|---|
-| **Program ID** | `8adJJGqnVcNJ1DexXVxbr4RZtohtanCsYeytDRFoG1u6` |
-| **Platform Config** | `GNUN81Yh7G3YUShfocDqbrnhQAADR7es8UXAj3UrCZmB` |
+| **Program ID** | `98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L` |
+| **Platform Config** | `AsxZyH56EQ6LdvzZYr9LsUzvaMgVMDoLv3on2AsGMve8` |
 | **Network** | Solana Devnet |
 | **SENDIT Token** | `F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump` (Token-2022, pump.fun) |
+
+### Verified On-Chain Transactions
+
+| Instruction | Tx Signature | Status |
+|---|---|---|
+| `initialize_platform` | [View on Solscan](https://solscan.io/tx/QfXTss...?cluster=devnet) | ✅ |
+| `create_token` | `38jwRpoyja6gQN6wHNZrHcZC9YrMNaM4spBfvV8ZFhMejupWG7J2LoxkPgzrKt9q8UULnbMrTFr54FrjeUofm3so` | ✅ |
+| `buy` (bonding curve) | `2CQsDE2ZD2A1N5Kwipa2djQM6ah41cNrQPU1xZLqapHGREhfyLT2TPNt2dt1wJVqroLJ3SRvWGUNAV9vFSS9yvBw` | ✅ |
+| `sell` (bonding curve) | `4RwW6uDZWduztUzTMtiwuDUjV5gFFFWtSNNLri8GaWH7B66HJJ9uem92vdMA2DnYLxn9E4dh1boyRycewFcJhYzE` | ✅ |
+
+Full DeFi loop verified: platform init → token launch → bonding curve buy → bonding curve sell with fee distribution.
 
 ### 5IVE VM Port
 The entire protocol has also been ported to [5IVE DSL](https://github.com/joebower1983-a11y/sendit-5ive) — 63% code reduction (16k → 6k lines), 25KB total bytecode, 159 integration tests.
