@@ -1,0 +1,5 @@
+Contact: mailto:sendit@proton.me
+Contact: https://github.com/joebower1983-a11y/send_it/issues
+Expires: 2027-02-16T00:00:00.000Z
+Preferred-Languages: en
+Policy: https://github.com/joebower1983-a11y/send_it/blob/main/SECURITY.md
