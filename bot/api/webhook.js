@@ -20,10 +20,9 @@ module.exports = async function handler(req, res) {
     console.log("Received update:", JSON.stringify(update).slice(0, 200));
     await handleUpdate(update);
     console.log("Update processed OK");
+    return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("Webhook error:", err.message, err.stack);
+    return res.status(200).json({ ok: false, error: err.message });
   }
-
-  // Always return 200 so Telegram doesn't retry
-  res.status(200).json({ ok: true });
 };
