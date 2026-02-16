@@ -1,349 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Send.it — Staking & Rewards</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0a0e17;--bg2:#111827;--bg3:#1a1f2e;--bg4:#252a3a;
-  --accent:#00c896;--accent2:#00e6ad;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;--yellow:#ffc107;
-  --text:#e8e8f0;--text2:#8888aa;--text3:#555570;
-  --border:rgba(255,255,255,.06);--glow:0 0 20px rgba(0,200,150,.3);
-  --radius:12px;
-}
-html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
-body{min-height:100vh;overflow-x:hidden;background-image:
-  radial-gradient(ellipse 80% 60% at 50% -20%,rgba(0,200,150,.06),transparent),
-  linear-gradient(rgba(0,200,150,.02) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(0,200,150,.02) 1px,transparent 1px);
-  background-size:100% 100%,60px 60px,60px 60px}
-a{color:inherit;text-decoration:none}
-button{cursor:pointer;font-family:inherit;border:none;outline:none}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send.it — Staking</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
 
-/* Header */
-header{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,200,150,.12);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
-.logo span{color:var(--accent);text-shadow:0 0 20px rgba(0,200,150,.4)}
-.logo .dot{color:var(--accent)}
-.logo-icon{font-size:24px;filter:drop-shadow(0 0 8px rgba(0,200,150,.5))}
-.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.3s}
-.wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
+    .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00c896; }
+    .navbar .logo { font-size: 1.5rem; font-weight: 800; color: #00c896; text-decoration: none; }
+    .navbar .logo span { color: #fff; }
+    .navbar nav a { color: #aaa; text-decoration: none; margin-left: 24px; font-size: 0.9rem; transition: color 0.2s; }
+    .navbar nav a:hover, .navbar nav a.active { color: #00c896; }
+    #connect-btn { background: #00c896; color: #000; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+    #connect-btn:hover { background: #00e6a8; transform: translateY(-1px); }
 
-/* Nav */
-nav{position:sticky;top:64px;z-index:99;background:rgba(10,14,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,200,150,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;flex-wrap:wrap}
-.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px}
-.nav-item:hover{color:var(--text);background:var(--bg3)}
-.nav-item.active{color:var(--accent);background:rgba(0,200,150,.08)}
+    .container { max-width: 800px; margin: 0 auto; padding: 32px 20px; }
 
-/* Main */
-main{max-width:1200px;margin:0 auto;padding:24px 16px}
-.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-title i{color:var(--accent)}
+    .hero { text-align: center; margin-bottom: 40px; }
+    .hero h1 { font-size: 2rem; margin-bottom: 8px; }
+    .hero h1 span { color: #00c896; }
+    .hero p { color: #888; font-size: 1rem; }
 
-/* Hero */
-.hero{text-align:center;padding:48px 24px 40px;position:relative}
-.hero h1{font-size:52px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--accent2),#7dd3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-2px;margin-bottom:8px}
-.hero p{color:var(--text2);font-size:16px;margin-bottom:24px}
-.apy-badges{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
-.apy-badge{background:var(--bg3);border:1px solid rgba(0,200,150,.2);border-radius:var(--radius);padding:16px 28px;text-align:center;min-width:140px}
-.apy-badge .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:4px}
-.apy-badge .value{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--accent);text-shadow:0 0 20px rgba(0,200,150,.3)}
-.apy-badge .value.purple{color:var(--purple)}
-.apy-badge .value.orange{color:var(--orange)}
+    .badge-devnet { display: inline-block; background: #00c89622; color: #00c896; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 16px; border: 1px solid #00c89644; }
 
-/* Cards */
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;transition:.25s}
-.card:hover{border-color:rgba(0,200,150,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
-.card h2{font-size:18px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
-.card h2 i{color:var(--accent);font-size:16px}
+    .wallet-bar { display: flex; justify-content: space-between; align-items: center; background: #12121a; padding: 16px 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #222; }
+    #wallet-status { color: #888; font-size: 0.9rem; }
 
-/* Grid layouts */
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
-@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+    .token-card { background: #12121a; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 16px; transition: border-color 0.2s; }
+    .token-card:hover { border-color: #00c896; }
+    .token-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .token-mint { font-family: monospace; color: #888; font-size: 0.85rem; }
+    .token-balance { font-weight: 700; color: #00c896; font-size: 1.1rem; }
 
-/* Stake Panel */
-.stake-panel{display:flex;flex-direction:column;gap:16px}
-.stake-tabs{display:flex;gap:8px}
-.stake-tab{flex:1;padding:12px;border-radius:8px;font-weight:700;font-size:14px;text-align:center;background:var(--bg2);color:var(--text2);transition:.2s}
-.stake-tab.active{background:rgba(0,200,150,.15);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(0,200,150,.3)}
-.stake-tab:hover{color:var(--text)}
-.input-group{display:flex;flex-direction:column;gap:6px}
-.input-group label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
-.input-row{display:flex;gap:8px}
-.input-row input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:16px;font-family:'JetBrains Mono',monospace;color:var(--text);transition:.2s}
-.input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,200,150,.15)}
-.input-row select{width:120px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 12px;font-size:14px;font-weight:600;color:var(--text);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-.max-btn{position:absolute;right:130px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--accent);background:rgba(0,200,150,.1);padding:4px 10px;border-radius:6px;cursor:pointer}
-.primary-btn{width:100%;padding:16px;border-radius:10px;font-size:16px;font-weight:800;color:#000;background:linear-gradient(135deg,var(--accent),var(--accent2));transition:.3s;text-transform:uppercase;letter-spacing:1px}
-.primary-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,200,150,.35)}
-.secondary-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;color:var(--accent);background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);transition:.2s}
-.secondary-btn:hover{background:rgba(0,200,150,.2)}
-.danger-btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;color:var(--pink);background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.2);transition:.2s}
+    .stake-info { background: #1a1a2e; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+    .stake-info.locked { border-left: 3px solid #f0a030; }
+    .stake-info.unlocked { border-left: 3px solid #00c896; }
+    .stake-info span { font-size: 0.85rem; }
 
-/* Tables */
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{text-align:left;color:var(--text2);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:10px 12px;border-bottom:1px solid var(--border)}
-td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(0,200,150,.02)}
-.token-cell{display:flex;align-items:center;gap:8px;font-weight:600}
-.token-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#000}
-.green{color:#00e676}.red{color:#ff4444}
+    .stake-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .stake-form input, .stake-form select { background: #1a1a2e; border: 1px solid #333; color: #e0e0e0; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; flex: 1; min-width: 120px; }
+    .stake-form input:focus, .stake-form select:focus { outline: none; border-color: #00c896; }
 
-/* Pool Stats */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr}}
-.stat-box{background:var(--bg2);border-radius:10px;padding:16px;text-align:center;border:1px solid var(--border)}
-.stat-box .stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:6px}
-.stat-box .stat-value{font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent)}
-.stat-box .stat-value.white{color:var(--text)}
+    .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 0.9rem; transition: all 0.2s; }
+    .btn-primary { background: #00c896; color: #000; }
+    .btn-primary:hover { background: #00e6a8; }
+    .btn-green { background: #28a745; color: #fff; }
+    .btn-green:hover { background: #34c759; }
 
-/* Daily Rewards */
-.daily-section{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
-.streak-card{flex:1;min-width:280px;text-align:center;padding:28px}
-.streak-number{font-size:64px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--accent);text-shadow:0 0 40px rgba(0,200,150,.3);line-height:1}
-.streak-label{font-size:14px;color:var(--text2);margin:8px 0 16px}
-.tier-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:20px;font-weight:700;font-size:14px;margin-bottom:16px}
-.tier-gold{background:rgba(255,193,7,.12);color:var(--yellow);border:1px solid rgba(255,193,7,.25)}
-.multiplier{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--accent);margin-bottom:16px}
-.checkin-btn{padding:14px 40px;border-radius:10px;font-size:15px;font-weight:800;color:#000;background:linear-gradient(135deg,var(--yellow),var(--orange));transition:.3s}
-.checkin-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,193,7,.3)}
-.tier-progress{flex:1;min-width:280px}
-.tier-list{display:flex;flex-direction:column;gap:10px}
-.tier-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);font-size:13px;font-weight:600}
-.tier-item.current{border-color:rgba(255,193,7,.3);background:rgba(255,193,7,.06)}
-.tier-item .tier-icon{font-size:18px}
-.tier-item .tier-name{flex:1}
-.tier-item .tier-mult{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700}
-.tier-item .tier-req{color:var(--text2);font-size:12px}
+    .tx-status { text-align: center; padding: 12px; border-radius: 8px; margin-top: 20px; font-size: 0.9rem; }
+    .tx-status.pending { background: #f0a03022; color: #f0a030; }
+    .tx-status.success { background: #00c89622; color: #00c896; }
+    .tx-status.error { background: #ff4a4a22; color: #ff4a4a; }
+    .tx-status a { color: inherit; margin-left: 8px; }
 
-/* Leaderboard */
-.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);margin-bottom:8px;transition:.2s}
-.lb-row:hover{border-color:rgba(0,200,150,.2)}
-.lb-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;font-family:'JetBrains Mono',monospace}
-.lb-rank.gold{background:rgba(255,193,7,.15);color:var(--yellow)}
-.lb-rank.silver{background:rgba(192,192,192,.15);color:#c0c0c0}
-.lb-rank.bronze{background:rgba(205,127,50,.15);color:#cd7f32}
-.lb-rank.normal{background:var(--bg3);color:var(--text2)}
-.lb-name{flex:1;font-weight:600;font-size:14px}
-.lb-amount{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--accent)}
+    .loading { color: #888; text-align: center; padding: 40px; }
+    .empty { color: #666; text-align: center; padding: 40px; }
+    .empty a { color: #00c896; }
+    .error { color: #ff4a4a; text-align: center; padding: 20px; }
 
-/* Rewards history */
-.reward-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
-.reward-item:last-child{border-bottom:none}
-.reward-info{display:flex;align-items:center;gap:10px}
-.reward-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.reward-amount{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
-.reward-time{font-size:12px;color:var(--text2)}
+    .info-box { background: #12121a; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-top: 32px; }
+    .info-box h3 { color: #00c896; margin-bottom: 12px; }
+    .info-box ul { list-style: none; }
+    .info-box li { padding: 6px 0; color: #aaa; font-size: 0.9rem; }
+    .info-box li::before { content: "→ "; color: #00c896; }
 
-/* Testnet Banner */
-.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--bg),#1a2332,var(--bg));padding:8px;text-align:center;font-weight:800;font-size:12px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(0,200,150,.2)}
-#app{padding-top:32px}
-
-/* Footer */
-footer{text-align:center;padding:40px 24px;color:var(--text3);font-size:13px;border-top:1px solid var(--border);margin-top:40px}
-footer a{color:var(--accent)}
-
-@media(max-width:600px){
-  .hero h1{font-size:36px}
-  .apy-badges{flex-direction:column;align-items:center}
-  .stat-grid{grid-template-columns:1fr 1fr}
-  table{font-size:12px}
-  th,td{padding:8px 6px}
-  nav{gap:2px;padding:6px 8px}
-  .nav-item{padding:8px 14px;font-size:13px}
-}
-</style>
+    @media (max-width: 600px) {
+      .stake-form { flex-direction: column; }
+      .stake-form input, .stake-form select, .btn { width: 100%; }
+      .token-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
-<div id="app">
-<div class="testnet-banner">⚡ Devnet — Staking rewards are simulated ⚡</div>
-
-<header>
-  <a href="index.html" class="logo">
-    <span class="logo-icon">🚀</span>
-    <span>Send<span class="dot">.</span>it</span>
-  </a>
-  <button class="wallet-btn" onclick="this.textContent=this.textContent.includes('Connect')?'7xK3...f9mQ':'⚡ Connect Wallet'">⚡ Connect Wallet</button>
-</header>
-
-<nav>
-  <a href="index.html" class="nav-item"><i class="fas fa-rocket"></i> Launch</a>
-  <a href="staking.html" class="nav-item active"><i class="fas fa-coins"></i> Staking</a>
-  <a href="trading.html" class="nav-item"><i class="fas fa-chart-line"></i> Trading</a>
-  <a href="composer.html" class="nav-item"><i class="fas fa-cubes"></i> Composer</a>
-    <a href="creator-dashboard.html" class="nav-item"><i class="fas fa-palette"></i> Creator</a>
-</nav>
-
-<div class="hero">
-  <h1>Stake & Earn</h1>
-  <p>Earn rewards by staking your tokens in Send.it liquidity pools</p>
-  <div class="apy-badges">
-    <div class="apy-badge"><div class="label">SEND Staking</div><div class="value">127%</div></div>
-    <div class="apy-badge"><div class="label">LP Staking</div><div class="value purple">89%</div></div>
-    <div class="apy-badge"><div class="label">Total Staked</div><div class="value orange">$4.2M</div></div>
+  <div class="navbar">
+    <a href="/" class="logo">🚀 <span>Send</span>.it</a>
+    <nav>
+      <a href="/launchpad.html">Launchpad</a>
+      <a href="/staking.html" class="active">Staking</a>
+      <a href="/social.html">Social</a>
+      <a href="/links.html">Links</a>
+    </nav>
+    <button id="connect-btn">Connect Wallet</button>
   </div>
-</div>
 
-<main>
-<!-- Stake / Unstake Panel -->
-<div class="grid-2">
-  <div class="card">
-    <h2><i class="fas fa-lock"></i> Stake Tokens</h2>
-    <div class="stake-panel">
-      <div class="stake-tabs">
-        <button class="stake-tab active" onclick="document.querySelectorAll('.stake-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Stake</button>
-        <button class="stake-tab" onclick="document.querySelectorAll('.stake-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Unstake</button>
-      </div>
-      <div class="input-group">
-        <label>Amount</label>
-        <div class="input-row">
-          <input type="number" placeholder="0.00" value="1000">
-          <select>
-            <option>SEND</option>
-            <option>SOL</option>
-            <option>SEND/SOL LP</option>
-            <option>USDC</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2)">
-        <span>Balance: <span style="color:var(--accent);font-family:'JetBrains Mono',monospace">12,450 SEND</span></span>
-        <span style="color:var(--accent);cursor:pointer;font-weight:600">MAX</span>
-      </div>
-      <div style="background:var(--bg2);border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;font-size:13px">
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Lock Period</span><span style="font-weight:600">30 days</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Est. APY</span><span style="font-weight:600;color:var(--accent)">127.4%</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Daily Rewards</span><span style="font-weight:600;color:var(--accent)">~3.49 SEND</span></div>
-      </div>
-      <button class="primary-btn">🔒 Stake SEND</button>
+  <div class="container">
+    <div class="hero">
+      <span class="badge-devnet">⚡ DEVNET LIVE</span>
+      <h1>🔒 <span>Staking</span></h1>
+      <p>Lock your tokens, earn rewards, show commitment</p>
+    </div>
+
+    <div class="wallet-bar">
+      <span id="wallet-status">Not connected</span>
+      <span style="color:#666;font-size:0.8rem">Solana Devnet</span>
+    </div>
+
+    <div id="token-list">
+      <p class="empty">Connect your wallet to see your Send.it tokens</p>
+    </div>
+
+    <div id="tx-status" class="tx-status" style="display:none"></div>
+
+    <div class="info-box">
+      <h3>How Staking Works</h3>
+      <ul>
+        <li>Choose a token and lock duration (1 min to 1 year)</li>
+        <li>Tokens are transferred to the on-chain vault</li>
+        <li>You cannot withdraw until the lock period expires</li>
+        <li>After unlock, click "Unstake" to get your tokens back</li>
+        <li>Longer stakes = stronger commitment signal</li>
+        <li>All staking is fully on-chain — no trust required</li>
+      </ul>
     </div>
   </div>
 
-  <!-- Pool Stats -->
-  <div class="card">
-    <h2><i class="fas fa-chart-pie"></i> Pool Statistics</h2>
-    <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-      <div class="stat-box"><div class="stat-label">Total Value Locked</div><div class="stat-value">$4.2M</div></div>
-      <div class="stat-box"><div class="stat-label">Total Stakers</div><div class="stat-value white">1,847</div></div>
-      <div class="stat-box"><div class="stat-label">Reward Rate</div><div class="stat-value">2.4K<span style="font-size:14px;color:var(--text2)">/day</span></div></div>
-      <div class="stat-box"><div class="stat-label">Your Share</div><div class="stat-value" style="color:var(--purple)">0.34%</div></div>
-    </div>
-    <div style="margin-top:16px;background:var(--bg2);border-radius:8px;padding:14px;font-size:13px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text2)">Your Staked Value</span><span style="font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace">$14,280</span></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text2)">Pending Rewards</span><span style="font-weight:700;color:var(--yellow);font-family:'JetBrains Mono',monospace">234.5 SEND</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--text2)">Lifetime Earned</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace">4,821 SEND</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- Your Stakes Table -->
-<div class="card">
-  <h2><i class="fas fa-layer-group"></i> Your Stakes</h2>
-  <div style="overflow-x:auto">
-  <table>
-    <thead><tr><th>Token</th><th>Staked</th><th>Rewards</th><th>Duration</th><th>APY</th><th>Action</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><div class="token-cell"><div class="token-icon" style="background:linear-gradient(135deg,var(--accent),#00e6ad)">S</div>SEND</div></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-weight:600">8,500</td>
-        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">+142.3 SEND</td>
-        <td>45 days</td>
-        <td><span style="color:var(--accent);font-weight:700">127%</span></td>
-        <td><button class="secondary-btn">Claim</button></td>
-      </tr>
-      <tr>
-        <td><div class="token-cell"><div class="token-icon" style="background:linear-gradient(135deg,#9945FF,#14F195)">LP</div>SEND/SOL LP</div></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-weight:600">2,100</td>
-        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">+67.8 SEND</td>
-        <td>32 days</td>
-        <td><span style="color:var(--purple);font-weight:700">89%</span></td>
-        <td><button class="secondary-btn">Claim</button></td>
-      </tr>
-      <tr>
-        <td><div class="token-cell"><div class="token-icon" style="background:linear-gradient(135deg,#00D2FF,#0099FF)">U</div>USDC</div></td>
-        <td style="font-family:'JetBrains Mono',monospace;font-weight:600">5,000</td>
-        <td style="font-family:'JetBrains Mono',monospace;color:var(--accent)">+24.1 SEND</td>
-        <td>12 days</td>
-        <td><span style="color:var(--orange);font-weight:700">42%</span></td>
-        <td><button class="secondary-btn">Claim</button></td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-</div>
-
-<!-- Daily Rewards -->
-<div class="card">
-  <h2><i class="fas fa-fire"></i> Daily Check-In Rewards</h2>
-  <div class="daily-section">
-    <div class="card streak-card" style="border:1px solid rgba(255,193,7,.2)">
-      <div class="streak-number">🔥 14</div>
-      <div class="streak-label">Day Streak</div>
-      <div class="tier-badge tier-gold"><i class="fas fa-crown"></i> Gold Tier</div>
-      <div class="multiplier">2.5x Multiplier</div>
-      <button class="checkin-btn">✅ Daily Check-In</button>
-    </div>
-    <div class="tier-progress card" style="flex:1">
-      <h2 style="font-size:15px"><i class="fas fa-trophy"></i> Tier Progress</h2>
-      <div class="tier-list">
-        <div class="tier-item"><span class="tier-icon">🥉</span><span class="tier-name">Bronze</span><span class="tier-req">Day 1+</span><span class="tier-mult">1.0x</span></div>
-        <div class="tier-item"><span class="tier-icon">🥈</span><span class="tier-name">Silver</span><span class="tier-req">Day 7+</span><span class="tier-mult">1.5x</span></div>
-        <div class="tier-item current"><span class="tier-icon">🥇</span><span class="tier-name">Gold</span><span class="tier-req">Day 14+</span><span class="tier-mult">2.5x</span></div>
-        <div class="tier-item"><span class="tier-icon">💎</span><span class="tier-name">Platinum</span><span class="tier-req">Day 30+</span><span class="tier-mult">4.0x</span></div>
-        <div class="tier-item"><span class="tier-icon">👑</span><span class="tier-name">Diamond</span><span class="tier-req">Day 60+</span><span class="tier-mult">6.0x</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Rewards History -->
-<div class="card">
-  <h2><i class="fas fa-history"></i> Rewards History</h2>
-  <div class="reward-item">
-    <div class="reward-info"><div class="reward-icon" style="background:rgba(0,200,150,.1);color:var(--accent)"><i class="fas fa-gift"></i></div><div><div style="font-weight:600">Staking Reward Claimed</div><div class="reward-time">Feb 13, 2026 — 18:42 UTC</div></div></div>
-    <div class="reward-amount">+89.2 SEND</div>
-  </div>
-  <div class="reward-item">
-    <div class="reward-info"><div class="reward-icon" style="background:rgba(255,193,7,.1);color:var(--yellow)"><i class="fas fa-fire"></i></div><div><div style="font-weight:600">Daily Check-In Bonus</div><div class="reward-time">Feb 13, 2026 — 09:00 UTC</div></div></div>
-    <div class="reward-amount">+25.0 SEND</div>
-  </div>
-  <div class="reward-item">
-    <div class="reward-info"><div class="reward-icon" style="background:rgba(0,200,150,.1);color:var(--accent)"><i class="fas fa-gift"></i></div><div><div style="font-weight:600">LP Reward Claimed</div><div class="reward-time">Feb 12, 2026 — 22:15 UTC</div></div></div>
-    <div class="reward-amount">+47.6 SEND</div>
-  </div>
-  <div class="reward-item">
-    <div class="reward-info"><div class="reward-icon" style="background:rgba(168,85,247,.1);color:var(--purple)"><i class="fas fa-star"></i></div><div><div style="font-weight:600">Tier Upgrade Bonus</div><div class="reward-time">Feb 10, 2026 — 09:00 UTC</div></div></div>
-    <div class="reward-amount">+100.0 SEND</div>
-  </div>
-  <div class="reward-item">
-    <div class="reward-info"><div class="reward-icon" style="background:rgba(0,200,150,.1);color:var(--accent)"><i class="fas fa-gift"></i></div><div><div style="font-weight:600">Staking Reward Claimed</div><div class="reward-time">Feb 9, 2026 — 14:30 UTC</div></div></div>
-    <div class="reward-amount">+76.4 SEND</div>
-  </div>
-</div>
-
-<!-- Leaderboard -->
-<div class="card">
-  <h2><i class="fas fa-medal"></i> Top Stakers</h2>
-  <div class="lb-row"><div class="lb-rank gold">1</div><div class="lb-name">🐋 whale.sol</div><div class="lb-amount">482,100 SEND</div></div>
-  <div class="lb-row"><div class="lb-rank silver">2</div><div class="lb-name">degen_king.sol</div><div class="lb-amount">285,400 SEND</div></div>
-  <div class="lb-row"><div class="lb-rank bronze">3</div><div class="lb-name">solana_maxi.sol</div><div class="lb-amount">198,700 SEND</div></div>
-  <div class="lb-row"><div class="lb-rank normal">4</div><div class="lb-name">crypto_chef.sol</div><div class="lb-amount">142,300 SEND</div></div>
-  <div class="lb-row"><div class="lb-rank normal">5</div><div class="lb-name">moon_farmer.sol</div><div class="lb-amount">98,600 SEND</div></div>
-  <div class="lb-row" style="border:1px solid rgba(0,200,150,.3);background:rgba(0,200,150,.04)"><div class="lb-rank" style="background:rgba(0,200,150,.15);color:var(--accent)">47</div><div class="lb-name">You <span style="color:var(--text2);font-size:12px">7xK3...f9mQ</span></div><div class="lb-amount">15,600 SEND</div></div>
-</div>
-
-</main>
-
-<footer>
-  <p>Send.it — Built on Solana | <a href="index.html">Home</a> · <a href="staking.html">Staking</a> · <a href="trading.html">Trading</a> · <a href="creator-dashboard.html">Creator</a></p>
-</footer>
-</div>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+  <script>
+    // Make tx-status visible when used
+    const origTextContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+    const statusEl = document.getElementById('tx-status');
+    const observer = new MutationObserver(() => {
+      statusEl.style.display = statusEl.textContent ? 'block' : 'none';
+    });
+    observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
+  </script>
+  <script src="/staking.js"></script>
 </body>
 </html>
