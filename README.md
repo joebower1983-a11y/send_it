@@ -69,7 +69,7 @@ The entire protocol has also been ported to [5IVE DSL](https://github.com/joebow
 
 ## What is Send.it?
 
-Send.it is a **next-generation token launchpad** on Solana that goes far beyond simple token creation. While platforms like pump.fun offer basic bonding curve launches, Send.it delivers a **full-stack DeFi ecosystem** — from token creation with anti-snipe protection and auto-migration to Raydium, to perpetuals trading, prediction markets, lending, staking, social features, and governance — all on-chain via Anchor.
+Send.it is a **next-generation token launchpad** on Solana that goes far beyond simple token creation. While platforms like pump.fun offer basic bonding curve launches, Send.it delivers a **full-stack DeFi ecosystem** — from token creation with anti-snipe protection and a **PumpSwap-style AMM** with bonding curve graduation, to perpetuals trading, prediction markets, lending, staking, decentralized storage via **Storacha/Filecoin**, social features, and governance — all on-chain via Anchor.
 
 ---
 
@@ -81,7 +81,8 @@ Send.it is a **next-generation token launchpad** on Solana that goes far beyond 
 | **Bonding Curve Trading** | Linear, Exponential, and Sigmoid curves with fixed-point math (1e12 precision) |
 | **Anti-Snipe Protection** | Configurable launch delays, per-wallet buy caps during snipe windows, global bot blocklist |
 | **Rug Protection** | Lock periods on liquidity, linear creator vesting schedules, emergency pause |
-| **Auto-Migration to Raydium** | Permissionless crank triggers migration when reserve hits threshold (default 85 SOL) |
+| **PumpSwap-Style AMM** | Bonding curve → constant-product AMM graduation. `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). All liquidity stays in-ecosystem. |
+| **Decentralized Storage** | Token metadata (images + JSON) stored permanently on IPFS/Filecoin via Storacha. Content-addressed, verifiable, immutable. |
 | **Creator Revenue Share** | Configurable creator fee on every trade (up to 5%), paid directly on each tx |
 | **Platform Config & Fees** | Global PDA config, adjustable platform fees, admin controls |
 | **Leaderboard** | On-chain top-20 tokens/creators by volume, permissionless crank updates |
@@ -300,7 +301,9 @@ anchor deploy --provider.cluster devnet
 - [x] Core bonding curve engine (Linear, Exponential, Sigmoid)
 - [x] Anti-snipe protection & bot blocklist
 - [x] Creator vesting & rug protection
-- [x] Auto-migration to Raydium
+- [x] PumpSwap-style AMM (bonding curve graduation, swap, liquidity)
+- [x] Storacha/Filecoin decentralized metadata storage
+- [x] Sec3 X-Ray: 0 vulnerabilities (both programs)
 - [x] Leaderboard system
 - [x] 31 feature modules (staking, perps, lending, social, governance, PYUSD…)
 - [x] FairScale reputation integration
@@ -317,7 +320,7 @@ anchor deploy --provider.cluster devnet
 - [x] senditsolana.io custom domain
 - [ ] Full manual security audit
 - [ ] Mainnet launch (target: April 2026)
-- [ ] Full Raydium CPI integration
+- [ ] Mainnet deployment (post-audit)
 - [ ] Mobile app
 - [ ] Multi-chain bridge activation
 - [ ] DAO governance launch
