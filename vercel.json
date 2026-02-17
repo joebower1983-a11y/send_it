@@ -18,6 +18,8 @@
     { "source": "/staking.js", "destination": "/app/staking.js" },
     { "source": "/pitch-deck.html", "destination": "/docs/pitch-deck.html" },
     { "source": "/trading.js", "destination": "/app/trading.js" },
+    { "source": "/storacha-upload.js", "destination": "/app/storacha-upload.js" },
+    { "source": "/api/storacha-upload", "destination": "/api/storacha-upload.js" },
     { "source": "/.well-known/security.txt", "destination": "/.well-known/security.txt" }
   ]
 }

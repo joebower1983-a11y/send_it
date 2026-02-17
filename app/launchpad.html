@@ -282,6 +282,18 @@ main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
     <button class="btn-outline" style="margin-top:8px" onclick="addCoCreator()"><i class="fas fa-plus"></i> Add Co-Creator</button>
   </div>
 
+  <div class="form-section">
+    <h3><i class="fas fa-database" style="color:var(--accent)"></i> Decentralized Storage (Filecoin)</h3>
+    <div class="toggle-row">
+      <span><i class="fas fa-cube" style="color:var(--accent);margin-right:6px"></i> Store metadata on Filecoin via Storacha</span>
+      <label class="toggle"><input type="checkbox" id="storachaToggle" checked><span class="slider"></span></label>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px">
+      <i class="fas fa-info-circle"></i> Token image and metadata stored permanently on IPFS + Filecoin. Verifiable, decentralized, and immutable.
+    </div>
+    <div id="storacha-status" style="font-size:13px;margin-top:8px"></div>
+  </div>
+
   <div id="tx-result" style="display:none"></div>
   <button class="btn-primary" id="launchBtn" onclick="createToken()">🚀 Launch Token</button>
   <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text3)">
@@ -459,6 +471,7 @@ drawSparkline('trend3', [4,5,4,6,7,8,7,9,10,9,11,10], '#22c55e');
 drawSparkline('trend4', [1,2,2,3,4,3,5,6,5,7,8,7], '#22c55e');
 drawSparkline('trend5', [8,7,8,6,7,5,6,4,5,4,5,4], '#ef4444');
 </script>
+<script src="storacha-upload.js"></script>
 <script src="launchpad.js"></script>
 </body>
 </html>
