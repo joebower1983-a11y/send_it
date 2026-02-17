@@ -20,6 +20,9 @@
     { "source": "/trading.js", "destination": "/app/trading.js" },
     { "source": "/storacha-upload.js", "destination": "/app/storacha-upload.js" },
     { "source": "/api/storacha-upload", "destination": "/api/storacha-upload.js" },
+    { "source": "/docs.html", "destination": "/app/docs.html" },
+    { "source": "/creator.html", "destination": "/app/creator.html" },
+    { "source": "/leaderboards.html", "destination": "/app/leaderboards.html" },
     { "source": "/.well-known/security.txt", "destination": "/.well-known/security.txt" }
   ]
 }
