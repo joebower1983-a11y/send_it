@@ -233,6 +233,13 @@
     .dao-detail:last-child { border-bottom: none; }
     .dao-detail .label { color: var(--text2); }
     .dao-detail .value { font-family: monospace; font-size: 13px; }
+    .dao-config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+    .config-item { display: flex; flex-direction: column; padding: 8px 0; }
+    .config-label { font-size: 12px; color: var(--text2); margin-bottom: 2px; }
+    .config-value { font-size: 14px; font-weight: 600; }
+    .config-link { color: var(--accent2); text-decoration: none; font-family: monospace; font-size: 13px; }
+    .config-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) { .dao-config-grid { grid-template-columns: 1fr; } }
 
     /* Connect */
     .connect-prompt {
@@ -322,32 +329,24 @@
       </div>
     </div>
 
-    <!-- DAO Config -->
+    <!-- DAO Config (populated from on-chain data) -->
     <div class="dao-info">
-      <h3>⚙️ Governance Parameters</h3>
-      <div class="dao-detail">
-        <span class="label">Community Token</span>
-        <span class="value">SENDIT (F8qW...pump)</span>
+      <h3>⚙️ DAO Configuration <span style="color:var(--green);font-size:13px;font-weight:400">● LIVE on Devnet</span></h3>
+      <div id="daoConfig">
+        <!-- Populated by governance.js from on-chain data -->
+        <div class="dao-config-grid">
+          <div class="config-item"><span class="config-label">Loading...</span><span class="config-value">Fetching on-chain data...</span></div>
+        </div>
       </div>
-      <div class="dao-detail">
-        <span class="label">Vote Threshold</span>
-        <span class="value">60% to pass</span>
-      </div>
-      <div class="dao-detail">
-        <span class="label">Min Tokens to Propose</span>
-        <span class="value">1,000,000 SENDIT</span>
-      </div>
-      <div class="dao-detail">
-        <span class="label">Voting Period</span>
-        <span class="value">3 days</span>
-      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
       <div class="dao-detail">
         <span class="label">Governed Program</span>
-        <span class="value">HTKq...88Zx (Send.it Slim v3)</span>
+        <span class="value"><a href="https://explorer.solana.com/address/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet" target="_blank" style="color:var(--accent2)">HTKq...88Zx</a> (Send.it Slim v3)</span>
       </div>
       <div class="dao-detail">
         <span class="label">Governance Framework</span>
         <span class="value"><a href="https://realms.today" target="_blank">Realms (SPL Governance)</a></span>
+      </div>
       </div>
     </div>
 
