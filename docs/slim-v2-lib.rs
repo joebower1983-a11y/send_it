@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo, Burn};
 use anchor_spl::associated_token::AssociatedToken;
 
 declare_id!("98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L");
@@ -23,6 +23,15 @@ pub const REWARD_RATE_BPS_PER_YEAR: u64 = 1000; // 10% APY in basis points
 pub const SECONDS_PER_YEAR: u64 = 365 * 24 * 3600;
 
 pub const MPL_TOKEN_METADATA_ID: Pubkey = solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+
+// ── AMM Constants ──
+pub const POOL_SEED: &[u8] = b"amm_pool";
+pub const POOL_SOL_VAULT_SEED: &[u8] = b"pool_sol_vault";
+pub const LP_MINT_SEED: &[u8] = b"lp_mint";
+pub const SWAP_FEE_BPS: u64 = 100; // 1% swap fee
+pub const LP_FEE_BPS: u64 = 30; // 0.3% to LP holders
+pub const PROTOCOL_FEE_BPS: u64 = 70; // 0.7% to protocol
+pub const MIN_LIQUIDITY: u64 = 1000; // minimum LP tokens locked forever
 
 // ── Events ──
 
@@ -67,6 +76,44 @@ pub struct TokenUnstaked {
     pub staker: Pubkey,
     pub amount: u64,
     pub reward: u64,
+}
+
+#[event]
+pub struct PoolCreated {
+    pub mint: Pubkey,
+    pub pool: Pubkey,
+    pub initial_token: u64,
+    pub initial_sol: u64,
+    pub lp_minted: u64,
+}
+
+#[event]
+pub struct Swapped {
+    pub pool: Pubkey,
+    pub user: Pubkey,
+    pub sol_in: u64,
+    pub token_in: u64,
+    pub sol_out: u64,
+    pub token_out: u64,
+    pub fee: u64,
+}
+
+#[event]
+pub struct LiquidityAdded {
+    pub pool: Pubkey,
+    pub user: Pubkey,
+    pub sol_amount: u64,
+    pub token_amount: u64,
+    pub lp_minted: u64,
+}
+
+#[event]
+pub struct LiquidityRemoved {
+    pub pool: Pubkey,
+    pub user: Pubkey,
+    pub sol_amount: u64,
+    pub token_amount: u64,
+    pub lp_burned: u64,
 }
 
 #[program]
@@ -407,6 +454,365 @@ pub mod send_it {
 
         Ok(())
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // AMM — PumpSwap-style constant product liquidity pools
+    // ══════════════════════════════════════════════════════════════
+
+    /// Create a liquidity pool when a token graduates from the bonding curve.
+    /// Seeds the pool with remaining unsold tokens + accumulated SOL.
+    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+        let launch = &ctx.accounts.token_launch;
+        require!(launch.migrated == false, SendItError::AlreadyMigrated);
+
+        let config = &ctx.accounts.platform_config;
+        require!(!config.paused, SendItError::PlatformPaused);
+
+        // Check graduation threshold
+        let reserve = launch.reserve_sol;
+        require!(reserve >= config.migration_threshold, SendItError::NotGraduated);
+
+        let mk = ctx.accounts.token_mint.key();
+        let launch_bump = launch.bump;
+        let sol_vault_bump = launch.sol_vault_bump;
+
+        // Calculate initial pool liquidity
+        let vault_token_balance = ctx.accounts.launch_token_vault.amount;
+        let staked = launch.total_staked;
+        let initial_tokens = vault_token_balance.saturating_sub(staked); // unsold tokens
+        let initial_sol = reserve; // all bonding curve SOL
+
+        require!(initial_tokens > 0, SendItError::ZeroAmount);
+        require!(initial_sol > 0, SendItError::ZeroAmount);
+
+        // Transfer tokens from launch vault to pool token vault
+        let launch_seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[launch_bump]];
+        token::transfer(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.launch_token_vault.to_account_info(),
+                to: ctx.accounts.pool_token_vault.to_account_info(),
+                authority: ctx.accounts.token_launch.to_account_info(),
+            },
+            &[launch_seeds],
+        ), initial_tokens)?;
+
+        // Transfer SOL from launch sol vault to pool sol vault
+        let vault_seeds: &[&[u8]] = &[SOL_VAULT_SEED, mk.as_ref(), &[sol_vault_bump]];
+        let sol_to_transfer = initial_sol.saturating_sub(RENT_EXEMPT_MIN); // keep rent-exempt in old vault
+        anchor_lang::system_program::transfer(CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.launch_sol_vault.to_account_info(),
+                to: ctx.accounts.pool_sol_vault.to_account_info(),
+            },
+            &[vault_seeds],
+        ), sol_to_transfer)?;
+
+        // Mint initial LP tokens: sqrt(initial_sol * initial_tokens)
+        let lp_amount = isqrt((initial_sol as u128).checked_mul(initial_tokens as u128).ok_or(SendItError::MathOverflow)?);
+        require!(lp_amount > MIN_LIQUIDITY as u128, SendItError::InsufficientOutput);
+
+        // Mint LP tokens to creator (minus MIN_LIQUIDITY locked forever)
+        let pool_bump = ctx.bumps.amm_pool;
+        let pool_seeds: &[&[u8]] = &[POOL_SEED, mk.as_ref(), &[pool_bump]];
+        let lp_to_creator = (lp_amount as u64).checked_sub(MIN_LIQUIDITY).ok_or(SendItError::MathOverflow)?;
+        token::mint_to(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.lp_mint.to_account_info(),
+                to: ctx.accounts.creator_lp_account.to_account_info(),
+                authority: ctx.accounts.amm_pool.to_account_info(),
+            },
+            &[pool_seeds],
+        ), lp_to_creator)?;
+
+        // Initialize pool state
+        let pool = &mut ctx.accounts.amm_pool;
+        pool.mint = mk;
+        pool.token_reserve = initial_tokens;
+        pool.sol_reserve = sol_to_transfer;
+        pool.lp_mint = ctx.accounts.lp_mint.key();
+        pool.lp_supply = lp_amount as u64;
+        pool.total_fees_sol = 0;
+        pool.total_fees_token = 0;
+        pool.created_at = Clock::get()?.unix_timestamp;
+        pool.bump = pool_bump;
+        pool.pool_sol_vault_bump = ctx.bumps.pool_sol_vault;
+
+        // Mark launch as migrated
+        let launch = &mut ctx.accounts.token_launch;
+        launch.migrated = true;
+
+        emit!(PoolCreated {
+            mint: mk,
+            pool: ctx.accounts.amm_pool.key(),
+            initial_token: initial_tokens,
+            initial_sol: sol_to_transfer,
+            lp_minted: lp_amount as u64,
+        });
+
+        Ok(())
+    }
+
+    /// Swap SOL for tokens or tokens for SOL through the AMM pool.
+    /// Pass sol_amount > 0 to buy tokens, or token_amount > 0 to sell tokens.
+    pub fn swap(ctx: Context<Swap>, sol_amount: u64, token_amount: u64) -> Result<()> {
+        require!((sol_amount > 0) != (token_amount > 0), SendItError::InvalidSwap);
+        let pool = &ctx.accounts.amm_pool;
+        let mk = pool.mint;
+
+        if sol_amount > 0 {
+            // Buy tokens with SOL
+            let fee = sol_amount.checked_mul(SWAP_FEE_BPS).ok_or(SendItError::MathOverflow)?
+                .checked_div(10_000).ok_or(SendItError::MathOverflow)?;
+            let net_sol = sol_amount.checked_sub(fee).ok_or(SendItError::MathOverflow)?;
+
+            // Constant product: token_out = token_reserve - (token_reserve * sol_reserve) / (sol_reserve + net_sol)
+            let new_sol_reserve = (pool.sol_reserve as u128).checked_add(net_sol as u128).ok_or(SendItError::MathOverflow)?;
+            let token_out = (pool.token_reserve as u128)
+                .checked_sub(
+                    (pool.token_reserve as u128).checked_mul(pool.sol_reserve as u128).ok_or(SendItError::MathOverflow)?
+                        .checked_div(new_sol_reserve).ok_or(SendItError::MathOverflow)?
+                ).ok_or(SendItError::MathOverflow)? as u64;
+            require!(token_out > 0, SendItError::InsufficientOutput);
+
+            // Transfer SOL in
+            anchor_lang::system_program::transfer(CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.user.to_account_info(),
+                    to: ctx.accounts.pool_sol_vault.to_account_info(),
+                },
+            ), sol_amount)?;
+
+            // Protocol fee to platform vault
+            let protocol_fee = fee.checked_mul(PROTOCOL_FEE_BPS).ok_or(SendItError::MathOverflow)?
+                .checked_div(SWAP_FEE_BPS).ok_or(SendItError::MathOverflow)?;
+            if protocol_fee > 0 {
+                let psvb = pool.pool_sol_vault_bump;
+                let psv_seeds: &[&[u8]] = &[POOL_SOL_VAULT_SEED, mk.as_ref(), &[psvb]];
+                anchor_lang::system_program::transfer(CpiContext::new_with_signer(
+                    ctx.accounts.system_program.to_account_info(),
+                    anchor_lang::system_program::Transfer {
+                        from: ctx.accounts.pool_sol_vault.to_account_info(),
+                        to: ctx.accounts.platform_vault.to_account_info(),
+                    },
+                    &[psv_seeds],
+                ), protocol_fee)?;
+            }
+
+            // Transfer tokens out
+            let pool_bump = ctx.accounts.amm_pool.bump;
+            let pool_seeds: &[&[u8]] = &[POOL_SEED, mk.as_ref(), &[pool_bump]];
+            token::transfer(CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.pool_token_vault.to_account_info(),
+                    to: ctx.accounts.user_token_account.to_account_info(),
+                    authority: ctx.accounts.amm_pool.to_account_info(),
+                },
+                &[pool_seeds],
+            ), token_out)?;
+
+            let pool = &mut ctx.accounts.amm_pool;
+            pool.sol_reserve = pool.sol_reserve.checked_add(net_sol).ok_or(SendItError::MathOverflow)?;
+            pool.token_reserve = pool.token_reserve.checked_sub(token_out).ok_or(SendItError::MathOverflow)?;
+            pool.total_fees_sol = pool.total_fees_sol.saturating_add(fee);
+
+            emit!(Swapped {
+                pool: ctx.accounts.amm_pool.key(),
+                user: ctx.accounts.user.key(),
+                sol_in: sol_amount, token_in: 0, sol_out: 0, token_out, fee,
+            });
+        } else {
+            // Sell tokens for SOL
+            let fee_tokens = token_amount.checked_mul(SWAP_FEE_BPS).ok_or(SendItError::MathOverflow)?
+                .checked_div(10_000).ok_or(SendItError::MathOverflow)?;
+            let net_tokens = token_amount.checked_sub(fee_tokens).ok_or(SendItError::MathOverflow)?;
+
+            // Constant product: sol_out = sol_reserve - (sol_reserve * token_reserve) / (token_reserve + net_tokens)
+            let new_token_reserve = (pool.token_reserve as u128).checked_add(net_tokens as u128).ok_or(SendItError::MathOverflow)?;
+            let sol_out = (pool.sol_reserve as u128)
+                .checked_sub(
+                    (pool.sol_reserve as u128).checked_mul(pool.token_reserve as u128).ok_or(SendItError::MathOverflow)?
+                        .checked_div(new_token_reserve).ok_or(SendItError::MathOverflow)?
+                ).ok_or(SendItError::MathOverflow)? as u64;
+            require!(sol_out > 0, SendItError::InsufficientOutput);
+
+            // Transfer tokens in
+            token::transfer(CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.user_token_account.to_account_info(),
+                    to: ctx.accounts.pool_token_vault.to_account_info(),
+                    authority: ctx.accounts.user.to_account_info(),
+                },
+            ), token_amount)?;
+
+            // Transfer SOL out
+            let psvb = pool.pool_sol_vault_bump;
+            let psv_seeds: &[&[u8]] = &[POOL_SOL_VAULT_SEED, mk.as_ref(), &[psvb]];
+            anchor_lang::system_program::transfer(CpiContext::new_with_signer(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.pool_sol_vault.to_account_info(),
+                    to: ctx.accounts.user.to_account_info(),
+                },
+                &[psv_seeds],
+            ), sol_out)?;
+
+            let pool = &mut ctx.accounts.amm_pool;
+            pool.token_reserve = pool.token_reserve.checked_add(net_tokens).ok_or(SendItError::MathOverflow)?;
+            pool.sol_reserve = pool.sol_reserve.checked_sub(sol_out).ok_or(SendItError::MathOverflow)?;
+            pool.total_fees_token = pool.total_fees_token.saturating_add(fee_tokens);
+
+            emit!(Swapped {
+                pool: ctx.accounts.amm_pool.key(),
+                user: ctx.accounts.user.key(),
+                sol_in: 0, token_in: token_amount, sol_out, token_out: 0, fee: fee_tokens,
+            });
+        }
+
+        Ok(())
+    }
+
+    /// Add liquidity — deposit SOL + tokens proportionally, receive LP tokens
+    pub fn add_liquidity(ctx: Context<AddLiquidity>, sol_amount: u64) -> Result<()> {
+        require!(sol_amount > 0, SendItError::ZeroAmount);
+        let pool = &ctx.accounts.amm_pool;
+        let mk = pool.mint;
+
+        // Calculate proportional token amount
+        let token_amount = (sol_amount as u128)
+            .checked_mul(pool.token_reserve as u128).ok_or(SendItError::MathOverflow)?
+            .checked_div(pool.sol_reserve as u128).ok_or(SendItError::MathOverflow)? as u64;
+        require!(token_amount > 0, SendItError::ZeroAmount);
+
+        // Calculate LP tokens to mint: lp_supply * sol_amount / sol_reserve
+        let lp_mint_amount = (pool.lp_supply as u128)
+            .checked_mul(sol_amount as u128).ok_or(SendItError::MathOverflow)?
+            .checked_div(pool.sol_reserve as u128).ok_or(SendItError::MathOverflow)? as u64;
+        require!(lp_mint_amount > 0, SendItError::InsufficientOutput);
+
+        // Transfer SOL
+        anchor_lang::system_program::transfer(CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.user.to_account_info(),
+                to: ctx.accounts.pool_sol_vault.to_account_info(),
+            },
+        ), sol_amount)?;
+
+        // Transfer tokens
+        token::transfer(CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.user_token_account.to_account_info(),
+                to: ctx.accounts.pool_token_vault.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            },
+        ), token_amount)?;
+
+        // Mint LP tokens
+        let pool_bump = ctx.accounts.amm_pool.bump;
+        let pool_seeds: &[&[u8]] = &[POOL_SEED, mk.as_ref(), &[pool_bump]];
+        token::mint_to(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.lp_mint.to_account_info(),
+                to: ctx.accounts.user_lp_account.to_account_info(),
+                authority: ctx.accounts.amm_pool.to_account_info(),
+            },
+            &[pool_seeds],
+        ), lp_mint_amount)?;
+
+        let pool = &mut ctx.accounts.amm_pool;
+        pool.sol_reserve = pool.sol_reserve.checked_add(sol_amount).ok_or(SendItError::MathOverflow)?;
+        pool.token_reserve = pool.token_reserve.checked_add(token_amount).ok_or(SendItError::MathOverflow)?;
+        pool.lp_supply = pool.lp_supply.checked_add(lp_mint_amount).ok_or(SendItError::MathOverflow)?;
+
+        emit!(LiquidityAdded {
+            pool: ctx.accounts.amm_pool.key(),
+            user: ctx.accounts.user.key(),
+            sol_amount, token_amount, lp_minted: lp_mint_amount,
+        });
+
+        Ok(())
+    }
+
+    /// Remove liquidity — burn LP tokens, withdraw proportional SOL + tokens
+    pub fn remove_liquidity(ctx: Context<RemoveLiquidity>, lp_amount: u64) -> Result<()> {
+        require!(lp_amount > 0, SendItError::ZeroAmount);
+        let pool = &ctx.accounts.amm_pool;
+        let mk = pool.mint;
+
+        // Calculate proportional amounts
+        let sol_amount = (lp_amount as u128)
+            .checked_mul(pool.sol_reserve as u128).ok_or(SendItError::MathOverflow)?
+            .checked_div(pool.lp_supply as u128).ok_or(SendItError::MathOverflow)? as u64;
+        let token_amount = (lp_amount as u128)
+            .checked_mul(pool.token_reserve as u128).ok_or(SendItError::MathOverflow)?
+            .checked_div(pool.lp_supply as u128).ok_or(SendItError::MathOverflow)? as u64;
+        require!(sol_amount > 0 && token_amount > 0, SendItError::InsufficientOutput);
+
+        // Burn LP tokens
+        token::burn(CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            token::Burn {
+                mint: ctx.accounts.lp_mint.to_account_info(),
+                from: ctx.accounts.user_lp_account.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            },
+        ), lp_amount)?;
+
+        // Transfer SOL out
+        let psvb = pool.pool_sol_vault_bump;
+        let psv_seeds: &[&[u8]] = &[POOL_SOL_VAULT_SEED, mk.as_ref(), &[psvb]];
+        anchor_lang::system_program::transfer(CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            anchor_lang::system_program::Transfer {
+                from: ctx.accounts.pool_sol_vault.to_account_info(),
+                to: ctx.accounts.user.to_account_info(),
+            },
+            &[psv_seeds],
+        ), sol_amount)?;
+
+        // Transfer tokens out
+        let pool_bump = ctx.accounts.amm_pool.bump;
+        let pool_seeds: &[&[u8]] = &[POOL_SEED, mk.as_ref(), &[pool_bump]];
+        token::transfer(CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.pool_token_vault.to_account_info(),
+                to: ctx.accounts.user_token_account.to_account_info(),
+                authority: ctx.accounts.amm_pool.to_account_info(),
+            },
+            &[pool_seeds],
+        ), token_amount)?;
+
+        let pool = &mut ctx.accounts.amm_pool;
+        pool.sol_reserve = pool.sol_reserve.checked_sub(sol_amount).ok_or(SendItError::MathOverflow)?;
+        pool.token_reserve = pool.token_reserve.checked_sub(token_amount).ok_or(SendItError::MathOverflow)?;
+        pool.lp_supply = pool.lp_supply.checked_sub(lp_amount).ok_or(SendItError::MathOverflow)?;
+
+        emit!(LiquidityRemoved {
+            pool: ctx.accounts.amm_pool.key(),
+            user: ctx.accounts.user.key(),
+            sol_amount, token_amount, lp_burned: lp_amount,
+        });
+
+        Ok(())
+    }
+}
+
+/// Integer square root (Babylonian method)
+fn isqrt(n: u128) -> u128 {
+    if n == 0 { return 0; }
+    let mut x = n;
+    let mut y = (x + 1) / 2;
+    while y < x { x = y; y = (x + n / x) / 2; }
+    x
 }
 
 // ── Account Structs ──
@@ -464,6 +870,21 @@ pub struct StakeAccount {
     pub bump: u8,
 }
 impl StakeAccount { pub const SIZE: usize = 8+32+32+8+8+8+1+1; }
+
+#[account]
+pub struct AmmPool {
+    pub mint: Pubkey,
+    pub token_reserve: u64,
+    pub sol_reserve: u64,
+    pub lp_mint: Pubkey,
+    pub lp_supply: u64,
+    pub total_fees_sol: u64,
+    pub total_fees_token: u64,
+    pub created_at: i64,
+    pub bump: u8,
+    pub pool_sol_vault_bump: u8,
+}
+impl AmmPool { pub const SIZE: usize = 8+32+8+8+32+8+8+8+8+1+1; }
 
 // ── Contexts ──
 
@@ -595,6 +1016,100 @@ pub struct UnstakeTokens<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// ── AMM Contexts ──
+
+#[derive(Accounts)]
+pub struct CreatePool<'info> {
+    #[account(init, payer=creator, space=AmmPool::SIZE, seeds=[POOL_SEED, token_mint.key().as_ref()], bump)]
+    pub amm_pool: Account<'info, AmmPool>,
+    #[account(mut, seeds=[TOKEN_LAUNCH_SEED, token_mint.key().as_ref()], bump=token_launch.bump, has_one=creator)]
+    pub token_launch: Account<'info, TokenLaunch>,
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=token_launch)]
+    pub launch_token_vault: Account<'info, TokenAccount>,
+    /// CHECK: Launch SOL vault
+    #[account(mut, seeds=[SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
+    pub launch_sol_vault: AccountInfo<'info>,
+    #[account(init, payer=creator, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
+    pub pool_token_vault: Account<'info, TokenAccount>,
+    /// CHECK: Pool SOL vault PDA
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
+    pub pool_sol_vault: AccountInfo<'info>,
+    #[account(init, payer=creator, mint::decimals=TOKEN_DECIMALS, mint::authority=amm_pool)]
+    pub lp_mint: Account<'info, Mint>,
+    #[account(init, payer=creator, associated_token::mint=lp_mint, associated_token::authority=creator)]
+    pub creator_lp_account: Account<'info, TokenAccount>,
+    #[account(seeds=[PLATFORM_CONFIG_SEED], bump=platform_config.bump)]
+    pub platform_config: Account<'info, PlatformConfig>,
+    #[account(mut)] pub creator: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
+pub struct Swap<'info> {
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    pub amm_pool: Account<'info, AmmPool>,
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    pub pool_token_vault: Account<'info, TokenAccount>,
+    /// CHECK: Pool SOL vault
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    pub pool_sol_vault: AccountInfo<'info>,
+    #[account(init_if_needed, payer=user, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    pub user_token_account: Account<'info, TokenAccount>,
+    /// CHECK: Platform vault
+    #[account(mut, seeds=[PLATFORM_VAULT_SEED], bump)]
+    pub platform_vault: AccountInfo<'info>,
+    #[account(mut)] pub user: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AddLiquidity<'info> {
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    pub amm_pool: Account<'info, AmmPool>,
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    pub pool_token_vault: Account<'info, TokenAccount>,
+    /// CHECK: Pool SOL vault
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    pub pool_sol_vault: AccountInfo<'info>,
+    #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
+    pub lp_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    pub user_token_account: Account<'info, TokenAccount>,
+    #[account(init_if_needed, payer=user, associated_token::mint=lp_mint, associated_token::authority=user)]
+    pub user_lp_account: Account<'info, TokenAccount>,
+    #[account(mut)] pub user: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct RemoveLiquidity<'info> {
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    pub amm_pool: Account<'info, AmmPool>,
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    pub pool_token_vault: Account<'info, TokenAccount>,
+    /// CHECK: Pool SOL vault
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    pub pool_sol_vault: AccountInfo<'info>,
+    #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
+    pub lp_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    pub user_token_account: Account<'info, TokenAccount>,
+    #[account(mut, associated_token::mint=lp_mint, associated_token::authority=user)]
+    pub user_lp_account: Account<'info, TokenAccount>,
+    #[account(mut)] pub user: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
 // ── Errors ──
 
 #[error_code]
@@ -618,6 +1133,8 @@ pub enum SendItError {
     #[msg("Vault below rent-exempt minimum")] VaultBelowRentExempt,
     #[msg("Stake already active")] StakeAlreadyActive,
     #[msg("Insufficient vault balance")] InsufficientVaultBalance,
+    #[msg("Token has not graduated")] NotGraduated,
+    #[msg("Invalid swap — set exactly one of sol_amount or token_amount")] InvalidSwap,
 }
 
 // ── Metaplex CPI Helper ──
