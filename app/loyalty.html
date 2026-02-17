@@ -282,21 +282,29 @@
     </div>
   </div>
 
+    <!-- Your Activity (shown after wallet connect) -->
+    <div class="earn-section" id="activitySection" style="display:none">
+      <h2>📊 Your On-Chain Activity</h2>
+      <div class="stats" id="activityBreakdown"></div>
+      <div id="activityFeed" style="margin-top:16px"></div>
+    </div>
+  </div>
+
   <div class="footer">
     <p>Send.it Loyalty — Powered by <a href="https://torque.so" target="_blank">Torque</a> on Solana</p>
     <p style="margin-top:4px">🔗 <a href="https://senditsolana.io">senditsolana.io</a> • <a href="https://twitter.com/SendItSolana420" target="_blank">@SendItSolana420</a></p>
   </div>
 
-  <script>
-    async function connectWallet() {
-      if (!window.solana?.isPhantom) { alert('Install Phantom wallet'); return; }
-      try {
-        const resp = await window.solana.connect();
-        const pk = resp.publicKey.toBase58();
-        document.getElementById('connectBtn').textContent = pk.slice(0,4) + '...' + pk.slice(-4);
-        // In production: init Torque SDK, fetch user points, update tier card
-      } catch(e) { console.error(e); }
-    }
-  </script>
+  <style>
+    .activity-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+    .activity-emoji { font-size: 20px; }
+    .activity-action { text-transform: capitalize; font-weight: 600; min-width: 120px; }
+    .activity-sol { color: var(--gold); font-weight: 600; min-width: 100px; }
+    .activity-sig { font-family: monospace; font-size: 12px; color: var(--accent2); }
+    .activity-time { color: var(--text2); font-size: 12px; margin-left: auto; }
+  </style>
+
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+  <script src="/app/loyalty.js"></script>
 </body>
 </html>

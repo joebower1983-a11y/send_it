@@ -9,6 +9,7 @@
     { "source": "/creator-dashboard.html", "destination": "/app/creator-dashboard.html" },
     { "source": "/governance.html", "destination": "/app/governance.html" },
     { "source": "/governance.js", "destination": "/app/governance.js" },
+{ "source": "/loyalty.js", "destination": "/app/loyalty.js" },
     { "source": "/loyalty.html", "destination": "/app/loyalty.html" },
     { "source": "/analytics.html", "destination": "/app/analytics.html" },
     { "source": "/airdrops.html", "destination": "/app/airdrops.html" },
