@@ -1,8 +1,8 @@
-# Send.it — Whitepaper v2.1
+# Send.it — Whitepaper v2.2
 
 ### The Complete DeFi, Social, and Governance Platform for Token Launches on Solana
 
-**Version:** 2.1.0
+**Version:** 2.2.0
 **Date:** February 2026
 **Status:** Draft
 
@@ -16,7 +16,8 @@
 4. [Bonding Curve Mechanics](#4-bonding-curve-mechanics)
 5. [Anti-Snipe System](#5-anti-snipe-system)
 6. [Rug Protection](#6-rug-protection)
-7. [Auto-Migration to Raydium](#7-auto-migration-to-raydium)
+7. [PumpSwap-Style AMM & Graduation](#7-pumpswap-style-amm--graduation)
+7b. [Storacha/Filecoin Decentralized Storage](#7b-storachafilecoin-decentralized-storage)
 8. [DeFi Suite](#8-defi-suite)
    - 8.1 [Staking](#81-staking)
    - 8.2 [Lending](#82-lending)
@@ -100,7 +101,7 @@ Automated bots capture 30–70% of initial supply on platforms without anti-snip
 
 ### 2.3 Post-Graduation Void
 
-When a token migrates to Raydium, it enters a vacuum:
+When a token graduates from its bonding curve, it enters a new phase:
 
 - **No staking** — holders cannot earn yield
 - **No lending** — tokens cannot be used as collateral
@@ -289,25 +290,103 @@ A circuit-breaker mechanism with strict constraints:
 
 ---
 
-## 7. Auto-Migration to Raydium
+## 7. PumpSwap-Style AMM & Graduation
 
-When the migration threshold is met, migration executes atomically via CPI:
+### 7.1 Architecture
 
-1. **Curve freeze** — Trading permanently disabled, state enters `Migrated`
+The Send.it native Automated Market Maker (AMM) is a PumpSwap-style liquidity solution designed to operate entirely within the Send.it ecosystem. Unlike other platforms that migrate liquidity to external DEXs (e.g., Raydium), **all liquidity remains within Send.it**, creating a self-sustaining and robust economy.
+
+### 7.2 Graduation Process
+
+When the bonding curve migration threshold is met, graduation executes atomically:
+
+1. **Curve freeze** — Trading permanently disabled on the bonding curve, state enters `Migrated`
 2. **Reserve calculation** — Creator bonus (0.5%) and migration bounty (0.1 SOL) deducted
-3. **Token mint** — Remaining supply minted to migration PDA
-4. **Raydium pool creation** — CPI to Raydium `initialize` with matching terminal price
-5. **LP token locking** — LP tokens transferred to lock PDA
+3. **Pool creation** — `create_pool` instruction initializes a constant-product AMM pool (x·y=k)
+4. **Liquidity seeding** — Remaining SOL reserves and token supply deposited as initial liquidity
+5. **LP mint** — LP tokens minted to the creator, with `MIN_LIQUIDITY` (1,000) permanently locked
 
 **Price continuity guarantee:**
 
 ```
-raydium_initial_price = P(s_migration)
+amm_initial_price = P(s_migration)
 ```
 
 No price discontinuity, no dilution, no arbitrage gap.
 
-**Failed migration handling:** Curve remains in `MigrationPending` state with normal trading. Any subsequent transaction re-attempts migration. A `retry_migration` instruction is available for anyone to call.
+### 7.3 AMM Instructions
+
+| Instruction | Description |
+|-------------|-------------|
+| `create_pool` | Initialize constant-product pool from graduated bonding curve |
+| `swap` | Swap SOL ↔ Token with slippage protection |
+| `add_liquidity` | Deposit proportional SOL + Token, receive LP tokens |
+| `remove_liquidity` | Burn LP tokens, receive proportional SOL + Token |
+
+### 7.4 Fee Structure
+
+| Fee | Rate | Recipient |
+|-----|------|-----------|
+| **Swap Fee** | 1% (100 BPS) | Split between LPs and protocol |
+| **LP Fee** | 0.3% (30 BPS) | Liquidity providers |
+| **Protocol Fee** | 0.7% (70 BPS) | Send.it platform treasury |
+
+### 7.5 Account Layout
+
+| Account | PDA Seeds | Purpose |
+|---------|-----------|---------|
+| `AmmPool` | `["amm_pool", token_mint]` | Pool state: reserves, LP supply, fee accumulators |
+| `PoolSolVault` | `["pool_sol_vault", token_mint]` | SOL custody for the pool |
+| `LpMint` | `["lp_mint", token_mint]` | LP token mint authority |
+
+### 7.6 Why It Matters
+
+By keeping all liquidity in-ecosystem, Send.it creates a more powerful and self-reliant platform:
+
+- **No external dependencies** — no reliance on Raydium, Orca, or any third-party AMM
+- **Full fee capture** — protocol revenue from every swap stays in Send.it
+- **Simplified UX** — seamless transition from bonding curve to AMM, no migration friction
+- **Composability** — other Send.it modules (staking, lending, perps) can natively interact with AMM pools
+
+---
+
+## 7b. Storacha/Filecoin Decentralized Storage
+
+### 7b.1 Technical Integration
+
+Send.it integrates **Storacha**, a decentralized hot storage layer built on the **Filecoin** network, to provide verifiable and permanent storage for token metadata and platform content.
+
+The integration uses Storacha's UCAN-based authorization model:
+
+1. **Server-side delegation** — A dedicated Ed25519 key pair is delegated upload capabilities to the Send.it Storacha space
+2. **Upload proxy** — The `/api/storacha-upload` Vercel serverless endpoint handles browser uploads via the Storacha client
+3. **Content addressing** — All uploads return a CID (Content Identifier), ensuring data is content-addressed, tamper-proof, and globally retrievable via IPFS
+
+**Space DID:** `did:key:z6Mkv8HdSSik1Y8dXFrv21ysDf1UjLTQuTjmGNV4e549C3Hs`
+
+### 7b.2 Use Cases
+
+| Use Case | Description |
+|----------|-------------|
+| **Token Metadata** | Metaplex-compatible JSON (name, symbol, description, image) stored permanently on IPFS/Filecoin |
+| **Token Images** | Logo and banner images uploaded before on-chain mint, CID stored in metadata URI |
+| **Launch Archives** | Bonding curve history, trade data, and graduation records archived immutably |
+| **Audit Reports** | Security scan results stored with cryptographic proof of timestamp and findings |
+
+### 7b.3 Metadata Flow
+
+```
+User creates token → Uploads image to Storacha → Gets image CID
+  → Builds Metaplex-compatible JSON → Uploads JSON to Storacha → Gets metadata CID
+  → Passes CID URI to create_token instruction → Stored on-chain via Metaplex
+```
+
+### 7b.4 Benefits
+
+- **Permanence** — Data persisted on Filecoin with provable storage deals
+- **Verifiability** — Content-addressed via CIDs; anyone can verify data integrity
+- **Censorship resistance** — No single point of failure; data retrievable via any IPFS gateway
+- **Cost efficiency** — Storacha provides hot storage at Filecoin's scale economics
 
 ---
 
@@ -546,7 +625,7 @@ All position opens, closes, and order placements are rejected if the mark price 
 - `match_orders(max_matches)` — Permissionless crank
 - `update_funding_rate()` — Permissionless crank (hourly)
 - `liquidate_position(size)` — Full or partial liquidation
-- `update_oracle_price(price)` — Permissionless crank (reads Raydium pool)
+- `update_oracle_price(price)` — Permissionless crank (reads AMM pool price)
 
 ---
 
@@ -1673,7 +1752,9 @@ A comprehensive audit of the SENDIT token's Token-2022 configuration confirmed:
 - [x] Core bonding curve program (linear, exponential, sigmoid)
 - [x] Anti-snipe system (3 layers)
 - [x] Rug protection (LP locking, vesting, emergency pause)
-- [x] Auto-migration to Raydium
+- [x] PumpSwap-style AMM (bonding curve graduation, swap, liquidity)
+- [x] Storacha/Filecoin decentralized metadata storage
+- [x] Sec3 X-Ray: 0 vulnerabilities
 - [x] SolForge vault and burn mechanism
 - [x] Creator fee accumulation and claiming
 - [x] Staking module
