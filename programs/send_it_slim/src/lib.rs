@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo, Burn};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo};
 use anchor_spl::associated_token::AssociatedToken;
 
 declare_id!("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
@@ -1021,26 +1021,26 @@ pub struct UnstakeTokens<'info> {
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
     #[account(init, payer=creator, space=AmmPool::SIZE, seeds=[POOL_SEED, token_mint.key().as_ref()], bump)]
-    pub amm_pool: Account<'info, AmmPool>,
+    pub amm_pool: Box<Account<'info, AmmPool>>,
     #[account(mut, seeds=[TOKEN_LAUNCH_SEED, token_mint.key().as_ref()], bump=token_launch.bump, has_one=creator)]
-    pub token_launch: Account<'info, TokenLaunch>,
-    pub token_mint: Account<'info, Mint>,
+    pub token_launch: Box<Account<'info, TokenLaunch>>,
+    pub token_mint: Box<Account<'info, Mint>>,
     #[account(mut, associated_token::mint=token_mint, associated_token::authority=token_launch)]
-    pub launch_token_vault: Account<'info, TokenAccount>,
+    pub launch_token_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: Launch SOL vault
     #[account(mut, seeds=[SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
     pub launch_sol_vault: AccountInfo<'info>,
     #[account(init, payer=creator, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
-    pub pool_token_vault: Account<'info, TokenAccount>,
+    pub pool_token_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: Pool SOL vault PDA
     #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(init, payer=creator, mint::decimals=TOKEN_DECIMALS, mint::authority=amm_pool)]
-    pub lp_mint: Account<'info, Mint>,
+    pub lp_mint: Box<Account<'info, Mint>>,
     #[account(init, payer=creator, associated_token::mint=lp_mint, associated_token::authority=creator)]
-    pub creator_lp_account: Account<'info, TokenAccount>,
+    pub creator_lp_account: Box<Account<'info, TokenAccount>>,
     #[account(seeds=[PLATFORM_CONFIG_SEED], bump=platform_config.bump)]
-    pub platform_config: Account<'info, PlatformConfig>,
+    pub platform_config: Box<Account<'info, PlatformConfig>>,
     #[account(mut)] pub creator: Signer<'info>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -1050,14 +1050,16 @@ pub struct CreatePool<'info> {
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
-    #[account(init_if_needed, payer=user, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(init_if_needed, payer=user, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     /// CHECK: Platform vault
     #[account(mut, seeds=[PLATFORM_VAULT_SEED], bump)]
@@ -1070,16 +1072,18 @@ pub struct Swap<'info> {
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(init_if_needed, payer=user, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
@@ -1091,16 +1095,18 @@ pub struct AddLiquidity<'info> {
 
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(mut, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
