@@ -374,7 +374,7 @@ async function loadLiveTokens() {
           <div class="token-stats">
             <div class="stat"><div class="label">Status</div><div class="value" style="color:var(--accent)">Live</div></div>
             <div class="stat"><div class="label">Network</div><div class="value">Devnet</div></div>
-            <div class="stat"><div class="label">Program</div><div class="value">98Vxqk...</div></div>
+            <div class="stat"><div class="label">Program</div><div class="value">HTKq18c...</div></div>
           </div>
           <div style="text-align:center;padding:8px 0">
             <a href="https://solscan.io/account/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet" target="_blank" style="color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> View on Solscan</a>
