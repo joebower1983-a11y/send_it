@@ -1,7 +1,7 @@
 /**
  * Send.it Launchpad — Devnet Integration
  * Real wallet connect + on-chain token creation, buying, selling
- * Program: 98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L
+ * Program: HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx
  */
 
 const PROGRAM_ID = 'program_id_placeholder'; // replaced below
@@ -30,7 +30,7 @@ const SEEDS = {
 async function initLaunchpad() {
   const { Connection, PublicKey } = solanaWeb3;
   connection = new Connection(RPC, 'confirmed');
-  window.PROGRAM_KEY = new PublicKey('98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L');
+  window.PROGRAM_KEY = new PublicKey('HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx');
   console.log('[Launchpad] Initialized, RPC:', RPC);
   updatePlatformStats();
 }
@@ -377,7 +377,7 @@ async function loadLiveTokens() {
             <div class="stat"><div class="label">Program</div><div class="value">98Vxqk...</div></div>
           </div>
           <div style="text-align:center;padding:8px 0">
-            <a href="https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet" target="_blank" style="color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> View on Solscan</a>
+            <a href="https://solscan.io/account/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet" target="_blank" style="color:var(--accent);font-weight:700;font-size:13px"><i class="fas fa-external-link-alt"></i> View on Solscan</a>
           </div>
         </div>
       `;
@@ -443,7 +443,7 @@ function showTokenDetail(addr) {
   if (addr !== 'demo') {
     window.open(`https://solscan.io/account/${addr}?cluster=devnet`, '_blank');
   } else {
-    window.open('https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet', '_blank');
+    window.open('https://solscan.io/account/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet', '_blank');
   }
 }
 

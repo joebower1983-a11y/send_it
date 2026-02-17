@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo};
 use anchor_spl::associated_token::AssociatedToken;
 
-declare_id!("98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L");
+declare_id!("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
 
 pub const PLATFORM_CONFIG_SEED: &[u8] = b"platform_config";
 pub const TOKEN_LAUNCH_SEED: &[u8] = b"token_launch";

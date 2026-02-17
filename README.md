@@ -29,7 +29,7 @@
 | **Live Demo** | [senditsolana.io](https://senditsolana.io) |
 | **Launchpad (Devnet)** | [senditsolana.io/launchpad.html](https://senditsolana.io/launchpad.html) |
 | **Social Hub (Tapestry)** | [senditsolana.io/social.html](https://senditsolana.io/social.html) |
-| **Devnet Program** | [`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`](https://solscan.io/account/98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L?cluster=devnet) |
+| **Devnet Program** | [`HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx`](https://solscan.io/account/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet) |
 | **SENDIT Token** | [`F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump`](https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump) |
 | **5IVE VM Port** | [github.com/joebower1983-a11y/sendit-5ive](https://github.com/joebower1983-a11y/sendit-5ive) |
 | **Docs & Whitepaper** | [GitHub Pages](https://senditsolana.io/) |
@@ -46,7 +46,7 @@
 
 | | Address |
 |---|---|
-| **Program ID** | `98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L` |
+| **Program ID** | `HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx` |
 | **Platform Config** | `AsxZyH56EQ6LdvzZYr9LsUzvaMgVMDoLv3on2AsGMve8` |
 | **Network** | Solana Devnet |
 | **SENDIT Token** | `F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump` (Token-2022, pump.fun) |
@@ -308,7 +308,7 @@ anchor deploy --provider.cluster devnet
 - [x] Vercel frontend deployment
 - [x] 5IVE VM port (63% code reduction)
 - [x] Cross-module composition layer (6 bridge patterns)
-- [x] Devnet deployment (`98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L`)
+- [x] Devnet deployment (`HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx`)
 - [x] Token-2022 audit (SENDIT token)
 - [x] PYUSD vault integration
 - [x] Tapestry social integration (profiles, follows, feeds, likes)

@@ -6,7 +6,7 @@ skip-lint = false
 send_it = "SendiTLaunchPad111111111111111111111111111"
 
 [programs.devnet]
-send_it = "98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L"
+send_it = "HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx"
 
 [registry]
 url = "https://api.apr.dev"

@@ -13,7 +13,7 @@ import { createHash } from "crypto";
 import fs from "fs";
 
 // --- Setup ---
-const PROGRAM_ID = new PublicKey("98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L");
+const PROGRAM_ID = new PublicKey("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
 const PLATFORM_CONFIG_SEED = Buffer.from("platform_config");

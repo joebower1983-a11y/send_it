@@ -80,7 +80,7 @@ The Anchor core program is **live and verified on Solana devnet**:
 
 | | Address |
 |---|---|
-| **Program ID** | `98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L` |
+| **Program ID** | `HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx` |
 | **SENDIT Token** | `F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump` |
 | **Network** | Solana Devnet |
 

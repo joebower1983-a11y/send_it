@@ -21,7 +21,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // ─── Config ───
-const PROGRAM_ID = new PublicKey("98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L");
+const PROGRAM_ID = new PublicKey("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
 const RPC = process.env.SOLANA_RPC || "https://api.devnet.solana.com";
 const connection = new Connection(RPC, "confirmed");
 

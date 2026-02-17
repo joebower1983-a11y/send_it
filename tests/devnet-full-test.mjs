@@ -3,7 +3,7 @@ import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddres
 import { createHash } from "crypto";
 import fs from "fs";
 
-const PROGRAM_ID = new PublicKey("98Vxqk2dHjLsUb4svNaZWwVZxt9DZZwkRQZZNQmYRm1L");
+const PROGRAM_ID = new PublicKey("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 const keypairData = JSON.parse(fs.readFileSync("/home/joebower1983/.openclaw/workspace/sendit-5ive/deployer.json", "utf8"));
 const wallet = Keypair.fromSecretKey(Uint8Array.from(keypairData));
