@@ -17,6 +17,19 @@
 <meta name="twitter:description" content="31 on-chain modules. Live on Solana devnet. The fairest launchpad on Solana 🚀">
 <meta name="twitter:image" content="https://send-it-seven-sigma.vercel.app/app/images/og-banner.jpg">
 <meta name="twitter:site" content="@SendItSolana420">
+
+<!-- Favicon: Inline SVG rocket with cyan-to-purple gradient -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%2300ffa3'/><stop offset='100%25' stop-color='%237c3aed'/></linearGradient></defs><circle cx='50' cy='50' r='48' fill='url(%23g)'/><text x='50' y='68' font-size='55' text-anchor='middle' fill='white'>🚀</text></svg>">
+
+<!-- Google Analytics 4 — Replace G-XXXXXXXXXX with your GA tracking ID -->
+<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script> -->
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -46,10 +59,12 @@
     -webkit-text-fill-color: transparent;
   }
   .tagline {
-    color: #888;
+    color: #999;
     font-size: 14px;
     margin-bottom: 8px;
   }
+
+  /* Contract Address Boxes */
   .ca {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
@@ -58,15 +73,77 @@
     font-family: monospace;
     font-size: 11px;
     color: #00ffa3;
-    margin-bottom: 32px;
+    margin-bottom: 4px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s;
     max-width: 100%;
     word-break: break-all;
     text-align: center;
+    position: relative;
   }
-  .ca:hover { background: rgba(0,255,163,0.1); }
+  .ca:hover { background: rgba(0,255,163,0.1); border-color: #00ffa3; }
+  .ca:focus { outline: 2px solid #00ffa3; outline-offset: 2px; }
   .ca::after { content: ' 📋'; }
+  .ca-label {
+    font-size: .7rem;
+    color: #8888aa;
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+  .ca-label.live { color: #00e87b; }
+
+  /* Tooltip System */
+  [data-tooltip] {
+    position: relative;
+  }
+  [data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    background: #1a1a2e;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    max-width: 280px;
+    white-space: normal;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    line-height: 1.4;
+  }
+  [data-tooltip]::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a1a2e;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+  [data-tooltip]:hover::before,
+  [data-tooltip]:focus::before {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  [data-tooltip]:hover::after,
+  [data-tooltip]:focus::after {
+    opacity: 1;
+  }
+
+  /* Links */
   .links { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 12px; }
   .link {
     display: flex;
@@ -82,17 +159,24 @@
     font-weight: 500;
     transition: all 0.2s;
   }
-  .link:hover {
+  .link:hover, .link:focus-visible {
     background: rgba(255,255,255,0.1);
     border-color: #00ffa3;
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(0,255,163,0.15);
+    outline: none;
   }
-  .link .icon { font-size: 22px; width: 28px; text-align: center; }
+  .link:focus-visible {
+    outline: 2px solid #00ffa3;
+    outline-offset: 2px;
+  }
+  .link .icon { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+
+  /* Divider */
   .divider {
     width: 100%; max-width: 400px;
     text-align: center;
-    color: #444;
+    color: #555;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -109,6 +193,8 @@
   }
   .divider::before { left: 0; }
   .divider::after { right: 0; }
+
+  /* Stats */
   .stats {
     display: flex; gap: 24px;
     margin-top: 24px;
@@ -121,85 +207,141 @@
   }
   .stat-label {
     font-size: 11px;
-    color: #666;
+    color: #777;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   .footer {
     margin-top: 40px;
-    color: #333;
+    color: #444;
     font-size: 12px;
   }
+
+  /* Skip link for keyboard nav */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #00ffa3;
+    color: #000;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    z-index: 1000;
+    transition: top 0.2s;
+  }
+  .skip-link:focus { top: 12px; }
 </style>
 </head>
 <body>
 
-<div class="avatar">🚀</div>
+<a class="skip-link" href="#links">Skip to links</a>
+
+<main role="main" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:440px">
+
+<div class="avatar" role="img" aria-label="Send.it rocket logo">🚀</div>
 <h1>Send.it</h1>
 <p class="tagline">The fairest token launchpad on Solana</p>
 
-<div class="ca" onclick="navigator.clipboard.writeText('F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump').then(()=>this.textContent='Copied! ✅').catch(()=>{})">
+<div class="ca"
+  role="button"
+  tabindex="0"
+  aria-label="SENDIT token contract address — click to copy"
+  data-tooltip="SENDIT token on pump.fun — click to copy address"
+  onclick="copyCA(this,'F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump')"
+  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyCA(this,'F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump')}">
   F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump
 </div>
-<div style="font-size:.7rem;color:#8888aa;margin-top:4px">SENDIT Token (pump.fun)</div>
+<div class="ca-label">SENDIT Token (pump.fun)</div>
 
-<div class="ca" style="margin-top:12px;font-size:.65rem;background:#1a2a1a" onclick="navigator.clipboard.writeText('HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx').then(()=>this.textContent='Copied! ✅').catch(()=>{})">
+<div class="ca"
+  role="button"
+  tabindex="0"
+  aria-label="Devnet program ID — click to copy"
+  data-tooltip="Live Solana devnet program — 11 instructions, AMM, verified secure"
+  style="font-size:.65rem;background:#1a2a1a"
+  onclick="copyCA(this,'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx')"
+  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyCA(this,'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx')}">
   HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx
 </div>
-<div style="font-size:.7rem;color:#00e87b;margin-top:4px">🟢 Devnet Program — Live & Verified</div>
+<div class="ca-label live">🟢 Devnet Program — Live & Verified</div>
 
-<div class="links">
-  <a class="link" href="https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank">
-    <span class="icon">💊</span> Buy on Pump.fun
+<nav id="links" class="links" aria-label="Send.it links">
+
+  <a class="link" href="https://pump.fun/coin/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank" rel="noopener" aria-label="Buy SENDIT on Pump.fun" data-tooltip="Trade SENDIT token on pump.fun DEX">
+    <span class="icon" aria-hidden="true">💊</span> Buy on Pump.fun
   </a>
-  <a class="link" href="https://dexscreener.com/solana/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank">
-    <span class="icon">📈</span> DexScreener Chart
+  <a class="link" href="https://dexscreener.com/solana/F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump" target="_blank" rel="noopener" aria-label="View SENDIT chart on DexScreener" data-tooltip="Live price chart, volume, and market data">
+    <span class="icon" aria-hidden="true">📈</span> DexScreener Chart
   </a>
-  <a class="link" href="https://senditsolana.io" target="_blank">
-    <span class="icon">🌐</span> Website
+  <a class="link" href="https://senditsolana.io" target="_blank" rel="noopener" aria-label="Visit Send.it website" data-tooltip="Main website with launchpad, trading, staking & more">
+    <span class="icon" aria-hidden="true">🌐</span> Website
   </a>
-  <a class="link" href="https://senditsolana.io/launchpad.html" target="_blank">
-    <span class="icon">🚀</span> Launchpad (Devnet)
+  <a class="link" href="https://senditsolana.io/launchpad.html" target="_blank" rel="noopener" aria-label="Open the Send.it Launchpad on devnet" data-tooltip="Create tokens with bonding curves, anti-snipe & Storacha storage">
+    <span class="icon" aria-hidden="true">🚀</span> Launchpad (Devnet)
   </a>
-  <a class="link" href="https://senditsolana.io/social.html" target="_blank">
-    <span class="icon">👥</span> Social Hub
+  <a class="link" href="https://senditsolana.io/trading.html" target="_blank" rel="noopener" aria-label="Open the Send.it AMM trading UI" data-tooltip="PumpSwap-style AMM — swap, add/remove liquidity, pool browser">
+    <span class="icon" aria-hidden="true">💱</span> Trading / AMM (Devnet)
   </a>
-  <a class="link" href="https://senditsolana.io/staking.html" target="_blank">
-    <span class="icon">🔒</span> Staking (Devnet)
+  <a class="link" href="https://senditsolana.io/staking.html" target="_blank" rel="noopener" aria-label="Open the Send.it staking page" data-tooltip="Stake SENDIT tokens on devnet — earn rewards">
+    <span class="icon" aria-hidden="true">🔒</span> Staking (Devnet)
   </a>
-  <a class="link" href="https://twitter.com/SendItSolana420" target="_blank">
-    <span class="icon">🐦</span> Twitter / X
-  </a>
-  <a class="link" href="https://t.me/+Xw4E2sJ0Z3Q5ZDYx" target="_blank">
-    <span class="icon">💬</span> Telegram
-  </a>
-  <a class="link" href="https://discord.gg/vKRTyG85" target="_blank">
-    <span class="icon">💎</span> Discord
-  </a>
-  <a class="link" href="https://x.com/i/communities/2023686726640865647" target="_blank">
-    <span class="icon">🏘️</span> X Community
+  <a class="link" href="https://senditsolana.io/social.html" target="_blank" rel="noopener" aria-label="Open the Send.it Social Hub" data-tooltip="Tapestry-powered social features — profiles, follows, feeds">
+    <span class="icon" aria-hidden="true">👥</span> Social Hub
   </a>
 
-  <div class="divider">build</div>
+  <section class="divider" role="separator" aria-label="Community links">community</section>
 
-  <a class="link" href="https://github.com/joebower1983-a11y/send_it" target="_blank">
-    <span class="icon">📦</span> GitHub
+  <a class="link" href="https://twitter.com/SendItSolana420" target="_blank" rel="noopener" aria-label="Follow Send.it on Twitter/X" data-tooltip="Latest updates, alpha, and community vibes">
+    <span class="icon" aria-hidden="true">🐦</span> Twitter / X
   </a>
-  <a class="link" href="https://senditsolana.io/pitch-deck.html" target="_blank">
-    <span class="icon">📄</span> Pitch Deck
+  <a class="link" href="https://t.me/+Xw4E2sJ0Z3Q5ZDYx" target="_blank" rel="noopener" aria-label="Join Send.it Telegram group" data-tooltip="Active community chat with mod bot, points & contests">
+    <span class="icon" aria-hidden="true">💬</span> Telegram
   </a>
-  <a class="link" href="https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md" target="_blank">
-    <span class="icon">📜</span> Whitepaper v2.0
+  <a class="link" href="https://discord.gg/vKRTyG85" target="_blank" rel="noopener" aria-label="Join Send.it Discord server" data-tooltip="Dev discussions, announcements & community hangout">
+    <span class="icon" aria-hidden="true">💎</span> Discord
   </a>
-</div>
+  <a class="link" href="https://x.com/i/communities/2023686726640865647" target="_blank" rel="noopener" aria-label="Join Send.it X Community" data-tooltip="X Community for Send.it holders and builders">
+    <span class="icon" aria-hidden="true">🏘️</span> X Community
+  </a>
 
-<div class="stats">
-  <div><div class="stat-num">29</div><div class="stat-label">Modules</div></div>
+  <section class="divider" role="separator" aria-label="Build links">build</section>
+
+  <a class="link" href="https://github.com/joebower1983-a11y/send_it" target="_blank" rel="noopener" aria-label="View Send.it source code on GitHub" data-tooltip="Full source — 31 Anchor modules, AMM, tests, frontend, CI/CD">
+    <span class="icon" aria-hidden="true">📦</span> GitHub
+  </a>
+  <a class="link" href="https://senditsolana.io/pitch-deck.html" target="_blank" rel="noopener" aria-label="View Send.it pitch deck" data-tooltip="12-slide investor deck — vision, architecture, roadmap">
+    <span class="icon" aria-hidden="true">📄</span> Pitch Deck
+  </a>
+  <a class="link" href="https://github.com/joebower1983-a11y/send_it/blob/main/docs/WHITEPAPER.md" target="_blank" rel="noopener" aria-label="Read the Send.it whitepaper" data-tooltip="Technical whitepaper v2.1 — protocol design, tokenomics, security">
+    <span class="icon" aria-hidden="true">📜</span> Whitepaper v2.1
+  </a>
+</nav>
+
+<div class="stats" role="group" aria-label="Protocol statistics">
+  <div><div class="stat-num">31</div><div class="stat-label">Modules</div></div>
   <div><div class="stat-num">13k+</div><div class="stat-label">Lines of Rust</div></div>
   <div><div class="stat-num">12</div><div class="stat-label">Frontend Pages</div></div>
 </div>
 
-<p class="footer">No insiders. No presales. Just send it. 🚀</p>
+<footer class="footer">No insiders. No presales. Just send it. 🚀</footer>
+
+</main>
+
+<script>
+function copyCA(el, addr) {
+  navigator.clipboard.writeText(addr).then(() => {
+    const orig = el.textContent;
+    el.textContent = 'Copied! ✅';
+    el.style.borderColor = '#00ffa3';
+    setTimeout(() => {
+      el.textContent = addr;
+      el.style.borderColor = '';
+    }, 2000);
+  }).catch(() => {});
+}
+</script>
 
 </body>
 </html>
