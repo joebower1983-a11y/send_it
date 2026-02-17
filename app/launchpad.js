@@ -9,6 +9,9 @@ const RPC = 'https://api.devnet.solana.com';
 const TAPESTRY_KEY = '601a8251-9c95-4456-97af-c1e79b5c0259';
 const TAPESTRY_API = 'https://api.usetapestry.dev/v1';
 
+// ─── Image Upload State ───
+let selectedImageFile = null;
+
 // We use raw web3.js via CDN — loaded in HTML
 // solanaWeb3 = window.solanaWeb3
 
@@ -131,11 +134,40 @@ async function createToken() {
 
   const name = document.getElementById('tokenName')?.value?.trim() || 'SendIt Token';
   const symbol = document.getElementById('tokenSymbol')?.value?.trim() || 'SENDIT';
-  const uri = document.getElementById('tokenUri')?.value?.trim() || 'https://senditsolana.io';
+  const description = document.getElementById('tokenDesc')?.value?.trim() || '';
+  let uri = document.getElementById('tokenUri')?.value?.trim() || '';
 
   const launchBtn = document.getElementById('launchBtn');
   launchBtn.disabled = true;
   launchBtn.textContent = '⏳ Creating...';
+
+  // ─── Storacha Upload (before on-chain) ───
+  const storachaEnabled = document.getElementById('storachaToggle')?.checked;
+  if (storachaEnabled && !uri) {
+    try {
+      launchBtn.textContent = '📦 Uploading to Filecoin...';
+      const result = await uploadTokenMetadataToStoracha({
+        name,
+        symbol,
+        description,
+        imageFile: selectedImageFile,
+        creatorAddress: walletPubkey.toBase58(),
+      });
+      if (result.metadataUri) {
+        uri = result.metadataUri;
+        showToast('✅ Metadata stored on Filecoin!');
+      } else {
+        showToast('⚠️ Storacha upload failed — using fallback URI');
+        uri = 'https://senditsolana.io';
+      }
+    } catch (e) {
+      console.error('Storacha upload error:', e);
+      showToast('⚠️ Storage upload failed — continuing with fallback');
+      uri = 'https://senditsolana.io';
+    }
+    launchBtn.textContent = '⏳ Creating on-chain...';
+  }
+  if (!uri) uri = 'https://senditsolana.io';
 
   try {
     const mintKeypair = Keypair.generate();
@@ -484,5 +516,63 @@ window.promptBuy = promptBuy;
 window.promptSell = promptSell;
 window.showTokenDetail = showTokenDetail;
 
+// ─── Image Upload Handler ───
+function initImageUpload() {
+  const area = document.getElementById('uploadArea');
+  if (!area) return;
+
+  // Create hidden file input
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/png,image/jpeg,image/gif,image/webp';
+  fileInput.style.display = 'none';
+  area.appendChild(fileInput);
+
+  area.addEventListener('click', () => fileInput.click());
+
+  area.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    area.style.borderColor = 'var(--accent)';
+    area.style.background = 'rgba(0,200,150,.06)';
+  });
+
+  area.addEventListener('dragleave', () => {
+    area.style.borderColor = '';
+    area.style.background = '';
+  });
+
+  area.addEventListener('drop', (e) => {
+    e.preventDefault();
+    area.style.borderColor = '';
+    area.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleImageSelected(file, area);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleImageSelected(fileInput.files[0], area);
+  });
+}
+
+function handleImageSelected(file, area) {
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Image too large — max 5MB');
+    return;
+  }
+  selectedImageFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    area.innerHTML = `
+      <img src="${e.target.result}" style="max-height:120px;border-radius:8px;margin-bottom:8px">
+      <div style="color:var(--accent);font-weight:600">${file.name}</div>
+      <div style="font-size:11px;margin-top:4px;color:var(--text2)">${(file.size / 1024).toFixed(1)} KB · Click to change</div>
+    `;
+  };
+  reader.readAsDataURL(file);
+}
+
 // Init on load
-document.addEventListener('DOMContentLoaded', initLaunchpad);
+document.addEventListener('DOMContentLoaded', () => {
+  initLaunchpad();
+  initImageUpload();
+});
