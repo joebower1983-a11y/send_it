@@ -359,6 +359,33 @@ See also: [`SECURITY.md`](SECURITY.md) · [`.well-known/security.txt`](.well-kno
 
 ---
 
+## 📋 Changelog
+
+### 2026-02-17
+- **Storacha/Filecoin integration** — Token metadata (images + JSON) stored permanently on IPFS/Filecoin via Storacha. Decentralized, content-addressed, verifiable.
+- **Image upload on launchpad** — Drag-drop or click-to-browse with preview. Uploads to Filecoin before on-chain mint.
+- **Serverless upload API** — `/api/storacha-upload` endpoint with delegated credentials.
+- **PumpSwap-style AMM** — `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). Bonding curve graduation to constant-product AMM.
+- **Trading UI** — Swap interface, pool browser with TVL, LP position tracking.
+- **Staking UI** — Stake/unstake with devnet integration.
+- **Sec3 X-Ray: 0 vulnerabilities** — Both slim and full programs clean (GitHub Actions CI).
+- **Points system** — Persistent via Upstash Redis. Leaderboard, admin commands.
+- **Domain rebrand** — `itsolana.io` → `senditsolana.io` (old domain kept as alias).
+- **DEX Screener Enhanced Token Info** — Approved ✅.
+
+### 2026-02-16
+- **Slim v3 deployed to devnet** — `HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx`, 11 instructions, 1,177 lines.
+- **Full DeFi loop verified on-chain** — init → create_token (w/ Metaplex metadata) → buy → sell → stake → unstake → AMM.
+- **12 X-Ray vulnerabilities fixed** — Checked arithmetic, account validation constraints.
+- **Telegram bot forum support** — All replies include `message_thread_id`.
+
+### 2026-02-14
+- **5IVE DSL port** — All 31 modules ported (16k → 6k lines, 63% reduction). 159 tests.
+- **Cross-module composer** — 557 lines, 23 functions, 6 composition patterns.
+- **6 ClawMarket skills published** — 4 free, 2 paid.
+- **Tapestry social integration** — Profiles, follows, feeds for token launches.
+- **PYUSD vault module** — 423 lines, 17 functions.
+
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE) for details.
