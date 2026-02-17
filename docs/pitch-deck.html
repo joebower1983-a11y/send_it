@@ -132,7 +132,7 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
   <div class="grid grid-3">
     <div class="card"><h3>📈 Bonding Curves</h3><p>Fair price discovery via linear, exponential, and sigmoid curves. No fixed price manipulation.</p></div>
     <div class="card"><h3>🛡️ Anti-Snipe</h3><p>On-chain protection against bot front-running. Real users get a fair shot at every launch.</p></div>
-    <div class="card"><h3>🔄 Auto Migration</h3><p>When the curve fills, liquidity automatically migrates to Raydium. Seamless DEX listing.</p></div>
+    <div class="card"><h3>🔄 PumpSwap AMM</h3><p>When the bonding curve fills, tokens graduate to a built-in constant-product AMM. All liquidity stays in-ecosystem.</p></div>
     <div class="card"><h3>🚫 No Presales</h3><p>Zero insider allocations. Zero VIP rounds. Everyone starts on the same block.</p></div>
     <div class="card"><h3>🔒 Creator Vesting</h3><p>Creator tokens are vested on-chain. No instant dump capability. Aligned incentives.</p></div>
     <div class="card"><h3>⛓️ Fully On-Chain</h3><p>Every rule, every transaction, every safeguard lives on Solana. Transparent and verifiable.</p></div>
@@ -145,15 +145,15 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
 <section class="slide" data-slide="3">
 <div class="slide-inner">
   <div class="badge">FEATURES</div>
-  <h2><span class="accent">25+</span> On-Chain Modules</h2>
-  <p style="color:var(--muted);margin-bottom:8px">~11,800 lines of Anchor/Rust powering a full-stack token ecosystem.</p>
+  <h2><span class="accent">31</span> On-Chain Modules</h2>
+  <p style="color:var(--muted);margin-bottom:8px">~16,000 lines of Anchor/Rust powering a full-stack DeFi ecosystem. Sec3 X-Ray: <strong style="color:var(--accent)">0 vulnerabilities</strong>.</p>
   <div class="grid grid-3">
-    <div class="card"><h3>⚙️ Core</h3><ul><li>Bonding curves (3 types)</li><li>Anti-snipe protection</li><li>Auto Raydium migration</li><li>Creator vesting</li></ul></div>
-    <div class="card"><h3>💰 DeFi</h3><ul><li>Staking pools</li><li>Lending protocol</li><li>Limit orders</li><li>Prediction markets</li><li>Perpetuals</li></ul></div>
-    <div class="card"><h3>💬 Social</h3><ul><li>Live token chat</li><li>Airdrops</li><li>Daily rewards</li><li>Battle pass / seasons</li><li>Token videos</li></ul></div>
-    <div class="card"><h3>📊 Growth</h3><ul><li>Share cards</li><li>Creator dashboard</li><li>Achievements</li><li>Referrals</li><li>Copy trading</li></ul></div>
-    <div class="card"><h3>🏛️ Governance</h3><ul><li>On-chain voting</li><li>Reputation system</li><li>Premium tiers</li></ul></div>
-    <div class="card"><h3>📡 Analytics</h3><ul><li>On-chain analytics</li><li>Real-time price alerts</li></ul></div>
+    <div class="card"><h3>⚙️ Core</h3><ul><li>Bonding curves (3 types)</li><li>Anti-snipe protection</li><li>PumpSwap-style AMM</li><li>Creator vesting</li><li>Metaplex metadata</li></ul></div>
+    <div class="card"><h3>💰 DeFi</h3><ul><li>AMM (swap, liquidity)</li><li>Staking pools</li><li>Lending protocol</li><li>Limit orders</li><li>Prediction markets</li><li>Perpetuals</li></ul></div>
+    <div class="card"><h3>🗄️ Storage</h3><ul><li>Storacha / Filecoin</li><li>IPFS metadata</li><li>Content-addressed URIs</li><li>On-chain verifiable</li></ul></div>
+    <div class="card"><h3>💬 Social</h3><ul><li>Tapestry integration</li><li>Airdrops & raffles</li><li>Daily rewards</li><li>Battle pass / seasons</li><li>Points system</li></ul></div>
+    <div class="card"><h3>🏛️ Governance</h3><ul><li>On-chain voting</li><li>Reputation system</li><li>Premium tiers</li><li>PYUSD vault</li></ul></div>
+    <div class="card"><h3>🔐 Security</h3><ul><li>Sec3 X-Ray: 0 vulns</li><li>Checked arithmetic</li><li>Account validation</li><li>Audit submissions in</li></ul></div>
   </div>
 </div>
 <div class="slide-num">4 / 12</div>
@@ -193,6 +193,15 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
     <div class="arch-arrow">→</div>
     <div class="arch-box">🤖<br>Bots<br><small style="color:var(--muted)">Telegram / Discord</small></div>
   </div>
+  <div class="arch" style="margin-top:16px">
+    <div class="arch-box">🗄️<br>Storacha<br><small style="color:var(--muted)">IPFS / Filecoin</small></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">👥<br>Tapestry<br><small style="color:var(--muted)">Social Layer</small></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">🔐<br>Sec3 X-Ray<br><small style="color:var(--muted)">Security CI/CD</small></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">⚡<br>5IVE VM Port<br><small style="color:var(--muted)">63% code reduction</small></div>
+  </div>
   <p style="margin-top:32px;color:var(--muted);font-size:.9rem">Fully open source on GitHub &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Build on top of Send.it</p>
 </div>
 <div class="slide-num">6 / 12</div>
@@ -204,13 +213,14 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
   <div class="badge">TRACTION</div>
   <h2>Building in <span class="accent">Public</span></h2>
   <div class="stat-row">
-    <div class="stat"><div class="num">25+</div><div class="label">On-chain modules</div></div>
-    <div class="stat"><div class="num">11.8K</div><div class="label">Lines of Rust</div></div>
-    <div class="stat"><div class="num">Open</div><div class="label">Source on GitHub</div></div>
+    <div class="stat"><div class="num">31</div><div class="label">On-chain modules</div></div>
+    <div class="stat"><div class="num">16K+</div><div class="label">Lines of Rust</div></div>
+    <div class="stat"><div class="num">0</div><div class="label">Sec3 Vulnerabilities</div></div>
+    <div class="stat"><div class="num">11</div><div class="label">Devnet Instructions</div></div>
   </div>
   <div class="grid grid-2" style="margin-top:24px">
-    <div class="card"><h3>✅ Completed</h3><ul><li>Solana Foundation grant application submitted</li><li>Superteam bounty submissions</li><li>GitHub Pages live demo</li><li>Open source repo live</li></ul></div>
-    <div class="card"><h3>🌍 Community</h3><ul><li>Discord: discord.gg/vKRTyG85</li><li>Twitter: @SendItSolana420</li><li>Building in public daily</li><li>Engaging with Solana ecosystem</li></ul></div>
+    <div class="card"><h3>✅ Shipped</h3><ul><li>Live on Solana devnet (11 instructions)</li><li>PumpSwap-style AMM (full lifecycle tested)</li><li>Storacha/Filecoin metadata storage</li><li>Sec3 X-Ray: 0 vulnerabilities</li><li>5IVE DSL port (63% code reduction)</li><li>Trading UI, staking UI, launchpad</li><li>Audit submissions: Sec3, OtterSec, Code4rena</li></ul></div>
+    <div class="card"><h3>🌍 Community & Grants</h3><ul><li>Discord: discord.gg/vKRTyG85</li><li>Telegram: t.me/senditsolana420</li><li>Twitter: @SendItSolana420</li><li>Solana Foundation grant submitted</li><li>Solana Mobile grant submitted</li><li>MonkeDAO, R.E.D Realms grants</li><li>SafePal hardware wallet partnership</li><li>DEX Screener Enhanced: Approved ✅</li></ul></div>
   </div>
 </div>
 <div class="slide-num">7 / 12</div>
@@ -224,19 +234,19 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
   <div class="timeline">
     <div class="timeline-item active">
       <h3>Q1 2026 <span class="here">← WE ARE HERE</span></h3>
-      <p>Core program complete · Devnet deployment · Community building · Grant applications</p>
+      <p>31 modules shipped · Devnet live (11 instructions) · PumpSwap AMM · Storacha/Filecoin storage · Sec3 X-Ray clean · 5IVE port · Audit submissions · 6 grant applications</p>
     </div>
     <div class="timeline-item">
       <h3>Q2 2026</h3>
-      <p>Mainnet launch · Mobile PWA · First token launches · Marketing push</p>
+      <p>Security audit complete · Mainnet launch · Colosseum Spring Hackathon (April 6) · Mobile PWA · First public token launches</p>
     </div>
     <div class="timeline-item">
       <h3>Q3 2026</h3>
-      <p>DeFi suite (staking, lending, perps) · Solana Mobile dApp Store listing</p>
+      <p>Full DeFi suite live (lending, perps, prediction markets) · Solana Mobile dApp Store · Ecosystem partnerships</p>
     </div>
     <div class="timeline-item">
       <h3>Q4 2026</h3>
-      <p>Cross-chain bridge · DAO governance · Ecosystem partnerships</p>
+      <p>Cross-chain bridge · DAO governance launch · Protocol revenue sharing · V2 features</p>
     </div>
   </div>
 </div>
@@ -267,9 +277,9 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
   <h2>Three Fee Streams on <span class="accent">Every Trade</span></h2>
   <p style="color:var(--muted);max-width:500px;margin:0 auto 32px">Send.it generates revenue from day one. Every buy and sell on the bonding curve collects fees automatically on-chain.</p>
   <div class="ask-grid">
-    <div class="ask-item"><div class="emoji">💰</div><h3 style="font-size:.95rem;margin-bottom:4px">1% Platform Fee</h3><div class="desc">Every trade → Send.it treasury. Sustainable protocol revenue.</div></div>
-    <div class="ask-item"><div class="emoji">🎨</div><h3 style="font-size:.95rem;margin-bottom:4px">1% Creator Fee</h3><div class="desc">Every trade → token creator. Incentivizes quality launches.</div></div>
-    <div class="ask-item"><div class="emoji">💎</div><h3 style="font-size:.95rem;margin-bottom:4px">Holder Rewards Fee</h3><div class="desc">Configurable % → redistributed to all token holders proportionally.</div></div>
+    <div class="ask-item"><div class="emoji">💰</div><h3 style="font-size:.95rem;margin-bottom:4px">1% Platform Fee</h3><div class="desc">Every bonding curve trade → Send.it treasury. Revenue from day one.</div></div>
+    <div class="ask-item"><div class="emoji">💱</div><h3 style="font-size:.95rem;margin-bottom:4px">1% AMM Swap Fee</h3><div class="desc">0.3% to LPs, 0.7% to protocol. Every swap on graduated tokens generates revenue.</div></div>
+    <div class="ask-item"><div class="emoji">🎨</div><h3 style="font-size:.95rem;margin-bottom:4px">Creator Fee</h3><div class="desc">Configurable % → token creator on every trade. Incentivizes quality launches.</div></div>
     <div class="ask-item"><div class="emoji">📈</div><h3 style="font-size:.95rem;margin-bottom:4px">DeFi Revenue</h3><div class="desc">Lending interest, premium tiers, prediction markets — additional fee streams.</div></div>
   </div>
 </div>
@@ -303,6 +313,7 @@ h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;margin-bottom:24px;letter-
     <li><span class="label">Live Demo:</span> <a href="https://senditsolana.io" target="_blank">senditsolana.io</a></li>
     <li><span class="label">Twitter:</span> <a href="https://twitter.com/SendItSolana420" target="_blank">@SendItSolana420</a></li>
     <li><span class="label">Discord:</span> <a href="https://discord.gg/vKRTyG85" target="_blank">discord.gg/vKRTyG85</a></li>
+    <li><span class="label">Telegram:</span> <a href="https://t.me/+Xw4E2sJ0Z3Q5ZDYx" target="_blank">t.me/senditsolana420</a></li>
     <li><span class="label">SENDIT Token:</span> <code style="font-size:.85rem;color:var(--accent);background:var(--card);padding:4px 8px;border-radius:6px">F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump</code></li>
     <li><span class="label">Devnet Program:</span> <code style="font-size:.85rem;color:var(--accent);background:var(--card);padding:4px 8px;border-radius:6px">HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx</code></li>
     <li><span class="label">Wallet:</span> <code style="font-size:.85rem;color:var(--accent);background:var(--card);padding:4px 8px;border-radius:6px">G3QLffUiguxYTkGWBjtpgKy6WAh2WgQefQKsDscSdNP9</code></li>
