@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send.it Loyalty — Powered by Torque</title>
+  <meta name="description" content="Earn rewards for trading, providing liquidity, staking, and social engagement on Send.it. Powered by Torque." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>" />
+  <style>
+    :root {
+      --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a28; --border: #2a2a3a;
+      --text: #e4e4ef; --text2: #8888a0; --accent: #9b59b6; --accent2: #3498db;
+      --green: #2ecc71; --red: #e74c3c; --yellow: #f1c40f; --gold: #ffd700;
+      --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    a { color: var(--accent2); text-decoration: none; }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .nav-brand { font-size: 20px; font-weight: 700; }
+    .nav-brand span { color: var(--accent); }
+    .nav-links { display: flex; gap: 16px; }
+    .nav-links a { color: var(--text2); font-size: 14px; }
+    .btn { padding: 10px 20px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #8e44ad; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+    .hero { text-align: center; padding: 48px 0 32px; }
+    .hero h1 { font-size: 36px; margin-bottom: 12px; }
+    .hero h1 span { color: var(--gold); }
+    .hero p { color: var(--text2); font-size: 16px; max-width: 600px; margin: 0 auto 16px; }
+    .powered-by { font-size: 13px; color: var(--text2); }
+    .powered-by a { color: var(--accent2); }
+
+    /* Tier Card */
+    .tier-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 32px; text-align: center; margin-bottom: 32px; position: relative; overflow: hidden; }
+    .tier-card.connected { border-color: var(--gold); }
+    .tier-glow { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,215,0,0.05), transparent 60%); pointer-events: none; }
+    .tier-emoji { font-size: 64px; margin-bottom: 8px; }
+    .tier-name { font-size: 24px; font-weight: 700; }
+    .tier-points { font-size: 40px; font-weight: 800; color: var(--gold); margin: 8px 0; }
+    .tier-next { font-size: 13px; color: var(--text2); }
+    .tier-bar { width: 300px; max-width: 100%; height: 8px; background: var(--surface2); border-radius: 4px; margin: 12px auto 0; overflow: hidden; }
+    .tier-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); border-radius: 4px; transition: width 0.5s; }
+    .multiplier { display: inline-block; background: rgba(255,215,0,0.15); color: var(--gold); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+
+    /* Tiers Display */
+    .tiers-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+    .tier-badge { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; background: var(--surface2); border: 1px solid var(--border); opacity: 0.5; }
+    .tier-badge.active { opacity: 1; border-color: var(--gold); background: rgba(255,215,0,0.1); }
+
+    /* Stats Grid */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+    /* Earn Points */
+    .earn-section { margin-bottom: 32px; }
+    .earn-section h2 { font-size: 22px; margin-bottom: 16px; }
+    .earn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .earn-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color 0.2s; }
+    .earn-card:hover { border-color: var(--accent); }
+    .earn-icon { font-size: 32px; margin-bottom: 8px; }
+    .earn-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .earn-desc { font-size: 13px; color: var(--text2); margin-bottom: 8px; line-height: 1.4; }
+    .earn-pts { color: var(--gold); font-weight: 700; font-size: 14px; }
+
+    /* Campaigns */
+    .campaign-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+    .campaign-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .campaign-title { font-size: 18px; font-weight: 600; }
+    .campaign-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: rgba(46,204,113,0.15); color: var(--green); }
+    .campaign-desc { color: var(--text2); font-size: 14px; margin-bottom: 12px; }
+    .campaign-rewards { display: flex; gap: 16px; flex-wrap: wrap; }
+    .reward-item { background: var(--surface2); padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+    .reward-item strong { color: var(--gold); }
+
+    /* Leaderboard */
+    .leaderboard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 32px; }
+    .lb-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 18px; }
+    .lb-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row.me { background: rgba(155,89,182,0.08); }
+    .lb-rank { width: 40px; font-size: 18px; text-align: center; }
+    .lb-wallet { flex: 1; font-family: monospace; font-size: 14px; }
+    .lb-tier { margin: 0 12px; font-size: 14px; }
+    .lb-points { font-weight: 700; font-size: 16px; color: var(--gold); min-width: 100px; text-align: right; }
+
+    .footer { text-align: center; padding: 32px; color: var(--text2); font-size: 13px; border-top: 1px solid var(--border); margin-top: 48px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-brand">🎁 Send.it <span>Loyalty</span></div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/app/trading.html">Trading</a>
+      <a href="/app/staking.html">Staking</a>
+      <a href="/app/governance.html">Governance</a>
+      <a href="/app/loyalty.html" style="color:var(--gold)">Loyalty</a>
+    </div>
+    <button class="btn btn-primary" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  </nav>
+
+  <div class="container">
+    <div class="hero">
+      <h1>🎁 <span>Loyalty</span> Rewards</h1>
+      <p>Earn points for every on-chain action. Trade, stake, provide liquidity, and engage with the community to level up your tier and unlock multipliers.</p>
+      <div class="powered-by">Powered by <a href="https://torque.so" target="_blank">Torque</a> — The Solana Growth Protocol</div>
+    </div>
+
+    <!-- Your Tier -->
+    <div class="tier-card" id="tierCard">
+      <div class="tier-glow"></div>
+      <div class="tier-emoji" id="tierEmoji">🥉</div>
+      <div class="tier-name" id="tierName">Bronze</div>
+      <div class="tier-points" id="tierPoints">0</div>
+      <div style="font-size:13px;color:var(--text2)">loyalty points</div>
+      <div class="multiplier" id="tierMultiplier">1.0x multiplier</div>
+      <div class="tier-next" id="tierNext">1,000 points to Silver 🥈</div>
+      <div class="tier-bar"><div class="tier-fill" id="tierFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- All Tiers -->
+    <div class="tiers-row">
+      <div class="tier-badge active" style="border-color:#cd7f32">🥉 Bronze (0+)</div>
+      <div class="tier-badge" style="border-color:#c0c0c0">🥈 Silver (1K+)</div>
+      <div class="tier-badge" style="border-color:#ffd700">🥇 Gold (5K+)</div>
+      <div class="tier-badge" style="border-color:#e5e4e2">💎 Platinum (25K+)</div>
+      <div class="tier-badge" style="border-color:#b9f2ff">👑 Diamond (100K+)</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="totalTraders">156</div>
+        <div class="stat-label">Active Traders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalPoints">2.4M</div>
+        <div class="stat-label">Points Distributed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="activeCampaigns">4</div>
+        <div class="stat-label">Active Campaigns</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="rewardsPool">5M SENDIT</div>
+        <div class="stat-label">Rewards Pool</div>
+      </div>
+    </div>
+
+    <!-- Active Campaigns -->
+    <div class="earn-section">
+      <h2>🏆 Active Campaigns</h2>
+      
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-title">📊 Weekly Trading Leaderboard</div>
+          <div class="campaign-badge">LIVE</div>
+        </div>
+        <div class="campaign-desc">Top 10 traders by swap volume compete for SENDIT rewards. Resets every Monday.</div>
+        <div class="campaign-rewards">
+          <div class="reward-item">🥇 <strong>500K SENDIT</strong></div>
+          <div class="reward-item">🥈 <strong>250K SENDIT</strong></div>
+          <div class="reward-item">🥉 <strong>100K SENDIT</strong></div>
+          <div class="reward-item">#4-10 <strong>25K each</strong></div>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-title">💧 LP Deposit Rebate</div>
+          <div class="campaign-badge">LIVE</div>
+        </div>
+        <div class="campaign-desc">Add liquidity and earn 10% bonus in SENDIT. First-time LPs get double points.</div>
+        <div class="campaign-rewards">
+          <div class="reward-item">📈 <strong>10% rebate</strong> in SENDIT</div>
+          <div class="reward-item">🎯 Max <strong>1M SENDIT</strong> per wallet</div>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-title">💎 Diamond Hands Staking</div>
+          <div class="campaign-badge">LIVE</div>
+        </div>
+        <div class="campaign-desc">Stake SENDIT for 30+ days and earn a 2x point multiplier on all activities.</div>
+        <div class="campaign-rewards">
+          <div class="reward-item">⏱ <strong>30 day</strong> minimum</div>
+          <div class="reward-item">✨ <strong>2x multiplier</strong> on all points</div>
+        </div>
+      </div>
+
+      <div class="campaign-card">
+        <div class="campaign-header">
+          <div class="campaign-title">🎲 Community Raffle</div>
+          <div class="campaign-badge">LIVE</div>
+        </div>
+        <div class="campaign-desc">Create a Tapestry profile + follow 3 users to enter the weekly raffle. 10 winners.</div>
+        <div class="campaign-rewards">
+          <div class="reward-item">🎁 <strong>100K SENDIT</strong> × 10 winners</div>
+          <div class="reward-item">🔄 Resets weekly</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Earn -->
+    <div class="earn-section">
+      <h2>📈 How to Earn Points</h2>
+      <div class="earn-grid">
+        <div class="earn-card">
+          <div class="earn-icon">💱</div>
+          <div class="earn-title">Swap on AMM</div>
+          <div class="earn-desc">Every 0.1 SOL swapped through the Send.it AMM earns points.</div>
+          <div class="earn-pts">+10 pts per 0.1 SOL</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">🚀</div>
+          <div class="earn-title">Buy on Bonding Curve</div>
+          <div class="earn-desc">Early supporters earn more — buying from the bonding curve gives 1.5x points.</div>
+          <div class="earn-pts">+15 pts per 0.1 SOL</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">💧</div>
+          <div class="earn-title">Provide Liquidity</div>
+          <div class="earn-desc">Add SOL + tokens to the AMM pool. The backbone of DeFi deserves top rewards.</div>
+          <div class="earn-pts">+50 pts per 0.1 SOL</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">🔒</div>
+          <div class="earn-title">Stake Tokens</div>
+          <div class="earn-desc">Lock your SENDIT and earn daily bonus points on top of staking rewards.</div>
+          <div class="earn-pts">+25 pts per 1M staked + 1/day</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">🚀</div>
+          <div class="earn-title">Launch a Token</div>
+          <div class="earn-desc">Create a token through the Send.it launchpad — massive one-time bonus.</div>
+          <div class="earn-pts">+500 pts per launch</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">👥</div>
+          <div class="earn-title">Social Engagement</div>
+          <div class="earn-desc">Create a Tapestry profile, follow other users, and post content to earn.</div>
+          <div class="earn-pts">+100 profile, +5 follow, +10 post</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">🤝</div>
+          <div class="earn-title">Refer Friends</div>
+          <div class="earn-desc">Share your referral link. Earn points when your referrals trade.</div>
+          <div class="earn-pts">+200 per signup, +5 per 0.1 SOL</div>
+        </div>
+        <div class="earn-card">
+          <div class="earn-icon">👑</div>
+          <div class="earn-title">Tier Multiplier</div>
+          <div class="earn-desc">Higher tiers earn more. Diamond tier gets 3x points on every action.</div>
+          <div class="earn-pts">1x → 1.25x → 1.5x → 2x → 3x</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="earn-section">
+      <h2>🏅 Leaderboard</h2>
+      <div class="leaderboard">
+        <div class="lb-header">Top Earners — All Time</div>
+        <div class="lb-row"><div class="lb-rank">🥇</div><div class="lb-wallet">G3QL...dNP9</div><div class="lb-tier">👑 Diamond</div><div class="lb-points">142,350</div></div>
+        <div class="lb-row"><div class="lb-rank">🥈</div><div class="lb-wallet">G86j...cLXR</div><div class="lb-tier">💎 Platinum</div><div class="lb-points">87,200</div></div>
+        <div class="lb-row"><div class="lb-rank">🥉</div><div class="lb-wallet">Cz6w...hta</div><div class="lb-tier">💎 Platinum</div><div class="lb-points">52,100</div></div>
+        <div class="lb-row"><div class="lb-rank">#4</div><div class="lb-wallet">8ip3...jT3z</div><div class="lb-tier">🥇 Gold</div><div class="lb-points">18,400</div></div>
+        <div class="lb-row"><div class="lb-rank">#5</div><div class="lb-wallet">35YW...g5U2</div><div class="lb-tier">🥇 Gold</div><div class="lb-points">12,750</div></div>
+        <div class="lb-row"><div class="lb-rank">#6</div><div class="lb-wallet">AsxZ...ve8</div><div class="lb-tier">🥈 Silver</div><div class="lb-points">4,200</div></div>
+        <div class="lb-row"><div class="lb-rank">#7</div><div class="lb-wallet">4Qxf...dK1d</div><div class="lb-tier">🥈 Silver</div><div class="lb-points">3,800</div></div>
+        <div class="lb-row"><div class="lb-rank">#8</div><div class="lb-wallet">3JSL...heZ</div><div class="lb-tier">🥈 Silver</div><div class="lb-points">2,100</div></div>
+        <div class="lb-row"><div class="lb-rank">#9</div><div class="lb-wallet">6L9s...Eby</div><div class="lb-tier">🥉 Bronze</div><div class="lb-points">890</div></div>
+        <div class="lb-row"><div class="lb-rank">#10</div><div class="lb-wallet">DbUF...hBq</div><div class="lb-tier">🥉 Bronze</div><div class="lb-points">450</div></div>
+      </div>
+      <div style="text-align:center;font-size:13px;color:var(--text2)">UI Preview — Leaderboard data from devnet activity (Torque-tracked)</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Send.it Loyalty — Powered by <a href="https://torque.so" target="_blank">Torque</a> on Solana</p>
+    <p style="margin-top:4px">🔗 <a href="https://senditsolana.io">senditsolana.io</a> • <a href="https://twitter.com/SendItSolana420" target="_blank">@SendItSolana420</a></p>
+  </div>
+
+  <script>
+    async function connectWallet() {
+      if (!window.solana?.isPhantom) { alert('Install Phantom wallet'); return; }
+      try {
+        const resp = await window.solana.connect();
+        const pk = resp.publicKey.toBase58();
+        document.getElementById('connectBtn').textContent = pk.slice(0,4) + '...' + pk.slice(-4);
+        // In production: init Torque SDK, fetch user points, update tier card
+      } catch(e) { console.error(e); }
+    }
+  </script>
+</body>
+</html>

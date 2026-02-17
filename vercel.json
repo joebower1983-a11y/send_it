@@ -8,6 +8,8 @@
     { "source": "/composer.html", "destination": "/app/composer.html" },
     { "source": "/creator-dashboard.html", "destination": "/app/creator-dashboard.html" },
     { "source": "/governance.html", "destination": "/app/governance.html" },
+    { "source": "/governance.js", "destination": "/app/governance.js" },
+    { "source": "/loyalty.html", "destination": "/app/loyalty.html" },
     { "source": "/analytics.html", "destination": "/app/analytics.html" },
     { "source": "/airdrops.html", "destination": "/app/airdrops.html" },
     { "source": "/portfolio.html", "destination": "/app/portfolio.html" },

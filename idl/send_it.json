@@ -1,0 +1,434 @@
+{
+  "version": "3.0.0",
+  "name": "send_it",
+  "metadata": {
+    "address": "HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx",
+    "description": "Send.it — Community-governed token launchpad with native AMM on Solana",
+    "repository": "https://github.com/joebower1983-a11y/send_it",
+    "website": "https://senditsolana.io"
+  },
+  "instructions": [
+    {
+      "name": "initializePlatform",
+      "docs": ["Initialize the platform configuration. Called once by the authority."],
+      "accounts": [
+        { "name": "platformConfig", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "platform_config" }] } },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "platformFeeBps", "type": "u16" },
+        { "name": "migrationThreshold", "type": "u64" }
+      ]
+    },
+    {
+      "name": "updatePlatform",
+      "docs": ["Update platform settings (authority only) — pause/unpause, change fees."],
+      "accounts": [
+        { "name": "platformConfig", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "platform_config" }] } },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "paused", "type": { "option": "bool" } },
+        { "name": "platformFeeBps", "type": { "option": "u16" } }
+      ]
+    },
+    {
+      "name": "createToken",
+      "docs": ["Create a new token with bonding curve, Metaplex metadata, and token vault."],
+      "accounts": [
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "token_launch" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "tokenMint", "isMut": true, "isSigner": true },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false, "docs": ["ATA: mint=tokenMint, authority=tokenLaunch"] },
+        { "name": "launchSolVault", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "sol_vault" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "metadata", "isMut": true, "isSigner": false, "docs": ["Metaplex metadata PDA"] },
+        { "name": "platformConfig", "isMut": true, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false },
+        { "name": "tokenMetadataProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "symbol", "type": "string" },
+        { "name": "uri", "type": "string" },
+        { "name": "creatorFeeBps", "type": "u16" }
+      ]
+    },
+    {
+      "name": "buy",
+      "docs": ["Buy tokens from the bonding curve with SOL. Platform + creator fees deducted."],
+      "accounts": [
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false },
+        { "name": "launchSolVault", "isMut": true, "isSigner": false },
+        { "name": "buyerTokenAccount", "isMut": true, "isSigner": false, "docs": ["init_if_needed ATA"] },
+        { "name": "userPosition", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "user_position" }, { "kind": "account", "path": "buyer" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "platformVault", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "platform_vault" }] } },
+        { "name": "creatorWallet", "isMut": true, "isSigner": false },
+        { "name": "platformConfig", "isMut": true, "isSigner": false },
+        { "name": "buyer", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "solAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "sell",
+      "docs": ["Sell tokens back to the bonding curve for SOL."],
+      "accounts": [
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false },
+        { "name": "launchSolVault", "isMut": true, "isSigner": false },
+        { "name": "sellerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "userPosition", "isMut": true, "isSigner": false },
+        { "name": "platformVault", "isMut": true, "isSigner": false },
+        { "name": "creatorWallet", "isMut": true, "isSigner": false },
+        { "name": "platformConfig", "isMut": true, "isSigner": false },
+        { "name": "seller", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "tokenAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "stake",
+      "docs": ["Stake tokens — lock for a duration, tracked on-chain. 10% APY rewards."],
+      "accounts": [
+        { "name": "stakeAccount", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "stake" }, { "kind": "account", "path": "staker" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "stakerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false },
+        { "name": "staker", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" },
+        { "name": "durationSeconds", "type": "i64" }
+      ]
+    },
+    {
+      "name": "unstake",
+      "docs": ["Unstake tokens — withdraw after lock period expires, with rewards."],
+      "accounts": [
+        { "name": "stakeAccount", "isMut": true, "isSigner": false },
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "stakerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false },
+        { "name": "staker", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "createPool",
+      "docs": ["Create AMM liquidity pool when token graduates from bonding curve. PumpSwap-style: remaining tokens + accumulated SOL seed the constant-product pool."],
+      "accounts": [
+        { "name": "ammPool", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "amm_pool" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "tokenLaunch", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "launchTokenVault", "isMut": true, "isSigner": false },
+        { "name": "launchSolVault", "isMut": true, "isSigner": false },
+        { "name": "poolTokenVault", "isMut": true, "isSigner": false, "docs": ["ATA: mint=tokenMint, authority=ammPool"] },
+        { "name": "poolSolVault", "isMut": true, "isSigner": false, "pda": { "seeds": [{ "kind": "const", "value": "pool_sol_vault" }, { "kind": "account", "path": "tokenMint" }] } },
+        { "name": "lpMint", "isMut": true, "isSigner": true },
+        { "name": "creatorLpAccount", "isMut": true, "isSigner": false },
+        { "name": "platformConfig", "isMut": false, "isSigner": false },
+        { "name": "creator", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "rent", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "swap",
+      "docs": ["Swap SOL for tokens or tokens for SOL through the AMM pool. Set exactly one of sol_amount or token_amount > 0. 1% fee (0.3% LP, 0.7% protocol)."],
+      "accounts": [
+        { "name": "ammPool", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "poolTokenVault", "isMut": true, "isSigner": false },
+        { "name": "poolSolVault", "isMut": true, "isSigner": false },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false, "docs": ["init_if_needed ATA"] },
+        { "name": "platformVault", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "solAmount", "type": "u64" },
+        { "name": "tokenAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "addLiquidity",
+      "docs": ["Add liquidity — deposit SOL + tokens proportionally, receive LP tokens."],
+      "accounts": [
+        { "name": "ammPool", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "poolTokenVault", "isMut": true, "isSigner": false },
+        { "name": "poolSolVault", "isMut": true, "isSigner": false },
+        { "name": "lpMint", "isMut": true, "isSigner": false },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "userLpAccount", "isMut": true, "isSigner": false, "docs": ["init_if_needed ATA"] },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "solAmount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "removeLiquidity",
+      "docs": ["Remove liquidity — burn LP tokens, withdraw proportional SOL + tokens."],
+      "accounts": [
+        { "name": "ammPool", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "poolTokenVault", "isMut": true, "isSigner": false },
+        { "name": "poolSolVault", "isMut": true, "isSigner": false },
+        { "name": "lpMint", "isMut": true, "isSigner": false },
+        { "name": "userTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "userLpAccount", "isMut": true, "isSigner": false },
+        { "name": "user", "isMut": true, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "lpAmount", "type": "u64" }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "platformFeeBps", "type": "u16" },
+          { "name": "migrationThreshold", "type": "u64" },
+          { "name": "totalLaunches", "type": "u64" },
+          { "name": "totalVolumeSol", "type": "u64" },
+          { "name": "paused", "type": "bool" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "TokenLaunch",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "creator", "type": "publicKey" },
+          { "name": "mint", "type": "publicKey" },
+          { "name": "name", "type": "string" },
+          { "name": "symbol", "type": "string" },
+          { "name": "uri", "type": "string" },
+          { "name": "creatorFeeBps", "type": "u16" },
+          { "name": "totalSupply", "type": "u64" },
+          { "name": "tokensSold", "type": "u64" },
+          { "name": "totalStaked", "type": "u64" },
+          { "name": "reserveSol", "type": "u64" },
+          { "name": "createdAt", "type": "i64" },
+          { "name": "migrated", "type": "bool" },
+          { "name": "totalVolumeSol", "type": "u64" },
+          { "name": "bump", "type": "u8" },
+          { "name": "solVaultBump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "UserPosition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "owner", "type": "publicKey" },
+          { "name": "mint", "type": "publicKey" },
+          { "name": "tokensBought", "type": "u64" },
+          { "name": "solSpent", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "StakeAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "staker", "type": "publicKey" },
+          { "name": "mint", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "stakedAt", "type": "i64" },
+          { "name": "unlockAt", "type": "i64" },
+          { "name": "claimed", "type": "bool" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "AmmPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "mint", "type": "publicKey" },
+          { "name": "tokenReserve", "type": "u64" },
+          { "name": "solReserve", "type": "u64" },
+          { "name": "lpMint", "type": "publicKey" },
+          { "name": "lpSupply", "type": "u64" },
+          { "name": "totalFeesSol", "type": "u64" },
+          { "name": "totalFeesToken", "type": "u64" },
+          { "name": "createdAt", "type": "i64" },
+          { "name": "bump", "type": "u8" },
+          { "name": "poolSolVaultBump", "type": "u8" }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "TokenCreated",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "creator", "type": "publicKey", "index": true },
+        { "name": "name", "type": "string", "index": false },
+        { "name": "symbol", "type": "string", "index": false },
+        { "name": "creatorFeeBps", "type": "u16", "index": false },
+        { "name": "timestamp", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "TokenBought",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "buyer", "type": "publicKey", "index": true },
+        { "name": "solAmount", "type": "u64", "index": false },
+        { "name": "tokensOut", "type": "u64", "index": false },
+        { "name": "price", "type": "u128", "index": false }
+      ]
+    },
+    {
+      "name": "TokenSold",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "seller", "type": "publicKey", "index": true },
+        { "name": "tokenAmount", "type": "u64", "index": false },
+        { "name": "solOut", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "TokenStaked",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "staker", "type": "publicKey", "index": true },
+        { "name": "amount", "type": "u64", "index": false },
+        { "name": "unlockAt", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "TokenUnstaked",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "staker", "type": "publicKey", "index": true },
+        { "name": "amount", "type": "u64", "index": false },
+        { "name": "reward", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "PoolCreated",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": true },
+        { "name": "pool", "type": "publicKey", "index": true },
+        { "name": "initialToken", "type": "u64", "index": false },
+        { "name": "initialSol", "type": "u64", "index": false },
+        { "name": "lpMinted", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "Swapped",
+      "fields": [
+        { "name": "pool", "type": "publicKey", "index": true },
+        { "name": "user", "type": "publicKey", "index": true },
+        { "name": "solIn", "type": "u64", "index": false },
+        { "name": "tokenIn", "type": "u64", "index": false },
+        { "name": "solOut", "type": "u64", "index": false },
+        { "name": "tokenOut", "type": "u64", "index": false },
+        { "name": "fee", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "LiquidityAdded",
+      "fields": [
+        { "name": "pool", "type": "publicKey", "index": true },
+        { "name": "user", "type": "publicKey", "index": true },
+        { "name": "solAmount", "type": "u64", "index": false },
+        { "name": "tokenAmount", "type": "u64", "index": false },
+        { "name": "lpMinted", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "LiquidityRemoved",
+      "fields": [
+        { "name": "pool", "type": "publicKey", "index": true },
+        { "name": "user", "type": "publicKey", "index": true },
+        { "name": "solAmount", "type": "u64", "index": false },
+        { "name": "tokenAmount", "type": "u64", "index": false },
+        { "name": "lpBurned", "type": "u64", "index": false }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "FeeTooHigh", "msg": "Fee too high" },
+    { "code": 6001, "name": "PlatformPaused", "msg": "Platform paused" },
+    { "code": 6002, "name": "AlreadyMigrated", "msg": "Already migrated" },
+    { "code": 6003, "name": "ZeroAmount", "msg": "Zero amount" },
+    { "code": 6004, "name": "InsufficientOutput", "msg": "Insufficient output" },
+    { "code": 6005, "name": "InsufficientReserve", "msg": "Insufficient reserve" },
+    { "code": 6006, "name": "InsufficientTokensSold", "msg": "Insufficient tokens sold" },
+    { "code": 6007, "name": "InvalidCreator", "msg": "Invalid creator" },
+    { "code": 6008, "name": "StakeLocked", "msg": "Stake still locked" },
+    { "code": 6009, "name": "AlreadyClaimed", "msg": "Already claimed" },
+    { "code": 6010, "name": "StakeTooShort", "msg": "Stake too short" },
+    { "code": 6011, "name": "StakeTooLong", "msg": "Stake too long" },
+    { "code": 6012, "name": "MathOverflow", "msg": "Math overflow" },
+    { "code": 6013, "name": "NameTooLong", "msg": "Name too long (max 32)" },
+    { "code": 6014, "name": "SymbolTooLong", "msg": "Symbol too long (max 10)" },
+    { "code": 6015, "name": "UriTooLong", "msg": "URI too long (max 200)" },
+    { "code": 6016, "name": "VaultBelowRentExempt", "msg": "Vault below rent-exempt minimum" },
+    { "code": 6017, "name": "StakeAlreadyActive", "msg": "Stake already active" },
+    { "code": 6018, "name": "InsufficientVaultBalance", "msg": "Insufficient vault balance" },
+    { "code": 6019, "name": "NotGraduated", "msg": "Token has not graduated" },
+    { "code": 6020, "name": "InvalidSwap", "msg": "Invalid swap — set exactly one of sol_amount or token_amount" }
+  ],
+  "constants": [
+    { "name": "DEFAULT_TOTAL_SUPPLY", "type": "u64", "value": "1000000000000000" },
+    { "name": "TOKEN_DECIMALS", "type": "u8", "value": "6" },
+    { "name": "SWAP_FEE_BPS", "type": "u64", "value": "100" },
+    { "name": "LP_FEE_BPS", "type": "u64", "value": "30" },
+    { "name": "PROTOCOL_FEE_BPS", "type": "u64", "value": "70" },
+    { "name": "MIN_LIQUIDITY", "type": "u64", "value": "1000" },
+    { "name": "REWARD_RATE_BPS_PER_YEAR", "type": "u64", "value": "1000" },
+    { "name": "MIN_STAKE_DURATION", "type": "i64", "value": "60" },
+    { "name": "MAX_STAKE_DURATION", "type": "i64", "value": "31536000" },
+    { "name": "MAX_NAME_LEN", "type": "usize", "value": "32" },
+    { "name": "MAX_SYMBOL_LEN", "type": "usize", "value": "10" },
+    { "name": "MAX_URI_LEN", "type": "usize", "value": "200" }
+  ]
+}
