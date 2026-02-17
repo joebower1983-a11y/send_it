@@ -19,6 +19,8 @@ pub const MAX_NAME_LEN: usize = 32;
 pub const MAX_SYMBOL_LEN: usize = 10;
 pub const MAX_URI_LEN: usize = 200;
 pub const RENT_EXEMPT_MIN: u64 = 890_880; // ~0.00089 SOL
+pub const REWARD_RATE_BPS_PER_YEAR: u64 = 1000; // 10% APY in basis points
+pub const SECONDS_PER_YEAR: u64 = 365 * 24 * 3600;
 
 pub const MPL_TOKEN_METADATA_ID: Pubkey = solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
@@ -64,6 +66,7 @@ pub struct TokenUnstaked {
     pub mint: Pubkey,
     pub staker: Pubkey,
     pub amount: u64,
+    pub reward: u64,
 }
 
 #[program]
@@ -356,7 +359,7 @@ pub mod send_it {
         Ok(())
     }
 
-    /// Unstake tokens — withdraw after lock period expires
+    /// Unstake tokens — withdraw after lock period expires, with rewards
     pub fn unstake(ctx: Context<UnstakeTokens>) -> Result<()> {
         let clock = Clock::get()?;
         let s = &ctx.accounts.stake_account;
@@ -364,9 +367,21 @@ pub mod send_it {
         require!(!s.claimed, SendItError::AlreadyClaimed);
         let amount = s.amount;
 
-        // Ensure vault has enough tokens (excluding staked tokens needed by others)
+        // Calculate reward: amount * rate * duration / (10000 * seconds_per_year)
+        let duration_secs = (clock.unix_timestamp - s.staked_at) as u64;
+        let reward = (amount as u128)
+            .checked_mul(REWARD_RATE_BPS_PER_YEAR as u128).ok_or(SendItError::MathOverflow)?
+            .checked_mul(duration_secs as u128).ok_or(SendItError::MathOverflow)?
+            .checked_div(10_000u128.checked_mul(SECONDS_PER_YEAR as u128).ok_or(SendItError::MathOverflow)?).ok_or(SendItError::MathOverflow)? as u64;
+
+        // Cap reward at available unsold tokens in vault (minus staked tokens)
         let vault_balance = ctx.accounts.launch_token_vault.amount;
-        require!(vault_balance >= amount, SendItError::InsufficientVaultBalance);
+        let launch = &ctx.accounts.token_launch;
+        let available_for_rewards = vault_balance.saturating_sub(launch.total_staked);
+        let actual_reward = reward.min(available_for_rewards);
+        let total_withdrawal = amount.checked_add(actual_reward).ok_or(SendItError::MathOverflow)?;
+
+        require!(vault_balance >= total_withdrawal, SendItError::InsufficientVaultBalance);
 
         let mk = ctx.accounts.token_mint.key();
         let seeds: &[&[u8]] = &[TOKEN_LAUNCH_SEED, mk.as_ref(), &[ctx.accounts.token_launch.bump]];
@@ -374,7 +389,7 @@ pub mod send_it {
             from: ctx.accounts.launch_token_vault.to_account_info(),
             to: ctx.accounts.staker_token_account.to_account_info(),
             authority: ctx.accounts.token_launch.to_account_info(),
-        }, &[seeds]), amount)?;
+        }, &[seeds]), total_withdrawal)?;
 
         let s = &mut ctx.accounts.stake_account;
         s.claimed = true;
@@ -387,6 +402,7 @@ pub mod send_it {
             mint: ctx.accounts.token_mint.key(),
             staker: ctx.accounts.staker.key(),
             amount,
+            reward: actual_reward,
         });
 
         Ok(())

@@ -83,7 +83,11 @@ async function loadUserTokens() {
         const claimed = data[8 + 32 + 32 + 8 + 8 + 8] === 1;
         if (stakedAmount > 0 && !claimed) {
           const now = Math.floor(Date.now() / 1000);
-          stakeStatus = { amount: stakedAmount, unlockAt, claimed, unlocked: now >= unlockAt };
+          const stakedAt = Number(data.readBigInt64LE(8 + 32 + 32 + 8));
+          const elapsed = now - stakedAt;
+          // 10% APY: reward = amount * 1000 * elapsed / (10000 * 31536000)
+          const estimatedReward = Math.floor(stakedAmount * 1000 * elapsed / (10000 * 31536000));
+          stakeStatus = { amount: stakedAmount, unlockAt, claimed, unlocked: now >= unlockAt, stakedAt, estimatedReward };
         }
       }
 
@@ -97,8 +101,9 @@ async function loadUserTokens() {
         ${stakeStatus ? `
           <div class="stake-info ${stakeStatus.unlocked ? 'unlocked' : 'locked'}">
             <span>🔒 Staked: ${(stakeStatus.amount / 1e6).toLocaleString()}</span>
+            <span>💰 Est. Reward: ${(stakeStatus.estimatedReward / 1e6).toLocaleString()} (10% APY)</span>
             <span>${stakeStatus.unlocked ? '✅ Unlocked — ready to claim!' : '⏳ Unlocks: ' + new Date(stakeStatus.unlockAt * 1000).toLocaleString()}</span>
-            ${stakeStatus.unlocked ? `<button class="btn btn-green" onclick="unstakeTokens('${mintKey.toBase58()}')">Unstake</button>` : ''}
+            ${stakeStatus.unlocked ? `<button class="btn btn-green" onclick="unstakeTokens('${mintKey.toBase58()}')">Unstake + Claim Rewards</button>` : ''}
           </div>
         ` : ''}
         <div class="stake-form">
@@ -113,7 +118,23 @@ async function loadUserTokens() {
             <option value="31536000">1 year (max)</option>
           </select>
           <button class="btn btn-primary" onclick="stakeTokens('${mintKey.toBase58()}', ${amount.decimals})">Stake</button>
+          <div class="reward-estimate" id="reward-est-${mintKey.toBase58()}" style="font-size:0.8rem;color:#00c896;margin-top:4px;width:100%"></div>
         </div>
+        <script>
+          (function(){
+            const amt = document.getElementById('stake-amount-${mintKey.toBase58()}');
+            const dur = document.getElementById('stake-duration-${mintKey.toBase58()}');
+            const est = document.getElementById('reward-est-${mintKey.toBase58()}');
+            function calc() {
+              const a = parseFloat(amt.value) || 0;
+              const d = parseInt(dur.value) || 0;
+              const reward = a * 0.10 * d / 31536000;
+              est.textContent = a > 0 ? '💰 Est. reward: ' + reward.toFixed(2) + ' tokens (10% APY)' : '';
+            }
+            amt.addEventListener('input', calc);
+            dur.addEventListener('change', calc);
+          })();
+        </script>
       `;
       tokenList.appendChild(card);
     }

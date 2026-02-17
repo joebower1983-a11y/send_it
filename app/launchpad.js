@@ -127,10 +127,11 @@ async function createToken() {
   const { PublicKey, Transaction, TransactionInstruction, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } = solanaWeb3;
   const TOKEN_PROGRAM = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
   const ATA_PROGRAM = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+  const MPL_TOKEN_METADATA = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
   const name = document.getElementById('tokenName')?.value?.trim() || 'SendIt Token';
   const symbol = document.getElementById('tokenSymbol')?.value?.trim() || 'SENDIT';
-  const uri = 'https://senditsolana.io';
+  const uri = document.getElementById('tokenUri')?.value?.trim() || 'https://senditsolana.io';
 
   const launchBtn = document.getElementById('launchBtn');
   launchBtn.disabled = true;
@@ -144,6 +145,12 @@ async function createToken() {
     const [solVault] = findPDA([SEEDS.solVault, mint.toBuffer()]);
     const launchVault = getATA(mint, tokenLaunch);
 
+    // Derive Metaplex metadata PDA
+    const [metadata] = PublicKey.findProgramAddressSync(
+      [new TextEncoder().encode('metadata'), MPL_TOKEN_METADATA.toBuffer(), mint.toBuffer()],
+      MPL_TOKEN_METADATA
+    );
+
     const disc = await getDiscriminator('create_token');
     const data = concat(disc, encodeString(name), encodeString(symbol), encodeString(uri), new Uint8Array([0xF4, 0x01]));
 
@@ -153,12 +160,14 @@ async function createToken() {
         { pubkey: mint, isSigner: true, isWritable: true },
         { pubkey: launchVault, isSigner: false, isWritable: true },
         { pubkey: solVault, isSigner: false, isWritable: true },
+        { pubkey: metadata, isSigner: false, isWritable: true },
         { pubkey: platformConfig, isSigner: false, isWritable: true },
         { pubkey: walletPubkey, isSigner: true, isWritable: true },
         { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
         { pubkey: ATA_PROGRAM, isSigner: false, isWritable: false },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
         { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+        { pubkey: MPL_TOKEN_METADATA, isSigner: false, isWritable: false },
       ],
       programId: window.PROGRAM_KEY,
       data,

@@ -67,9 +67,17 @@
     .info-box li::before { content: "→ "; color: #00c896; }
 
     @media (max-width: 600px) {
+      .navbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      .navbar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+      .navbar nav a { margin-left: 0; font-size: 0.8rem; }
+      .container { padding: 20px 12px; }
+      .hero h1 { font-size: 1.5rem; }
       .stake-form { flex-direction: column; }
       .stake-form input, .stake-form select, .btn { width: 100%; }
       .token-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+      .stake-info { flex-direction: column; gap: 4px; }
+      .wallet-bar { flex-direction: column; gap: 8px; text-align: center; }
+      #connect-btn { width: 100%; }
     }
   </style>
 </head>
