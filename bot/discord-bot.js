@@ -13,10 +13,27 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const GUILD_ID = '1471992185959354400';
 const ACCENT = 0x00c896;
 
-// Mod IDs (Discord user IDs — update these as needed)
+// Mod IDs (Discord user IDs)
 const MOD_IDS = new Set([
-  // Add Discord user IDs of mods here
+  '331624493120356353', // JoeBower (Founder)
 ]);
+
+// ─── Role IDs ───
+const ROLES = {
+  founder:      '1473754458109509877',
+  mod:          '1473754458906300561',
+  diamondHands: '1473754460474839101',
+  whale:        '1473754469429809395',
+  og:           '1473754470600015902',
+  degen:        '1473754472898367540',
+  governor:     '1473754474416832778',
+  staker:       '1473754475851284611',
+  builder:      '1473754477269090405',
+  creator:      '1473754478569197722',
+  shillLord:    '1473754479328493673',
+  verified:     '1473754480716681416',
+  lurker:       '1473754481970643107',
+};
 
 // ─── Points (in-memory, persists to file) ───
 const fs = require('fs');
@@ -106,8 +123,13 @@ client.once(Events.ClientReady, (c) => {
   loadPoints();
 });
 
-// ─── Welcome ───
-client.on(Events.GuildMemberAdd, (member) => {
+// ─── Welcome + Auto-Role ───
+client.on(Events.GuildMemberAdd, async (member) => {
+  // Auto-assign Lurker role
+  try {
+    await member.roles.add(ROLES.lurker);
+  } catch (e) { console.warn('Failed to assign Lurker role:', e.message); }
+
   const channel = member.guild.systemChannel;
   if (!channel) return;
   
@@ -117,8 +139,8 @@ client.on(Events.GuildMemberAdd, (member) => {
     .setDescription(`Hey ${member}, welcome to the fairest token launchpad on Solana!\n\n` +
       '**Quick Links:**\n' +
       '• 🌐 [Website](https://senditsolana.io)\n' +
-      '• 🚀 [Launchpad](https://senditsolana.io/launchpad.html)\n' +
-      '• 💱 [Trading](https://senditsolana.io/trading.html)\n' +
+      '• 🚀 [App](https://send-it-seven-sigma.vercel.app/app/)\n' +
+      '• 💱 [Trading](https://send-it-seven-sigma.vercel.app/trading.html)\n' +
       '• 📦 [GitHub](https://github.com/joebower1983-a11y/send_it)\n\n' +
       'Type `!help` to see all commands. Enjoy your stay! 🐕')
     .setThumbnail(member.user.displayAvatarURL())
@@ -161,10 +183,87 @@ client.on(Events.MessageCreate, async (message) => {
       .addFields(
         { name: '📊 Info', value: '`!devnet` — Program info\n`!ca` — Contract address\n`!links` — All links\n`!stats` — Protocol stats', inline: true },
         { name: '🏆 Points', value: '`!points` — Your points\n`!leaderboard` — Top 10\n`!daily` — Daily check-in', inline: true },
-        { name: '🛡️ Mod', value: '`!warn @user` — Warn\n`!mute @user` — Timeout 10m\n`!addpoints @user N` — Give points', inline: true },
+        { name: '🎭 Roles', value: '`!roles` — View all roles\n`!verify` — Get Verified role\n`!iam degen` — Self-assign role', inline: true },
+        { name: '🛡️ Mod', value: '`!warn @user` — Warn\n`!mute @user` — Timeout 10m\n`!giverole @user role` — Assign role', inline: true },
       )
       .setFooter({ text: 'Send.it — The fairest launchpad on Solana' });
     return message.reply({ embeds: [embed] });
+  }
+
+  // ─── Role Commands ───
+  
+  if (content === '!roles') {
+    const embed = new EmbedBuilder()
+      .setColor(ACCENT)
+      .setTitle('🎭 Send.it Role Tiers')
+      .addFields(
+        { name: '🏆 S-TIER — Staff', value: '👑 Founder\n🛡️ Mod', inline: true },
+        { name: '🔥 A-TIER — OG & Whales', value: '💎 Diamond Hands\n🐋 Whale\n⭐ OG', inline: true },
+        { name: '📈 B-TIER — Active', value: '🚀 Degen\n🗳️ Governor\n🔒 Staker', inline: true },
+        { name: '🌱 C-TIER — Contributors', value: '🛠️ Builder\n🎨 Creator\n📢 Shill Lord', inline: true },
+        { name: '👋 D-TIER — Entry', value: '✅ Verified\n👀 Lurker', inline: true },
+        { name: '\u200b', value: 'Use `!verify` to get Verified\nUse `!iam <role>` for self-assign roles:\n`degen`, `builder`, `creator`', inline: false },
+      );
+    return message.reply({ embeds: [embed] });
+  }
+
+  if (content === '!verify') {
+    try {
+      // Remove Lurker, add Verified
+      await message.member.roles.remove(ROLES.lurker).catch(() => {});
+      await message.member.roles.add(ROLES.verified);
+      return message.reply('✅ You are now verified! Welcome to Send.it 🚀');
+    } catch (e) {
+      return message.reply('❌ Failed to verify: ' + e.message);
+    }
+  }
+
+  // Self-assignable roles
+  const SELF_ASSIGN = {
+    degen: ROLES.degen,
+    builder: ROLES.builder,
+    creator: ROLES.creator,
+  };
+
+  if (content.startsWith('!iam ')) {
+    const roleName = content.slice(5).trim().toLowerCase();
+    const roleId = SELF_ASSIGN[roleName];
+    if (!roleId) {
+      return message.reply(`❌ Can't self-assign that role. Options: ${Object.keys(SELF_ASSIGN).join(', ')}`);
+    }
+    try {
+      if (message.member.roles.cache.has(roleId)) {
+        await message.member.roles.remove(roleId);
+        return message.reply(`Removed **${roleName}** role.`);
+      } else {
+        await message.member.roles.add(roleId);
+        return message.reply(`✅ You are now a **${roleName}**! 🔥`);
+      }
+    } catch (e) {
+      return message.reply('❌ Failed: ' + e.message);
+    }
+  }
+
+  // Mod role assignment
+  if (content.startsWith('!giverole') && message.member?.permissions?.has(PermissionFlagsBits.ManageRoles)) {
+    const target = message.mentions.members?.first();
+    const args = content.split(/\s+/);
+    const roleName = args[args.length - 1].toLowerCase();
+    const ALL_ROLES = {
+      founder: ROLES.founder, mod: ROLES.mod, diamond: ROLES.diamondHands, diamondhands: ROLES.diamondHands,
+      whale: ROLES.whale, og: ROLES.og, degen: ROLES.degen, governor: ROLES.governor,
+      staker: ROLES.staker, builder: ROLES.builder, creator: ROLES.creator,
+      shill: ROLES.shillLord, shilllord: ROLES.shillLord, verified: ROLES.verified, lurker: ROLES.lurker,
+    };
+    if (!target || !ALL_ROLES[roleName]) {
+      return message.reply(`Usage: \`!giverole @user <role>\`\nRoles: ${Object.keys(ALL_ROLES).join(', ')}`);
+    }
+    try {
+      await target.roles.add(ALL_ROLES[roleName]);
+      return message.reply(`✅ Gave **${roleName}** to **${target.user.username}**`);
+    } catch (e) {
+      return message.reply('❌ Failed: ' + e.message);
+    }
   }
   
   if (content === '!devnet') {
@@ -217,9 +316,9 @@ client.on(Events.MessageCreate, async (message) => {
       .setColor(ACCENT)
       .setTitle('📊 Protocol Stats')
       .addFields(
-        { name: 'Modules', value: '31', inline: true },
+        { name: 'Modules', value: '34', inline: true },
         { name: 'Lines of Rust', value: '16k+', inline: true },
-        { name: 'Frontend Pages', value: '12', inline: true },
+        { name: 'Frontend Pages', value: '15', inline: true },
         { name: 'Devnet Instructions', value: '11', inline: true },
         { name: 'Vulnerabilities', value: '0 ✅', inline: true },
         { name: 'AMM Fee', value: '1% (0.3% LP / 0.7% protocol)', inline: true },
