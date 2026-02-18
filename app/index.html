@@ -377,15 +377,79 @@ function showPage(id) {
 }
 
 // ═══════════════════════════════════════════════
-//  WALLET
+//  WALLET (Wallet Standard + legacy fallback)
 // ═══════════════════════════════════════════════
+
+// Wallet Standard: detect wallets registered via the standard protocol
+// This is the proper way — avoids Phantom phishing warnings
+const registeredWallets = [];
+
+function getWalletStandardWallets() {
+  try {
+    const wallets = window.navigator?.wallets;
+    if (wallets) {
+      const discovered = [];
+      wallets.get().forEach(w => {
+        if (w.features?.['standard:connect'] && w.chains?.some(c => c.startsWith('solana:'))) {
+          discovered.push(w);
+        }
+      });
+      return discovered;
+    }
+  } catch (e) { console.warn('Wallet Standard discovery failed:', e); }
+  return [];
+}
+
+// Also listen for wallets registering after page load
+try {
+  window.navigator?.wallets?.on('register', (wallet) => {
+    if (wallet.features?.['standard:connect'] && wallet.chains?.some(c => c.startsWith('solana:'))) {
+      registeredWallets.push(wallet);
+    }
+  });
+} catch (e) {}
+
+function detectWallets() {
+  const wallets = [];
+
+  // 1. Wallet Standard wallets (preferred — no phishing warning)
+  const stdWallets = [...getWalletStandardWallets(), ...registeredWallets];
+  const seenNames = new Set();
+  for (const w of stdWallets) {
+    if (seenNames.has(w.name)) continue;
+    seenNames.add(w.name);
+    wallets.push({
+      name: w.name,
+      icon: w.icon || '💳',
+      isStandard: true,
+      standardWallet: w,
+    });
+  }
+
+  // 2. Legacy injected providers (fallback)
+  if (!seenNames.has('Phantom') && window.solana?.isPhantom) {
+    wallets.push({ name: 'Phantom', icon: 'https://phantom.app/img/logo.png', isStandard: false, provider: window.solana });
+  }
+  if (!seenNames.has('Solflare') && window.solflare?.isSolflare) {
+    wallets.push({ name: 'Solflare', icon: 'https://solflare.com/favicon.ico', isStandard: false, provider: window.solflare });
+  }
+  if (!seenNames.has('Backpack') && window.backpack?.isBackpack) {
+    wallets.push({ name: 'Backpack', icon: '🎒', isStandard: false, provider: window.backpack });
+  }
+
+  return wallets;
+}
+
 async function connectWallet() {
   const btn = document.getElementById('walletBtn');
 
+  // Disconnect
   if (walletPubkey) {
-    // Disconnect properly
     try {
       if (walletAdapter?.disconnect) await walletAdapter.disconnect();
+      if (walletAdapter?.features?.['standard:disconnect']) {
+        await walletAdapter.features['standard:disconnect'].disconnect();
+      }
     } catch (e) { console.warn('Disconnect error:', e); }
     walletPubkey = null;
     walletAdapter = null;
@@ -396,44 +460,93 @@ async function connectWallet() {
     return;
   }
 
-  // Show wallet picker if multiple wallets detected
-  const wallets = [];
-  if (window.solana?.isPhantom) wallets.push({ name: 'Phantom', provider: window.solana, icon: '👻' });
-  if (window.solflare?.isSolflare) wallets.push({ name: 'Solflare', provider: window.solflare, icon: '🔆' });
-  // Backpack, Glow, etc
-  if (window.backpack?.isBackpack) wallets.push({ name: 'Backpack', provider: window.backpack, icon: '🎒' });
+  // Detect available wallets
+  const wallets = detectWallets();
 
   if (wallets.length === 0) {
-    toast('Install Phantom, Solflare, or Backpack wallet');
+    toast('No wallet found — install Phantom, Solflare, or Backpack');
+    window.open('https://phantom.app/', '_blank');
     return;
   }
 
-  let provider;
+  // Pick wallet
+  let chosen;
   if (wallets.length === 1) {
-    provider = wallets[0].provider;
+    chosen = wallets[0];
   } else {
-    // Multiple wallets — let user pick
-    const choice = await showWalletPicker(wallets);
-    if (!choice) return;
-    provider = choice;
+    chosen = await showWalletPicker(wallets);
+    if (!chosen) return;
   }
 
   try {
-    const resp = await provider.connect();
-    walletAdapter = provider;
-    walletPubkey = resp.publicKey || provider.publicKey;
+    if (chosen.isStandard) {
+      // Wallet Standard connect
+      const connectFeature = chosen.standardWallet.features['standard:connect'];
+      const result = await connectFeature.connect();
+      const account = result.accounts[0];
+      if (!account) throw new Error('No account returned');
+
+      walletPubkey = new solanaWeb3.PublicKey(account.address);
+      // Build an adapter shim for signTransaction
+      walletAdapter = buildStandardAdapter(chosen.standardWallet);
+    } else {
+      // Legacy provider connect
+      const resp = await chosen.provider.connect();
+      walletAdapter = chosen.provider;
+      walletPubkey = resp.publicKey || chosen.provider.publicKey;
+    }
 
     const addr = walletPubkey.toBase58();
     btn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>&nbsp; ${addr.slice(0,4)}..${addr.slice(-4)}`;
     btn.classList.add('connected');
-    toast('Wallet connected! ✅');
+    toast(`Connected to ${chosen.name}! ✅`);
 
     await updateBalance();
     loadLiveTokens();
   } catch (e) {
     console.error('Wallet connect failed:', e);
-    toast('Connection failed: ' + (e.message || e));
+    if (e.message?.includes('User rejected')) {
+      toast('Connection cancelled');
+    } else {
+      toast('Connection failed: ' + (e.message || e));
+    }
   }
+}
+
+// Build a signTransaction shim for Wallet Standard wallets
+function buildStandardAdapter(stdWallet) {
+  return {
+    _std: stdWallet,
+    disconnect: async () => {
+      const feat = stdWallet.features['standard:disconnect'];
+      if (feat) await feat.disconnect();
+    },
+    signTransaction: async (tx) => {
+      const feat = stdWallet.features['solana:signTransaction'];
+      if (feat) {
+        const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+        const result = await feat.signTransaction({
+          transaction: serialized,
+          chain: 'solana:devnet',
+        });
+        return solanaWeb3.Transaction.from(result.signedTransaction);
+      }
+      // Fallback: signAndSendTransaction
+      throw new Error('Wallet does not support signTransaction');
+    },
+    signAndSendTransaction: async (tx) => {
+      const feat = stdWallet.features['solana:signAndSendTransaction'];
+      if (feat) {
+        const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+        const result = await feat.signAndSendTransaction({
+          transaction: serialized,
+          chain: 'solana:devnet',
+        });
+        return { signature: result.signature };
+      }
+      throw new Error('Wallet does not support signAndSendTransaction');
+    }
+  };
 }
 
 function showWalletPicker(wallets) {
@@ -443,22 +556,67 @@ function showWalletPicker(wallets) {
     overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); resolve(null); } };
 
     const panel = document.createElement('div');
-    panel.style.cssText = 'background:var(--bg2);border:1px solid rgba(0,232,123,.15);border-radius:16px;padding:24px;max-width:320px;width:100%;animation:fadeUp .3s';
-    panel.innerHTML = '<h3 style="margin-bottom:16px;font-size:18px;font-weight:800">Select Wallet</h3>';
+    panel.style.cssText = 'background:var(--bg2);border:1px solid rgba(0,232,123,.15);border-radius:16px;padding:24px;max-width:340px;width:100%;animation:fadeUp .3s';
+    panel.innerHTML = `
+      <h3 style="margin-bottom:4px;font-size:18px;font-weight:800">Connect Wallet</h3>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:16px">Choose your Solana wallet</p>
+    `;
 
     wallets.forEach(w => {
       const btn = document.createElement('button');
       btn.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:10px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;margin-bottom:8px;transition:.2s;border:1px solid transparent';
-      btn.innerHTML = `<span style="font-size:24px">${w.icon}</span> ${w.name}`;
-      btn.onmouseenter = () => btn.style.borderColor = 'rgba(0,232,123,.3)';
-      btn.onmouseleave = () => btn.style.borderColor = 'transparent';
-      btn.onclick = () => { overlay.remove(); resolve(w.provider); };
+
+      const iconHtml = (w.icon && w.icon.startsWith('http'))
+        ? `<img src="${w.icon}" style="width:28px;height:28px;border-radius:6px" onerror="this.textContent='💳'">`
+        : `<span style="font-size:24px">${w.icon || '💳'}</span>`;
+      btn.innerHTML = `${iconHtml} <span>${w.name}</span>`;
+
+      btn.onmouseenter = () => { btn.style.borderColor = 'rgba(0,232,123,.3)'; btn.style.background = 'var(--bg4)'; };
+      btn.onmouseleave = () => { btn.style.borderColor = 'transparent'; btn.style.background = 'var(--bg3)'; };
+      btn.onclick = () => { overlay.remove(); resolve(w); };
       panel.appendChild(btn);
     });
 
+    // "Get a wallet" link
+    const getWallet = document.createElement('a');
+    getWallet.href = 'https://phantom.app/';
+    getWallet.target = '_blank';
+    getWallet.style.cssText = 'display:block;text-align:center;font-size:12px;color:var(--text3);margin-top:12px;text-decoration:underline';
+    getWallet.textContent = "Don't have a wallet? Get Phantom →";
+    panel.appendChild(getWallet);
+
     overlay.appendChild(panel);
     document.body.appendChild(overlay);
+
+    // Escape to close
+    const handler = (e) => { if (e.key === 'Escape') { overlay.remove(); resolve(null); document.removeEventListener('keydown', handler); } };
+    document.addEventListener('keydown', handler);
   });
+}
+
+// Universal sign + send helper (works with both Standard and legacy wallets)
+async function signAndSend(tx) {
+  // Try legacy signTransaction first (most common path)
+  if (walletAdapter.signTransaction) {
+    try {
+      const signed = await walletAdapter.signTransaction(tx);
+      const sig = await connection.sendRawTransaction(signed.serialize());
+      return sig;
+    } catch (e) {
+      // If signTransaction fails on standard wallet, try signAndSendTransaction
+      if (walletAdapter.signAndSendTransaction && e.message?.includes('does not support')) {
+        const result = await walletAdapter.signAndSendTransaction(tx);
+        return result.signature;
+      }
+      throw e;
+    }
+  }
+  // Fallback: signAndSendTransaction
+  if (walletAdapter.signAndSendTransaction) {
+    const result = await walletAdapter.signAndSendTransaction(tx);
+    return result.signature;
+  }
+  throw new Error('Wallet does not support transaction signing');
 }
 
 async function updateBalance() {
@@ -940,8 +1098,7 @@ async function buyToken(mintStr, solAmount, btn, origText) {
 
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.feePayer = walletPubkey;
-    const signed = await walletAdapter.signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signed.serialize());
+    const sig = await signAndSend(tx);
     await connection.confirmTransaction(sig, 'confirmed');
 
     toast('💚 Buy succeeded!');
@@ -999,8 +1156,7 @@ async function sellToken(mintStr, tokenAmount, btn, origText) {
 
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     tx.feePayer = walletPubkey;
-    const signed = await walletAdapter.signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signed.serialize());
+    const sig = await signAndSend(tx);
     await connection.confirmTransaction(sig, 'confirmed');
 
     toast('🔴 Sell succeeded!');
@@ -1114,8 +1270,7 @@ async function createToken() {
     tx.feePayer = walletPubkey;
     tx.partialSign(mintKeypair);
 
-    const signed = await walletAdapter.signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signed.serialize());
+    const sig = await signAndSend(tx);
     await connection.confirmTransaction(sig, 'confirmed');
 
     toast(`🚀 Token launched! ${name} ($${symbol})`);
