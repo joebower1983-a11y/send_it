@@ -35,18 +35,18 @@ let useOnChain = false;
 
 // Account types in SPL Governance v3
 const GOV_ACCOUNT_TYPE = {
-  Realm: 1,
-  TokenOwnerRecord: 2,
-  Governance: 3,
-  ProposalV2: 6,
-  VoteRecordV2: 8,
-  ProposalTransactionV2: 10,
-  SignatoryRecordV2: 11,
+  Realm: 16,            // RealmV2
+  TokenOwnerRecord: 17, // TokenOwnerRecordV2
+  Governance: 18,       // GovernanceV2
+  ProposalV2: 14,
+  VoteRecordV2: 12,
+  ProposalTransactionV2: 13,
+  SignatoryRecordV2: 22,
 };
 
 // Proposal state enum
 const PROPOSAL_STATE = {
-  0: 'draft',
+  0: 'active',     // Draft
   1: 'active',     // SigningOff
   2: 'active',     // Voting
   3: 'passed',     // Succeeded
@@ -90,23 +90,23 @@ function parseProposalV2(data, pubkey) {
   let description = '';
   
   try {
-    // The name starts at a fixed offset in v3. Let's try reading it.
-    // After pubkeys + state + various fields, name is a borsh string (u32 len + utf8)
-    // Approximate offset: governance(32) + token_mint(32) + state(1) + token_owner_record(32) + 
-    // signatory_count(1) + signing_off_at(8, option) + voting_at(8, option) + 
-    // voting_at_slot(8, option) + voting_completed_at(8, option) + 
-    // executing_at(8, option) + closed_at(8, option) + 
-    // execution_flags(1) + max_vote_weight(8, option) + max_voting_time(4, option) +
-    // vote_threshold(2, option) + reserved(64) + name(borsh string)
-    
-    // Easier approach: scan for the string using borsh u32 length prefix
-    const nameOffset = findBorshString(data, 200);
-    if (nameOffset) {
-      name = nameOffset.value;
-      // Description follows name
-      const descOffset = findBorshString(data, nameOffset.end);
-      if (descOffset) description = descOffset.value;
+    // Scan for title string — starts after fixed header + vote options (~offset 200-300)
+    // Title is typically the longest meaningful string after the options array
+    const strings = [];
+    let scanPos = 100;
+    while (scanPos < data.length - 4) {
+      const found = findBorshString(data, scanPos);
+      if (found) {
+        strings.push(found);
+        scanPos = found.end;
+      } else {
+        scanPos++;
+      }
     }
+    // Title is usually the string with length > 10 that comes after vote option labels
+    const meaningful = strings.filter(s => s.value.length > 10);
+    if (meaningful.length >= 1) name = meaningful[0].value;
+    if (meaningful.length >= 2) description = meaningful[1].value;
   } catch (e) {
     // Fallback
   }
