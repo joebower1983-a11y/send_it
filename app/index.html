@@ -6,15 +6,15 @@
 <title>Send.it — Solana Token Launchpad</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
---bg:#0f1117;--bg2:#151820;--bg3:#1c1f2e;--bg4:#252838;
---neon:#00e87b;--neon2:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
---text:#e8e8f0;--text2:#8888aa;--text3:#555570;
---glow:0 0 20px rgba(0,232,123,.3);
---glow2:0 0 20px rgba(0,232,123,.3);
---radius:12px;--radius2:8px;
+  --bg:#0f1117;--bg2:#151820;--bg3:#1c1f2e;--bg4:#252838;
+  --neon:#00e87b;--pink:#ff2d78;--purple:#a855f7;--orange:#ff8800;
+  --text:#e8e8f0;--text2:#8888aa;--text3:#555570;
+  --glow:0 0 20px rgba(0,232,123,.3);
+  --radius:12px;--radius2:8px;
 }
 html{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);scroll-behavior:smooth}
 body{min-height:100vh;overflow-x:hidden;background-image:
@@ -25,871 +25,1235 @@ a{color:inherit;text-decoration:none}
 button{cursor:pointer;font-family:inherit;border:none;outline:none}
 input,select,textarea{font-family:inherit;outline:none;border:none;background:var(--bg2);color:var(--text);border-radius:var(--radius2);padding:12px 16px;font-size:14px;width:100%;transition:.2s}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px var(--neon),var(--glow)}
-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238888aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 textarea{resize:vertical;min-height:80px}
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
 
 /* ─── TESTNET BANNER ─── */
-.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#0f1117,#1a2332,#0f1117);padding:10px 16px;text-align:center;font-weight:800;font-size:14px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 20px rgba(0,232,123,.2);border-bottom:1px solid rgba(0,232,123,.3);animation:bannerPulse 3s ease-in-out infinite}
-@keyframes bannerPulse{0%,100%{box-shadow:0 2px 20px rgba(0,232,123,.2)}50%{box-shadow:0 2px 30px rgba(0,232,123,.4)}}
-.testnet-banner span{display:inline-block;animation:bannerGlow 2s ease-in-out infinite alternate}
-@keyframes bannerGlow{0%{text-shadow:0 0 5px rgba(0,232,123,.2)}100%{text-shadow:0 0 15px rgba(0,232,123,.5)}}
+.testnet-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#0f1117,#1a2332,#0f1117);padding:8px 16px;text-align:center;font-weight:800;font-size:13px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(0,232,123,.3)}
 
 /* ─── LAYOUT ─── */
-#app{display:flex;flex-direction:column;min-height:100vh;padding-top:40px}
+#app{display:flex;flex-direction:column;min-height:100vh;padding-top:36px}
 
 /* ─── HEADER ─── */
-header{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,232,123,.15);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+header{position:sticky;top:36px;z-index:100;background:rgba(15,17,23,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,232,123,.15);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:-1px}
-.logo span{color:var(--neon);-webkit-text-fill-color:var(--neon);text-shadow:0 0 20px rgba(0,232,123,.4)}
-.logo .dot{color:var(--neon);-webkit-text-fill-color:var(--neon)}
-.logo-icon{width:32px;height:32px;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;font-size:24px;animation:pulse-glow 2s ease-in-out infinite}
+.logo span{color:var(--neon);text-shadow:0 0 20px rgba(0,232,123,.4)}
+.logo-icon{font-size:24px;animation:pulse-glow 2s ease-in-out infinite}
 @keyframes pulse-glow{0%,100%{filter:drop-shadow(0 0 6px rgba(0,232,123,.4))}50%{filter:drop-shadow(0 0 14px rgba(0,232,123,.7))}}
-
-/* ─── HERO ─── */
-.hero-section{text-align:center;padding:48px 24px 32px;position:relative}
-.hero-title{font-size:56px;font-weight:900;color:var(--neon);text-shadow:0 0 40px rgba(0,232,123,.35),0 0 80px rgba(0,232,123,.15);letter-spacing:-2px;margin-bottom:8px}
-.hero-tagline{font-size:18px;color:#9ca3af;font-weight:400;margin-bottom:24px}
-.feature-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
-.feature-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;background:rgba(0,232,123,.06);border:1px solid rgba(0,232,123,.18);color:#c0c8d4;font-size:13px;font-weight:600;transition:.2s}
-.feature-badge:hover{border-color:rgba(0,232,123,.4);background:rgba(0,232,123,.1)}
-.feature-badge .badge-icon{color:#f59e0b;font-size:14px}
-@media(max-width:480px){.hero-title{font-size:36px}}
-.header-right{display:flex;align-items:center;gap:16px}
-.sol-balance{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--neon);background:rgba(0,255,136,.08);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,255,136,.15);display:none;align-items:center;gap:6px}
+.header-right{display:flex;align-items:center;gap:12px}
+.sol-balance{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--neon);background:rgba(0,232,123,.08);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,232,123,.15);display:none;align-items:center;gap:6px}
 .sol-balance.show{display:flex}
-.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),var(--neon2));transition:.3s;position:relative;overflow:hidden}
+.wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),#00c868);transition:.3s}
 .wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
-.wallet-btn.connected{background:var(--bg3);color:var(--neon);border:1px solid rgba(0,255,136,.2)}
-.wallet-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);transition:.5s;opacity:0}
-.wallet-btn:hover::after{opacity:1;transform:rotate(45deg) translateY(100%)}
+.wallet-btn.connected{background:var(--bg3);color:var(--neon);border:1px solid rgba(0,232,123,.2)}
 
 /* ─── NAV ─── */
-nav{position:sticky;top:64px;z-index:99;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,232,123,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px}
-.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px;position:relative}
+nav{position:sticky;top:96px;z-index:99;background:rgba(15,17,23,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,232,123,.08);display:flex;justify-content:center;gap:4px;padding:8px 16px;overflow-x:auto}
+.nav-item{padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--text2);transition:.25s;display:flex;align-items:center;gap:8px;white-space:nowrap}
 .nav-item:hover{color:var(--text);background:var(--bg3)}
-.nav-item.active{color:var(--neon);background:rgba(0,255,136,.08)}
-.nav-item.active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--neon);border-radius:1px}
-.nav-item i{font-size:15px}
+.nav-item.active{color:var(--neon);background:rgba(0,232,123,.08)}
 
 /* ─── MAIN ─── */
-main{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
-.page{display:none;animation:fadeUp .35s ease}
+main{flex:1;padding:24px;max-width:1200px;margin:0 auto;width:100%}
+.page{display:none;animation:fadeUp .3s ease}
 .page.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
 /* ─── CARDS ─── */
 .card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;transition:.25s}
-.card:hover{border-color:rgba(0,255,136,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
+.card:hover{border-color:rgba(0,232,123,.15);box-shadow:0 4px 30px rgba(0,0,0,.3)}
 
-/* ─── CREATE TOKEN PAGE ─── */
-.create-hero{text-align:center;margin-bottom:32px}
-.create-hero h1{font-size:36px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--neon),var(--neon2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.create-hero p{color:var(--text2);font-size:15px}
-.create-form{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+/* ─── CREATE TOKEN ─── */
+.create-section{max-width:640px;margin:0 auto}
+.create-section h1{font-size:32px;font-weight:900;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--neon),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.create-section .subtitle{text-align:center;color:var(--text2);margin-bottom:32px;font-size:15px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:6px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-group label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
-.form-section{background:var(--bg3);border-radius:var(--radius);padding:18px;border:1px solid rgba(255,255,255,.04)}
-.form-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.send-btn{width:100%;padding:18px;border-radius:var(--radius);font-size:18px;font-weight:900;color:#000;background:linear-gradient(135deg,var(--neon),#00e07a);position:relative;overflow:hidden;transition:.3s;text-transform:uppercase;letter-spacing:2px}
-.send-btn:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,255,136,.4)}
-.send-btn:active{transform:translateY(0)}
-.send-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-100%);transition:none}
-.send-btn:hover::before{animation:shimmer .8s}
-@keyframes shimmer{to{transform:translateX(100%)}}
+.form-section{background:var(--bg3);border-radius:var(--radius);padding:18px;margin-bottom:20px;border:1px solid rgba(255,255,255,.04)}
+.form-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pink);margin-bottom:14px}
+.upload-area{border:2px dashed var(--bg4);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:.2s;color:var(--text2)}
+.upload-area:hover{border-color:var(--neon);background:rgba(0,232,123,.03)}
+.fee-display{font-family:'JetBrains Mono',monospace;color:var(--neon);font-weight:700;font-size:14px}
+.launch-btn{width:100%;padding:18px;border-radius:var(--radius);font-size:18px;font-weight:900;color:#000;background:linear-gradient(135deg,var(--neon),#00c868);text-transform:uppercase;letter-spacing:2px;transition:.3s;margin-top:8px}
+.launch-btn:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,232,123,.4)}
+.launch-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
 /* ─── TOKEN GRID ─── */
-.explore-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
-.explore-header h2{font-size:24px;font-weight:800}
-.search-box{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px;width:300px}
-.search-box input{background:transparent;padding:0;font-size:14px}
-.search-box input:focus{box-shadow:none}
-.search-box i{color:var(--text3)}
-.token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.explore-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.explore-header h2{font-size:24px;font-weight:900}
+.search-box{max-width:300px;position:relative}
+.search-box input{padding-left:36px}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .token-card{cursor:pointer;position:relative;overflow:hidden}
-.token-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--neon),var(--neon2));opacity:0;transition:.3s}
-.token-card:hover::before{opacity:1}
-.token-card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.token-img{width:48px;height:48px;border-radius:10px;object-fit:cover;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden}
+.token-card:hover{transform:translateY(-2px);border-color:rgba(0,232,123,.3)}
+.token-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.token-img{width:48px;height:48px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden}
 .token-img img{width:100%;height:100%;object-fit:cover}
-.token-meta h3{font-size:15px;font-weight:700}
-.token-meta .symbol{color:var(--neon);font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700}
-.token-meta .time{color:var(--text3);font-size:11px}
-.token-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
-.stat{background:var(--bg);border-radius:var(--radius2);padding:8px 10px;text-align:center}
-.stat .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.stat .value{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
-.migration-bar{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-bottom:8px}
-.migration-bar .fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--neon2));transition:width .5s ease}
+.token-name{font-weight:800;font-size:16px}
+.token-sym{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon)}
+.token-time{font-size:11px;color:var(--text3)}
+.token-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.token-stats .stat{text-align:center}
+.token-stats .label{font-size:10px;text-transform:uppercase;color:var(--text3);letter-spacing:.5px}
+.token-stats .value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
+.migration-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.migration-bar .fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--purple));border-radius:2px;transition:width .5s}
 .migration-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3)}
-.creator-addr{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:8px}
-.trust-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;margin-left:8px}
-.tier-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
-.tier-bronze{background:rgba(205,127,50,.15);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
-.tier-silver{background:rgba(192,192,192,.15);color:#c0c0c0;border:1px solid rgba(192,192,192,.3)}
-.tier-gold{background:rgba(255,215,0,.15);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
-.tier-platinum{background:rgba(229,228,226,.15);color:#e5e4e2;border:1px solid rgba(229,228,226,.3)}
-.reputation-gauge{width:100%;height:12px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:6px}
-.reputation-gauge .fill{height:100%;border-radius:6px;transition:width .6s ease}
-.reputation-section{margin-top:20px}
-.reputation-section h3{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.rep-stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
-.rep-stat .rep-label{color:var(--text3)}
-.rep-stat .rep-val{font-weight:700;font-family:'JetBrains Mono',monospace}
-.fairscore-big{font-size:48px;font-weight:900;font-family:'JetBrains Mono',monospace;text-align:center;margin:16px 0 8px}
-.launch-rep-gate{background:var(--bg3);border-radius:var(--radius);padding:16px;margin-bottom:16px;border:1px solid rgba(255,255,255,.06)}
-.launch-rep-gate.eligible{border-color:rgba(0,255,136,.2)}
-.launch-rep-gate.blocked{border-color:rgba(255,45,120,.2)}
-.launch-rep-gate h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.creator-addr{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-top:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px}
+.badge-live{background:rgba(0,232,123,.15);color:var(--neon)}
+.badge-migrated{background:rgba(168,85,247,.15);color:var(--purple)}
 
 /* ─── TOKEN DETAIL ─── */
-.detail-back{display:inline-flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:600;margin-bottom:20px;cursor:pointer;transition:.2s}
-.detail-back:hover{color:var(--neon)}
-.detail-layout{display:grid;grid-template-columns:1fr 380px;gap:20px}
-.chart-placeholder{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);height:360px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.chart-placeholder::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.02) 39px,rgba(255,255,255,.02) 40px)}
-.chart-line{position:absolute;bottom:40px;left:20px;right:20px}
-.chart-line svg{width:100%;height:120px}
-.trade-panel{display:flex;flex-direction:column;gap:16px}
-.trade-tabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px}
-.trade-tab{flex:1;padding:10px;text-align:center;border-radius:8px;font-weight:700;font-size:14px;transition:.2s;color:var(--text2)}
-.trade-tab.active-buy{background:rgba(0,255,136,.1);color:var(--neon)}
-.trade-tab.active-sell{background:rgba(255,45,120,.1);color:var(--pink)}
-.trade-tab:hover{color:var(--text)}
-.amount-input{position:relative}
-.amount-input input{padding-right:60px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;padding:16px}
-.amount-input .suffix{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;font-weight:700}
-.slippage-row{display:flex;gap:8px}
-.slippage-btn{padding:8px 14px;border-radius:8px;background:var(--bg);color:var(--text2);font-size:12px;font-weight:700;transition:.2s}
-.slippage-btn.active{background:rgba(0,255,136,.1);color:var(--neon)}
-.slippage-btn:hover{color:var(--text)}
-.exec-trade{padding:16px;border-radius:10px;font-size:16px;font-weight:800;width:100%;transition:.3s}
-.exec-trade.buy-btn{background:linear-gradient(135deg,var(--neon),#00cc66);color:#000}
-.exec-trade.sell-btn{background:linear-gradient(135deg,var(--pink),#cc1155);color:#fff}
-.exec-trade:hover{transform:translateY(-1px);box-shadow:0 6px 30px rgba(0,255,136,.3)}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
-.info-item{background:var(--bg2);border-radius:var(--radius2);padding:12px;border:1px solid rgba(255,255,255,.04)}
-.info-item .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-.info-item .val{font-size:14px;font-weight:700;margin-top:4px;font-family:'JetBrains Mono',monospace}
-.trade-history{margin-top:20px}
-.trade-history h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text2)}
-.trade-row{display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:8px;padding:10px 12px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;background:var(--bg);margin-bottom:4px}
-.trade-row.header{color:var(--text3);font-weight:700;font-family:'Inter',sans-serif;background:transparent}
-.trade-type{font-weight:700;border-radius:4px;text-align:center;padding:2px 0}
-.trade-type.buy{color:var(--neon)}
-.trade-type.sell{color:var(--pink)}
-
-/* ─── LEADERBOARD ─── */
-.lb-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border-radius:10px;padding:4px;display:inline-flex}
-.lb-tab{padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;color:var(--text2);transition:.2s}
-.lb-tab.active{background:var(--bg4);color:var(--neon)}
-.lb-tab:hover{color:var(--text)}
-.lb-table{width:100%;border-collapse:separate;border-spacing:0 4px}
-.lb-table th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
-.lb-table td{padding:12px 16px;background:var(--bg2);font-size:13px}
-.lb-table tr td:first-child{border-radius:10px 0 0 10px}
-.lb-table tr td:last-child{border-radius:0 10px 10px 0}
-.lb-table tbody tr{transition:.2s}
-.lb-table tbody tr:hover td{background:var(--bg3)}
-.rank{font-weight:900;font-size:16px;width:40px;text-align:center}
-.rank-1{color:var(--orange);text-shadow:0 0 10px rgba(255,136,0,.5)}
-.rank-2{color:#ccc}
-.rank-3{color:#cd7f32}
-.lb-token{display:flex;align-items:center;gap:10px}
-.lb-token img,.lb-token .lb-avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;background:var(--bg4)}
+.detail-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);overflow-y:auto;padding:24px}
+.detail-overlay.show{display:flex;justify-content:center;align-items:flex-start;padding-top:80px}
+.detail-panel{background:var(--bg2);border:1px solid rgba(0,232,123,.15);border-radius:16px;max-width:560px;width:100%;padding:28px;position:relative;animation:fadeUp .3s}
+.detail-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:16px}
+.detail-close:hover{color:var(--text);background:var(--bg4)}
+.detail-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.detail-header .token-img{width:64px;height:64px;font-size:32px}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.detail-info-item{background:var(--bg3);border-radius:var(--radius2);padding:12px}
+.detail-info-item .label{font-size:10px;text-transform:uppercase;color:var(--text3);letter-spacing:.5px;margin-bottom:4px}
+.detail-info-item .value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+.trade-tabs{display:flex;gap:4px;margin-bottom:16px}
+.trade-tab{flex:1;padding:10px;border-radius:var(--radius2);font-weight:700;font-size:14px;text-align:center;background:var(--bg3);color:var(--text2);transition:.2s}
+.trade-tab.active-buy{background:rgba(0,232,123,.15);color:var(--neon)}
+.trade-tab.active-sell{background:rgba(255,45,120,.15);color:var(--pink)}
+.trade-input-group{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.trade-input-group input{flex:1}
+.trade-input-group .unit{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text2);white-space:nowrap}
+.trade-btn{width:100%;padding:14px;border-radius:var(--radius2);font-size:16px;font-weight:800;transition:.3s}
+.trade-btn.buy{color:#000;background:linear-gradient(135deg,var(--neon),#00c868)}
+.trade-btn.sell{color:#fff;background:linear-gradient(135deg,var(--pink),#d41e5c)}
+.trade-btn:hover{transform:translateY(-1px)}
+.trade-btn:disabled{opacity:.5;transform:none;cursor:not-allowed}
+.quick-amounts{display:flex;gap:6px;margin-bottom:12px}
+.quick-amt{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--text2);transition:.2s}
+.quick-amt:hover{color:var(--neon);background:var(--bg4)}
 
 /* ─── PORTFOLIO ─── */
-.portfolio-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.summary-card{padding:20px;text-align:center}
-.summary-card .big{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.summary-card .desc{font-size:12px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
-.holdings-table{width:100%}
-.holdings-table th{text-align:left;padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:700}
-.holdings-table td{padding:14px 16px;background:var(--bg2);font-size:13px;border-bottom:2px solid var(--bg)}
-.pnl-pos{color:var(--neon)}
-.pnl-neg{color:var(--pink)}
+.portfolio-empty{text-align:center;padding:60px 20px;color:var(--text2)}
+.portfolio-empty i{font-size:48px;margin-bottom:16px;color:var(--text3)}
+.position-card{display:flex;align-items:center;gap:16px;padding:16px;margin-bottom:12px}
+.position-card .token-img{width:40px;height:40px;font-size:20px}
 
-/* ─── LIVE INDICATOR ─── */
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--neon);display:inline-block;animation:blink 1.5s infinite;margin-right:6px}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ─── RESPONSIVE ─── */
-@media(max-width:900px){
-  .detail-layout{grid-template-columns:1fr}
-  .form-row{grid-template-columns:1fr}
-  nav{overflow-x:auto;justify-content:flex-start}
-  .nav-item{white-space:nowrap;padding:10px 16px;font-size:13px}
-  .search-box{width:100%}
-  .explore-header{flex-direction:column;align-items:stretch}
-}
-@media(max-width:480px){
-  main{padding:16px}
-  header{padding:0 16px}
-  .logo{font-size:18px}
-  .token-grid{grid-template-columns:1fr}
-  .create-hero h1{font-size:26px}
-}
-
-/* ─── PARTICLES BG ─── */
-#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.particle{position:absolute;border-radius:50%;background:var(--neon);opacity:.15;animation:float linear infinite}
-@keyframes float{0%{transform:translateY(100vh) scale(0)}50%{opacity:.3}100%{transform:translateY(-10vh) scale(1);opacity:0}}
-main,header,nav,.hero-section{position:relative;z-index:1}
+/* ─── PLATFORM STATS ─── */
+.stats-bar{display:flex;justify-content:center;gap:32px;padding:16px;margin-bottom:24px;flex-wrap:wrap}
+.stats-bar .stat-item{text-align:center}
+.stats-bar .stat-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:900;color:var(--neon)}
+.stats-bar .stat-label{font-size:11px;text-transform:uppercase;color:var(--text3);letter-spacing:.5px;margin-top:2px}
 
 /* ─── TOAST ─── */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid rgba(0,255,136,.2);padding:14px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:1000;animation:slideIn .3s ease,fadeOut .3s ease 2.7s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes fadeOut{to{opacity:0;transform:translateY(10px)}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);color:var(--neon);padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(0,232,123,.3);box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:10000;animation:fadeUp .3s}
+
+/* ─── LOADING ─── */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--bg4);border-top-color:var(--neon);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-grid{text-align:center;padding:40px;color:var(--text2)}
+
+/* ─── TX RESULT ─── */
+.tx-result{margin-top:16px;padding:14px;border-radius:var(--radius2);background:rgba(0,232,123,.06);border:1px solid rgba(0,232,123,.2);font-size:13px;display:none}
+.tx-result.show{display:block;animation:fadeUp .3s}
+.tx-result a{color:var(--neon);text-decoration:underline}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:640px){
+  .form-row{grid-template-columns:1fr}
+  .detail-info-grid{grid-template-columns:1fr}
+  .stats-bar{gap:16px}
+  .stats-bar .stat-val{font-size:16px}
+  .token-grid{grid-template-columns:1fr}
+  .explore-header{flex-direction:column;align-items:stretch}
+  .search-box{max-width:100%}
+  header{padding:0 16px}
+  main{padding:16px}
+}
 </style>
 </head>
 <body>
-<div style="background:linear-gradient(90deg,#00e87b,#00c896);color:#0f1117;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;letter-spacing:.5px">
-  🟢 DEVNET LIVE — Program: <a href="https://solscan.io/account/HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx?cluster=devnet" target="_blank" style="color:#0f1117;text-decoration:underline">HTKq18c...88Zx</a> — Full DeFi loop verified ✅
+
+<!-- Testnet Banner -->
+<div class="testnet-banner">
+  <span>⚠️ Devnet — Tokens have no real value</span>
 </div>
-<div class="testnet-banner"><span>🚧 TESTNET MODE — Coming Soon to Solana Devnet 🚧</span></div>
-<div id="particles"></div>
+
 <div id="app">
-
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">🚀</div>
-    <span>SEND<span class="dot">.</span>IT</span>
-  </div>
-  <div class="header-right">
-    <div class="sol-balance" id="solBalance"><i class="fa-solid fa-circle" style="color:var(--neon);font-size:8px"></i> <span id="balanceAmt">0.00</span> SOL</div>
-    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()"><i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet</button>
-  </div>
-</header>
-
-<!-- NAV -->
-<nav>
-  <button class="nav-item active" data-page="launch"><i class="fa-solid fa-rocket"></i> Launch</button>
-  <button class="nav-item" data-page="explore"><i class="fa-solid fa-compass"></i> Explore</button>
-  <button class="nav-item" data-page="leaderboard"><i class="fa-solid fa-trophy"></i> Leaderboards</button>
-  <button class="nav-item" data-page="portfolio"><i class="fa-solid fa-chart-pie"></i> Portfolio</button>
-  <button class="nav-item" data-page="reputation"><i class="fa-solid fa-shield-halved"></i> Reputation</button>
-  <a href="composer.html" class="nav-item"><i class="fa-solid fa-cubes"></i> Composer</a>
-</nav>
-
-<!-- HERO -->
-<div class="hero-section">
-  <div class="hero-title">SEND IT 🚀</div>
-  <div class="hero-tagline">The Fairest Token Launchpad on Solana</div>
-  <div class="feature-badges">
-    <span class="feature-badge"><span class="badge-icon">⚡</span> Anti-Snipe</span>
-    <span class="feature-badge"><span class="badge-icon">⚡</span> Rug Protection</span>
-    <span class="feature-badge"><span class="badge-icon">⚡</span> Holder Rewards</span>
-    <span class="feature-badge"><span class="badge-icon">⚡</span> Bonding Curves</span>
-    <span class="feature-badge"><span class="badge-icon">⚡</span> Perp Trading</span>
-    <span class="feature-badge"><span class="badge-icon">⚡</span> SolForge Burn</span>
-  </div>
-</div>
-
-<!-- MAIN CONTENT -->
-<main>
-
-<!-- ═══ LAUNCH PAGE ═══ -->
-<div class="page active" id="page-launch">
-  <div class="create-hero">
-    <h1>Launch Your Token</h1>
-    <p>Deploy a bonding-curve token on Solana in seconds. No code required.</p>
-  </div>
-  <form class="create-form" onsubmit="handleLaunch(event)">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Token Name</label>
-        <input type="text" placeholder="e.g. MoonCat" required id="tokenName">
-      </div>
-      <div class="form-group">
-        <label>Symbol</label>
-        <input type="text" placeholder="e.g. MCAT" required maxlength="10" id="tokenSymbol">
-      </div>
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🚀</span>
+      <span>Send<span style="color:var(--pink)">.it</span></span>
     </div>
-    <div class="form-group">
-      <label>Description</label>
-      <textarea placeholder="What makes your token special?" id="tokenDesc"></textarea>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Image URL</label>
-        <input type="url" placeholder="https://..." id="tokenImage">
+    <div class="header-right">
+      <div class="sol-balance" id="solBalance">
+        <i class="fa-solid fa-coins"></i>
+        <span id="balanceAmt">0.00</span> SOL
       </div>
-      <div class="form-group">
-        <label>Bonding Curve</label>
-        <select id="curveType">
-          <option value="exponential">Exponential (Default)</option>
-          <option value="linear">Linear</option>
-          <option value="sigmoid">Sigmoid (S-Curve)</option>
-        </select>
-      </div>
+      <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">
+        <i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet
+      </button>
     </div>
-    <div class="form-section">
-      <h3><i class="fa-solid fa-shield-halved"></i> Anti-Snipe Protection</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Launch Delay (seconds)</label>
-          <input type="number" value="5" min="0" max="60" id="launchDelay">
-        </div>
-        <div class="form-group">
-          <label>Max Buy (SOL)</label>
-          <input type="number" value="2" min="0" step="0.1" id="maxBuy">
+  </header>
+
+  <!-- Nav -->
+  <nav>
+    <button class="nav-item active" data-page="explore"><i class="fa-solid fa-compass"></i> Explore</button>
+    <button class="nav-item" data-page="launch"><i class="fa-solid fa-rocket"></i> Launch</button>
+    <button class="nav-item" data-page="portfolio"><i class="fa-solid fa-chart-pie"></i> Portfolio</button>
+  </nav>
+
+  <!-- Platform Stats -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-val" id="statLaunches">-</div><div class="stat-label">Tokens Launched</div></div>
+    <div class="stat-item"><div class="stat-val" id="statVolume">-</div><div class="stat-label">Total Volume (SOL)</div></div>
+    <div class="stat-item"><div class="stat-val" id="statNetwork">Devnet</div><div class="stat-label">Network</div></div>
+  </div>
+
+  <main>
+    <!-- ═══ EXPLORE PAGE ═══ -->
+    <div class="page active" id="page-explore">
+      <div class="explore-header">
+        <h2>🔥 Live Tokens</h2>
+        <div class="search-box">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Search tokens..." oninput="filterTokens()">
         </div>
       </div>
-      <div class="form-row" style="margin-top:12px">
-        <div class="form-group">
-          <label>Snipe Window (seconds)</label>
-          <input type="number" value="30" min="0" max="300" id="snipeWindow">
+      <div id="tokenGrid" class="token-grid">
+        <div class="loading-grid"><div class="spinner"></div><p style="margin-top:12px">Connect wallet to load tokens...</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ LAUNCH PAGE ═══ -->
+    <div class="page" id="page-launch">
+      <div class="create-section">
+        <h1>🚀 Launch a Token</h1>
+        <p class="subtitle">Deploy your token to Solana in seconds</p>
+
+        <div class="form-section">
+          <h3><i class="fa-solid fa-tag"></i> Token Info</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Token Name</label>
+              <input type="text" id="tokenName" placeholder="e.g. DogCoin" maxlength="32">
+            </div>
+            <div class="form-group">
+              <label>Symbol</label>
+              <input type="text" id="tokenSymbol" placeholder="e.g. DOG" maxlength="10" style="text-transform:uppercase">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="tokenDesc" placeholder="What's your token about?" rows="3"></textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Creator Fee %</label>
-          <input type="number" value="1" min="0" max="5" step="0.1" id="creatorFee">
+
+        <div class="form-section">
+          <h3><i class="fa-solid fa-image"></i> Token Image</h3>
+          <div class="upload-area" id="uploadArea">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size:32px;margin-bottom:8px;display:block"></i>
+            <div style="font-weight:600">Drop image here or click to upload</div>
+            <div style="font-size:12px;margin-top:4px">PNG, JPG, GIF, WEBP · Max 5MB</div>
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="storachaToggle" checked style="width:auto">
+            <label for="storachaToggle" style="font-size:12px;color:var(--text2);cursor:pointer">Store on Filecoin (via Storacha) — permanent decentralized storage</label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3><i class="fa-solid fa-sliders"></i> Settings</h3>
+          <div class="form-group">
+            <label>Creator Fee: <span class="fee-display" id="feeDisplay">5%</span></label>
+            <input type="range" id="creatorFee" min="0" max="10" step="0.5" value="5" style="padding:0" oninput="document.getElementById('feeDisplay').textContent=this.value+'%'">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px"><span>0%</span><span>10%</span></div>
+          </div>
+          <div class="form-group">
+            <label>Metadata URI (optional — auto-generated if using Storacha)</label>
+            <input type="text" id="tokenUri" placeholder="https://...">
+          </div>
+        </div>
+
+        <button class="launch-btn" id="launchBtn" onclick="createToken()">🚀 Launch Token</button>
+
+        <div class="tx-result" id="createTxResult"></div>
+      </div>
+    </div>
+
+    <!-- ═══ PORTFOLIO PAGE ═══ -->
+    <div class="page" id="page-portfolio">
+      <h2 style="font-size:24px;font-weight:900;margin-bottom:20px">💼 Your Portfolio</h2>
+      <div id="portfolioContent">
+        <div class="portfolio-empty">
+          <i class="fa-solid fa-wallet"></i>
+          <p style="font-size:16px;font-weight:600;margin-bottom:8px">Connect your wallet</p>
+          <p>Your token positions will appear here</p>
         </div>
       </div>
     </div>
-    <div class="launch-rep-gate" id="launchRepGate" style="display:none">
-      <h4><i class="fa-solid fa-shield-halved"></i> Reputation Check</h4>
-      <div id="launchRepContent"></div>
-    </div>
-    <button type="submit" class="send-btn" id="launchBtn">SEND IT 🚀</button>
-  </form>
+  </main>
 </div>
 
-<!-- ═══ EXPLORE PAGE ═══ -->
-<div class="page" id="page-explore">
-  <div class="explore-header">
-    <h2><span class="live-dot"></span>Live Token Feed</h2>
-    <div class="search-box"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search tokens..." id="searchInput" oninput="filterTokens()"></div>
-  </div>
-  <div class="token-grid" id="tokenGrid"></div>
+<!-- Token Detail Overlay -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel" id="detailPanel"></div>
 </div>
 
-<!-- ═══ TOKEN DETAIL PAGE ═══ -->
-<div class="page" id="page-detail">
-  <div class="detail-back" onclick="showPage('explore')"><i class="fa-solid fa-arrow-left"></i> Back to Explore</div>
-  <div id="detailContent"></div>
-</div>
-
-<!-- ═══ LEADERBOARD PAGE ═══ -->
-<div class="page" id="page-leaderboard">
-  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px">🏆 Leaderboards</h2>
-  <div class="lb-tabs">
-    <button class="lb-tab active" onclick="switchLbTab(this,'lb-tokens')">Top Tokens</button>
-    <button class="lb-tab" onclick="switchLbTab(this,'lb-creators')">Top Creators</button>
-  </div>
-  <div id="lb-tokens"></div>
-  <div id="lb-creators" style="display:none"></div>
-</div>
-
-<!-- ═══ PORTFOLIO PAGE ═══ -->
-<div class="page" id="page-portfolio">
-  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px">Your Portfolio</h2>
-  <div class="portfolio-summary" id="portfolioSummary"></div>
-  <div class="card" style="overflow-x:auto">
-    <table class="holdings-table" id="holdingsTable"></table>
-  </div>
-</div>
-
-<!-- ═══ REPUTATION PAGE ═══ -->
-<div class="page" id="page-reputation">
-  <h2 style="font-size:24px;font-weight:800;margin-bottom:20px"><i class="fa-solid fa-shield-halved" style="color:var(--neon)"></i> Your Reputation</h2>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:800px">
-    <div class="card" style="text-align:center">
-      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px">FairScore</div>
-      <div class="fairscore-big" id="myFairScore">—</div>
-      <div class="reputation-gauge"><div class="fill" id="myScoreGauge" style="width:0%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon))"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px"><span>0</span><span>50</span><span>100</span></div>
-      <div style="margin-top:12px" id="myTierBadge"></div>
-    </div>
-    <div class="card">
-      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Details</div>
-      <div id="myRepDetails">
-        <div class="rep-stat"><span class="rep-label">Tier</span><span class="rep-val" id="repTier">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Trust Level</span><span class="rep-val" id="repTrust">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Fee Discount</span><span class="rep-val" id="repDiscount">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Wallet Age</span><span class="rep-val" id="repAge">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Transactions</span><span class="rep-val" id="repTxCount">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Active Days</span><span class="rep-val" id="repActiveDays">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Can Launch</span><span class="rep-val" id="repCanLaunch">—</span></div>
-        <div class="rep-stat"><span class="rep-label">Vesting</span><span class="rep-val" id="repVesting">—</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="card" style="max-width:800px;margin-top:20px">
-    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Badges</div>
-    <div id="myBadges" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-  </div>
-  <div class="card" style="max-width:800px;margin-top:20px">
-    <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text2)">Tier Benefits</h3>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center">
-      <div style="padding:12px;border-radius:8px;background:rgba(205,127,50,.06);border:1px solid rgba(205,127,50,.15)"><div style="font-size:18px">🥉</div><div style="font-weight:800;color:#cd7f32;margin:4px 0">Bronze</div><div style="font-size:11px;color:var(--text3)">0% discount<br>2x vesting</div></div>
-      <div style="padding:12px;border-radius:8px;background:rgba(192,192,192,.06);border:1px solid rgba(192,192,192,.15)"><div style="font-size:18px">🥈</div><div style="font-weight:800;color:#c0c0c0;margin:4px 0">Silver</div><div style="font-size:11px;color:var(--text3)">5% discount<br>1x vesting</div></div>
-      <div style="padding:12px;border-radius:8px;background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15)"><div style="font-size:18px">🥇</div><div style="font-weight:800;color:#ffd700;margin:4px 0">Gold</div><div style="font-size:11px;color:var(--text3)">10% discount<br>Premium launch</div></div>
-      <div style="padding:12px;border-radius:8px;background:rgba(229,228,226,.06);border:1px solid rgba(229,228,226,.15)"><div style="font-size:18px">💎</div><div style="font-weight:800;color:#e5e4e2;margin:4px 0">Platinum</div><div style="font-size:11px;color:var(--text3)">20% discount<br>Premium launch</div></div>
-    </div>
-  </div>
-</div>
-
-</main>
-</div>
-
+<script src="storacha-upload.js"></script>
 <script>
 // ═══════════════════════════════════════════════
-//  MOCK DATA
+//  CONSTANTS
 // ═══════════════════════════════════════════════
-const MOCK_TOKENS = [
-  {name:"MoonCat",symbol:"MCAT",img:"🐱",price:0.00234,mcap:234000,vol:89000,migration:72,creator:"7xKq..3mFz",time:180,curve:"exponential",supply:"1B",reserve:"45.2 SOL",holders:342,antiSnipe:true},
-  {name:"Degen Frog",symbol:"DFROG",img:"🐸",price:0.00891,mcap:891000,vol:412000,migration:89,creator:"9pLm..kQ2x",time:420,curve:"sigmoid",supply:"1B",reserve:"122.8 SOL",holders:1203,antiSnipe:true},
-  {name:"SolPepe",symbol:"SPEPE",img:"🐸",price:0.00012,mcap:12000,vol:3200,migration:15,creator:"3nRt..vZ8w",time:60,curve:"linear",supply:"1B",reserve:"3.1 SOL",holders:47,antiSnipe:false},
-  {name:"RocketDoge",symbol:"RDOGE",img:"🐶",price:0.00567,mcap:567000,vol:198000,migration:65,creator:"5kJp..mN4a",time:3600,curve:"exponential",supply:"1B",reserve:"78.9 SOL",holders:876,antiSnipe:true},
-  {name:"NeonApe",symbol:"NAPE",img:"🦍",price:0.00045,mcap:45000,vol:12000,migration:28,creator:"2wXz..hL9c",time:900,curve:"exponential",supply:"1B",reserve:"9.4 SOL",holders:134,antiSnipe:true},
-  {name:"CyberCat",symbol:"CCAT",img:"😺",price:0.01200,mcap:1200000,vol:650000,migration:95,creator:"8mVn..qR5t",time:7200,curve:"sigmoid",supply:"1B",reserve:"201.3 SOL",holders:2104,antiSnipe:true},
-  {name:"GigaChad",symbol:"GCHAD",img:"💪",price:0.00078,mcap:78000,vol:24000,migration:38,creator:"6tBc..eW3j",time:1800,curve:"linear",supply:"1B",reserve:"14.7 SOL",holders:209,antiSnipe:false},
-  {name:"PixelPunk",symbol:"PPUNK",img:"👾",price:0.00321,mcap:321000,vol:105000,migration:58,creator:"4rYh..nS7k",time:5400,curve:"exponential",supply:"1B",reserve:"56.2 SOL",holders:567,antiSnipe:true},
-  {name:"LaserEyes",symbol:"LASER",img:"👀",price:0.00189,mcap:189000,vol:67000,migration:50,creator:"1qAz..xD0m",time:2700,curve:"sigmoid",supply:"1B",reserve:"34.1 SOL",holders:401,antiSnipe:true},
-];
+const PROGRAM_ID = 'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx';
+const RPC = 'https://api.devnet.solana.com';
+const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const ATA_PROGRAM_ID = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
+const MPL_TOKEN_METADATA_ID = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
+const TAPESTRY_KEY = '601a8251-9c95-4456-97af-c1e79b5c0259';
+const TAPESTRY_API = 'https://api.usetapestry.dev/api/v1';
 
-// Mock FairScore data per creator
-const MOCK_FAIRSCORES = {
-  "7xKq..3mFz": {fairscore:72,tier:"gold",badges:["early_adopter","defi_native"],social_score:65,features:{tx_count:1423,active_days:287,wallet_age_days:540}},
-  "9pLm..kQ2x": {fairscore:85,tier:"platinum",badges:["whale","diamond_hands","og"],social_score:80,features:{tx_count:5200,active_days:400,wallet_age_days:720}},
-  "3nRt..vZ8w": {fairscore:22,tier:"bronze",badges:[],social_score:10,features:{tx_count:45,active_days:12,wallet_age_days:30}},
-  "5kJp..mN4a": {fairscore:55,tier:"silver",badges:["active_trader"],social_score:40,features:{tx_count:800,active_days:150,wallet_age_days:365}},
-  "2wXz..hL9c": {fairscore:38,tier:"bronze",badges:["newcomer"],social_score:20,features:{tx_count:120,active_days:45,wallet_age_days:90}},
-  "8mVn..qR5t": {fairscore:91,tier:"platinum",badges:["whale","og","defi_native","diamond_hands"],social_score:88,features:{tx_count:8900,active_days:500,wallet_age_days:900}},
-  "6tBc..eW3j": {fairscore:15,tier:"bronze",badges:[],social_score:5,features:{tx_count:20,active_days:5,wallet_age_days:14}},
-  "4rYh..nS7k": {fairscore:63,tier:"gold",badges:["active_trader","early_adopter"],social_score:55,features:{tx_count:1100,active_days:200,wallet_age_days:450}},
-  "1qAz..xD0m": {fairscore:47,tier:"silver",badges:["newcomer"],social_score:30,features:{tx_count:300,active_days:80,wallet_age_days:180}},
+const SEEDS = {
+  platformConfig: 'platform_config',
+  tokenLaunch: 'token_launch',
+  solVault: 'sol_vault',
+  platformVault: 'platform_vault',
+  userPosition: 'user_position',
 };
 
-function getTrustLevel(score){
-  if(score===null||score===undefined) return {label:"Unscored",emoji:"⚫",color:"#555570"};
-  if(score>=70) return {label:"High Trust",emoji:"🟢",color:"#00ff88"};
-  if(score>=40) return {label:"Medium",emoji:"🟡",color:"#ffcc00"};
-  return {label:"Low",emoji:"🔴",color:"#ff2d78"};
-}
-function getTierColor(tier){
-  return {bronze:"#cd7f32",silver:"#c0c0c0",gold:"#ffd700",platinum:"#e5e4e2"}[tier]||"#555570";
-}
-function getFeeDiscount(tier){
-  return {bronze:0,silver:5,gold:10,platinum:20}[tier]||0;
-}
-function tierBadgeHtml(tier){
-  if(!tier) return '';
-  return `<span class="tier-badge tier-${tier}">${{bronze:"🥉",silver:"🥈",gold:"🥇",platinum:"💎"}[tier]||""} ${tier}</span>`;
-}
-function trustBadgeHtml(score){
-  const t=getTrustLevel(score);
-  return `<span class="trust-badge" style="color:${t.color};background:${t.color}15;border:1px solid ${t.color}30">${t.emoji} ${t.label}</span>`;
-}
+let connection = null;
+let walletAdapter = null;
+let walletPubkey = null;
+let PROGRAM_KEY = null;
+let TOKEN_PROGRAM = null;
+let ATA_PROGRAM = null;
+let MPL_METADATA = null;
 
-const MOCK_CREATORS = [
-  {addr:"7xKq..3mFz",launches:12,volume:1450000},
-  {addr:"9pLm..kQ2x",launches:8,volume:980000},
-  {addr:"8mVn..qR5t",launches:15,volume:2100000},
-  {addr:"5kJp..mN4a",launches:6,volume:560000},
-  {addr:"4rYh..nS7k",launches:9,volume:720000},
-];
-
-const MOCK_TRADES = [
-  {type:"buy",amount:"1.5 SOL",tokens:"6,410",time:"2m ago"},
-  {type:"sell",amount:"0.8 SOL",tokens:"3,200",time:"5m ago"},
-  {type:"buy",amount:"3.2 SOL",tokens:"13,600",time:"8m ago"},
-  {type:"buy",amount:"0.3 SOL",tokens:"1,280",time:"12m ago"},
-  {type:"sell",amount:"2.1 SOL",tokens:"8,900",time:"15m ago"},
-  {type:"buy",amount:"5.0 SOL",tokens:"21,200",time:"18m ago"},
-];
+let allTokens = []; // cached TokenLaunch data
+let selectedImageFile = null;
 
 // ═══════════════════════════════════════════════
-//  NAVIGATION
+//  INIT
 // ═══════════════════════════════════════════════
-document.querySelectorAll('.nav-item').forEach(btn=>{
-  btn.addEventListener('click',()=>showPage(btn.dataset.page));
+document.addEventListener('DOMContentLoaded', () => {
+  const { Connection, PublicKey } = solanaWeb3;
+  connection = new Connection(RPC, 'confirmed');
+  PROGRAM_KEY = new PublicKey(PROGRAM_ID);
+  TOKEN_PROGRAM = new PublicKey(TOKEN_PROGRAM_ID);
+  ATA_PROGRAM = new PublicKey(ATA_PROGRAM_ID);
+  MPL_METADATA = new PublicKey(MPL_TOKEN_METADATA_ID);
+
+  initNav();
+  initImageUpload();
+  loadLiveTokens();
+  updatePlatformStats();
 });
 
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const pg = document.getElementById('page-'+id);
-  if(pg) pg.classList.add('active');
-  const nav = document.querySelector(`.nav-item[data-page="${id}"]`);
-  if(nav) nav.classList.add('active');
+// ═══════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════
+function initNav() {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      if (!page) return;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page)?.classList.add('active');
+      if (page === 'portfolio') loadPortfolio();
+    });
+  });
+}
+
+function showPage(id) {
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.page === id);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
 }
 
 // ═══════════════════════════════════════════════
 //  WALLET
 // ═══════════════════════════════════════════════
-let walletConnected = false;
-async function connectWallet(){
+async function connectWallet() {
   const btn = document.getElementById('walletBtn');
-  if(walletConnected){
-    walletConnected = false;
+
+  if (walletPubkey) {
+    // Disconnect
+    walletPubkey = null;
+    walletAdapter = null;
     btn.innerHTML = '<i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet';
     btn.classList.remove('connected');
     document.getElementById('solBalance').classList.remove('show');
+    toast('Wallet disconnected');
     return;
   }
-  if(window.solana && window.solana.isPhantom){
-    try{
+
+  try {
+    if (window.solana?.isPhantom) {
       const resp = await window.solana.connect();
-      const addr = resp.publicKey.toString();
-      walletConnected = true;
-      btn.innerHTML = addr.slice(0,4)+'..'+addr.slice(-4);
-      btn.classList.add('connected');
-      document.getElementById('balanceAmt').textContent = (Math.random()*50+1).toFixed(2);
-      document.getElementById('solBalance').classList.add('show');
-      toast('Wallet connected!');
-    }catch(e){toast('Connection rejected')}
-  } else {
-    // Demo mode
-    walletConnected = true;
-    btn.innerHTML = '7xKq..3mFz';
+      walletAdapter = window.solana;
+      walletPubkey = resp.publicKey;
+    } else if (window.solflare?.isSolflare) {
+      await window.solflare.connect();
+      walletAdapter = window.solflare;
+      walletPubkey = window.solflare.publicKey;
+    } else {
+      toast('Install Phantom or Solflare wallet');
+      return;
+    }
+
+    const addr = walletPubkey.toBase58();
+    btn.innerHTML = `<i class="fa-solid fa-wallet"></i>&nbsp; ${addr.slice(0,4)}..${addr.slice(-4)}`;
     btn.classList.add('connected');
-    document.getElementById('balanceAmt').textContent = '24.57';
+    toast('Wallet connected! ✅');
+
+    await updateBalance();
+    loadLiveTokens();
+  } catch (e) {
+    console.error('Wallet connect failed:', e);
+    toast('Connection failed: ' + (e.message || e));
+  }
+}
+
+async function updateBalance() {
+  if (!walletPubkey) return;
+  try {
+    const bal = await connection.getBalance(walletPubkey);
+    document.getElementById('balanceAmt').textContent = (bal / 1e9).toFixed(4);
     document.getElementById('solBalance').classList.add('show');
-    toast('Demo wallet connected');
+  } catch (e) {
+    console.error('Balance fetch failed:', e);
   }
 }
 
 // ═══════════════════════════════════════════════
-//  TOKEN GRID
+//  HELPERS
 // ═══════════════════════════════════════════════
-function timeAgo(s){
-  if(s<60) return s+'s ago';
-  if(s<3600) return Math.floor(s/60)+'m ago';
-  return Math.floor(s/3600)+'h ago';
+async function getDiscriminator(name) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('global:' + name));
+  return new Uint8Array(hash).slice(0, 8);
 }
-function fmt(n){
-  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
-  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+
+function encodeString(s) {
+  const encoded = new TextEncoder().encode(s);
+  const buf = new Uint8Array(4 + encoded.length);
+  new DataView(buf.buffer).setUint32(0, encoded.length, true);
+  buf.set(encoded, 4);
+  return buf;
+}
+
+function concat(...arrays) {
+  const total = arrays.reduce((s, a) => s + a.length, 0);
+  const result = new Uint8Array(total);
+  let off = 0;
+  for (const a of arrays) { result.set(a, off); off += a.length; }
+  return result;
+}
+
+function findPDA(seeds) {
+  return solanaWeb3.PublicKey.findProgramAddressSync(
+    seeds.map(s => typeof s === 'string' ? new TextEncoder().encode(s) : (s instanceof solanaWeb3.PublicKey ? s.toBuffer() : s)),
+    PROGRAM_KEY
+  );
+}
+
+function getATA(mint, owner) {
+  const [ata] = solanaWeb3.PublicKey.findProgramAddressSync(
+    [owner.toBuffer(), TOKEN_PROGRAM.toBuffer(), mint.toBuffer()],
+    ATA_PROGRAM
+  );
+  return ata;
+}
+
+function timeAgo(ts) {
+  const s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+
+function fmtSol(lamports) {
+  return (Number(lamports) / 1e9).toFixed(4);
+}
+
+function fmtTokens(raw) {
+  return (Number(raw) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+function fmtNum(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return n.toString();
 }
 
-function renderTokenGrid(tokens){
+// ═══════════════════════════════════════════════
+//  DECODE TOKEN LAUNCH ACCOUNTS
+// ═══════════════════════════════════════════════
+function decodeTokenLaunch(data, pubkey) {
+  try {
+    const view = new DataView(data.buffer, data.byteOffset);
+    let off = 8; // skip discriminator
+
+    const creator = solanaWeb3.PublicKey.decode(data.slice(off, off + 32)); off += 32; // creator pubkey (raw bytes, not base58)
+    const mint = solanaWeb3.PublicKey.decode(data.slice(off, off + 32)); off += 32;
+
+    // Borsh string: u32 len + utf8
+    const nameLen = view.getUint32(off, true); off += 4;
+    const name = new TextDecoder().decode(data.slice(off, off + nameLen)); off += nameLen;
+
+    const symLen = view.getUint32(off, true); off += 4;
+    const symbol = new TextDecoder().decode(data.slice(off, off + symLen)); off += symLen;
+
+    const uriLen = view.getUint32(off, true); off += 4;
+    const uri = new TextDecoder().decode(data.slice(off, off + uriLen)); off += uriLen;
+
+    const creatorFeeBps = view.getUint16(off, true); off += 2;
+    const totalSupply = view.getBigUint64(off, true); off += 8;
+    const tokensSold = view.getBigUint64(off, true); off += 8;
+    const totalStaked = view.getBigUint64(off, true); off += 8;
+    const reserveSol = view.getBigUint64(off, true); off += 8;
+    const createdAt = Number(view.getBigInt64(off, true)); off += 8;
+    const migrated = data[off] === 1; off += 1;
+    const totalVolumeSol = view.getBigUint64(off, true); off += 8;
+
+    // Price estimate from bonding curve
+    const soldNum = Number(tokensSold);
+    const reserveNum = Number(reserveSol);
+    const price = soldNum > 0 ? reserveNum / soldNum : 0;
+
+    // Migration % (tokens sold vs total supply)
+    const supplyNum = Number(totalSupply);
+    const migrationPct = supplyNum > 0 ? Math.min(100, (soldNum / supplyNum) * 100) : 0;
+
+    return {
+      pubkey: pubkey.toBase58(),
+      creator: creator.toBase58(),
+      mint: mint.toBase58(),
+      name, symbol, uri,
+      creatorFeeBps,
+      totalSupply: supplyNum,
+      tokensSold: soldNum,
+      totalStaked: Number(totalStaked),
+      reserveSol: reserveNum,
+      createdAt,
+      migrated,
+      totalVolumeSol: Number(totalVolumeSol),
+      price,
+      migrationPct,
+    };
+  } catch (e) {
+    console.warn('Failed to decode TokenLaunch:', e);
+    return null;
+  }
+}
+
+// PublicKey.decode helper — Solana web3 PublicKey from raw bytes
+if (!solanaWeb3.PublicKey.decode) {
+  solanaWeb3.PublicKey.decode = function(buf) {
+    return new solanaWeb3.PublicKey(buf);
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  LOAD LIVE TOKENS
+// ═══════════════════════════════════════════════
+async function loadLiveTokens() {
   const grid = document.getElementById('tokenGrid');
-  grid.innerHTML = tokens.map((t,i)=>`
-    <div class="card token-card" onclick="openDetail(${i})">
-      <div class="token-card-head">
-        <div class="token-img">${t.img.startsWith('http')?`<img src="${t.img}">`:`<span style="font-size:28px">${t.img}</span>`}</div>
-        <div class="token-meta">
-          <h3>${t.name}</h3>
-          <div class="symbol">$${t.symbol}</div>
-          <div class="time">${timeAgo(t.time)}</div>
+  grid.innerHTML = '<div class="loading-grid"><div class="spinner"></div><p style="margin-top:12px">Loading tokens from devnet...</p></div>';
+
+  try {
+    // Fetch all program accounts — TokenLaunch accounts are the biggest ones
+    const accounts = await connection.getProgramAccounts(PROGRAM_KEY, {
+      commitment: 'confirmed',
+    });
+
+    // Filter for TokenLaunch accounts (they have the token_launch discriminator)
+    const tokenLaunchDisc = await getDiscriminator('token_launch');
+    // Actually Anchor uses account name: "TokenLaunch" -> sha256("account:TokenLaunch")[0..8]
+    const accountDisc = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('account:TokenLaunch'));
+    const disc = new Uint8Array(accountDisc).slice(0, 8);
+
+    allTokens = [];
+    for (const acc of accounts) {
+      const data = acc.account.data;
+      if (data.length < 80) continue; // too small to be a TokenLaunch
+
+      // Check discriminator
+      const accDisc = data.slice(0, 8);
+      let match = true;
+      for (let i = 0; i < 8; i++) {
+        if (accDisc[i] !== disc[i]) { match = false; break; }
+      }
+      if (!match) continue;
+
+      const decoded = decodeTokenLaunch(data, acc.pubkey);
+      if (decoded) allTokens.push(decoded);
+    }
+
+    // Sort by newest first
+    allTokens.sort((a, b) => b.createdAt - a.createdAt);
+    renderTokenGrid(allTokens);
+    updatePlatformStats();
+  } catch (e) {
+    console.error('Failed to load tokens:', e);
+    grid.innerHTML = `
+      <div class="loading-grid">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:var(--pink);margin-bottom:12px"></i>
+        <p>Failed to load tokens</p>
+        <p style="font-size:12px;color:var(--text3);margin-top:4px">${e.message}</p>
+        <button onclick="loadLiveTokens()" style="margin-top:12px;padding:8px 20px;border-radius:8px;background:var(--bg3);color:var(--neon);font-weight:600">Retry</button>
+      </div>
+    `;
+  }
+}
+
+function renderTokenGrid(tokens) {
+  const grid = document.getElementById('tokenGrid');
+
+  if (tokens.length === 0) {
+    grid.innerHTML = `
+      <div class="loading-grid" style="grid-column:1/-1">
+        <i class="fa-solid fa-rocket" style="font-size:40px;color:var(--text3);margin-bottom:12px"></i>
+        <p style="font-weight:600">No tokens launched yet</p>
+        <p style="font-size:13px;color:var(--text3);margin-top:4px">Be the first — click Launch above!</p>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = tokens.map(t => `
+    <div class="card token-card" onclick="openDetail('${t.mint}')">
+      <div class="token-head">
+        <div class="token-img">${t.uri && t.uri.startsWith('http') ? `<img src="${t.uri}" onerror="this.parentElement.innerHTML='🪙'">` : '🪙'}</div>
+        <div>
+          <div class="token-name">${escHtml(t.name)} <span class="badge ${t.migrated ? 'badge-migrated' : 'badge-live'}">${t.migrated ? 'AMM' : 'LIVE'}</span></div>
+          <div class="token-sym">$${escHtml(t.symbol)}</div>
+          <div class="token-time">${timeAgo(t.createdAt)}</div>
         </div>
       </div>
       <div class="token-stats">
-        <div class="stat"><div class="label">Price</div><div class="value" style="color:var(--neon)">${t.price.toFixed(5)}</div></div>
-        <div class="stat"><div class="label">MCap</div><div class="value">$${fmt(t.mcap)}</div></div>
-        <div class="stat"><div class="label">Volume</div><div class="value">$${fmt(t.vol)}</div></div>
+        <div class="stat">
+          <div class="label">Reserve</div>
+          <div class="value" style="color:var(--neon)">${fmtSol(t.reserveSol)} SOL</div>
+        </div>
+        <div class="stat">
+          <div class="label">Sold</div>
+          <div class="value">${fmtNum(t.tokensSold / 1e6)}</div>
+        </div>
+        <div class="stat">
+          <div class="label">Volume</div>
+          <div class="value">${fmtSol(t.totalVolumeSol)} SOL</div>
+        </div>
       </div>
-      <div class="migration-bar"><div class="fill" style="width:${t.migration}%"></div></div>
-      <div class="migration-label"><span>Migration</span><span style="color:${t.migration>80?'var(--neon)':'var(--text2)'}">${t.migration}%</span></div>
-      <div class="creator-addr">by ${t.creator} ${tierBadgeHtml((MOCK_FAIRSCORES[t.creator]||{}).tier)} ${trustBadgeHtml((MOCK_FAIRSCORES[t.creator]||{}).fairscore)}</div>
+      <div class="migration-bar"><div class="fill" style="width:${t.migrationPct.toFixed(1)}%"></div></div>
+      <div class="migration-label"><span>Bonding Curve</span><span style="color:${t.migrationPct > 80 ? 'var(--neon)' : 'var(--text2)'}">${t.migrationPct.toFixed(1)}%</span></div>
+      <div class="creator-addr">by ${t.creator.slice(0,4)}..${t.creator.slice(-4)}</div>
     </div>
   `).join('');
 }
 
-function filterTokens(){
+function filterTokens() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = MOCK_TOKENS.filter(t=>t.name.toLowerCase().includes(q)||t.symbol.toLowerCase().includes(q));
+  const filtered = allTokens.filter(t =>
+    t.name.toLowerCase().includes(q) ||
+    t.symbol.toLowerCase().includes(q) ||
+    t.mint.toLowerCase().includes(q)
+  );
   renderTokenGrid(filtered);
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ═══════════════════════════════════════════════
+//  PLATFORM STATS
+// ═══════════════════════════════════════════════
+async function updatePlatformStats() {
+  document.getElementById('statLaunches').textContent = allTokens.length || '-';
+  const totalVol = allTokens.reduce((s, t) => s + t.totalVolumeSol, 0);
+  document.getElementById('statVolume').textContent = totalVol > 0 ? fmtSol(totalVol) : '-';
 }
 
 // ═══════════════════════════════════════════════
 //  TOKEN DETAIL
 // ═══════════════════════════════════════════════
-let currentTradeMode = 'buy';
+let currentDetailToken = null;
+let tradeMode = 'buy';
 
-function openDetail(idx){
-  const t = MOCK_TOKENS[idx];
-  showPage('detail');
-  document.getElementById('detailContent').innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
-      <div class="token-img" style="width:56px;height:56px;font-size:32px">${t.img}</div>
-      <div><h1 style="font-size:28px;font-weight:900">${t.name}</h1><div class="symbol" style="font-size:14px">$${t.symbol}</div></div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-size:24px;font-weight:900;color:var(--neon);font-family:'JetBrains Mono',monospace">${t.price.toFixed(5)} SOL</div>
-        <div style="font-size:13px;color:var(--neon)">+${(Math.random()*200).toFixed(1)}%</div>
-      </div>
-    </div>
-    <div class="detail-layout">
+function openDetail(mintStr) {
+  const t = allTokens.find(tk => tk.mint === mintStr);
+  if (!t) { toast('Token not found'); return; }
+  currentDetailToken = t;
+  tradeMode = 'buy';
+
+  const panel = document.getElementById('detailPanel');
+  panel.innerHTML = `
+    <button class="detail-close" onclick="closeDetail()"><i class="fa-solid fa-xmark"></i></button>
+
+    <div class="detail-header">
+      <div class="token-img">${t.uri && t.uri.startsWith('http') ? `<img src="${t.uri}" onerror="this.parentElement.innerHTML='🪙'">` : '🪙'}</div>
       <div>
-        <div class="chart-placeholder">
-          <div class="chart-line">
-            <svg viewBox="0 0 400 120" preserveAspectRatio="none">
-              <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(0,255,136,.3)"/><stop offset="100%" stop-color="rgba(0,255,136,0)"/></linearGradient></defs>
-              <path d="M0,100 Q50,95 80,80 T160,50 T240,60 T320,20 T400,10" fill="none" stroke="var(--neon)" stroke-width="2.5"/>
-              <path d="M0,100 Q50,95 80,80 T160,50 T240,60 T320,20 T400,10 L400,120 L0,120 Z" fill="url(#cg)"/>
-            </svg>
-          </div>
-          <div style="position:absolute;top:16px;left:16px;display:flex;gap:8px">
-            ${['1m','5m','15m','1h','4h','1d'].map(p=>`<button class="slippage-btn${p==='15m'?' active':''}" style="font-size:11px;padding:5px 10px">${p}</button>`).join('')}
-          </div>
-        </div>
-        <div class="info-grid">
-          <div class="info-item"><div class="label">Curve Type</div><div class="val" style="text-transform:capitalize">${t.curve}</div></div>
-          <div class="info-item"><div class="label">Creator</div><div class="val">${t.creator}</div></div>
-          <div class="info-item"><div class="label">Supply</div><div class="val">${t.supply}</div></div>
-          <div class="info-item"><div class="label">Reserve</div><div class="val">${t.reserve}</div></div>
-          <div class="info-item"><div class="label">Holders</div><div class="val" style="color:var(--neon2)">${t.holders.toLocaleString()}</div></div>
-          <div class="info-item"><div class="label">Anti-Snipe</div><div class="val" style="color:${t.antiSnipe?'var(--neon)':'var(--pink)'}">${t.antiSnipe?'Active ✓':'Disabled'}</div></div>
-        </div>
-        ${(()=>{
-          const fs=MOCK_FAIRSCORES[t.creator];
-          if(!fs) return '';
-          const trust=getTrustLevel(fs.fairscore);
-          return `<div class="card reputation-section" style="margin-top:20px">
-            <h3><i class="fa-solid fa-shield-halved" style="color:var(--neon)"></i> Creator Reputation</h3>
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
-              <div style="font-size:32px;font-weight:900;font-family:'JetBrains Mono',monospace;color:${getTierColor(fs.tier)}">${fs.fairscore}</div>
-              ${tierBadgeHtml(fs.tier)}
-              ${trustBadgeHtml(fs.fairscore)}
-            </div>
-            <div class="reputation-gauge"><div class="fill" style="width:${fs.fairscore}%;background:linear-gradient(90deg,var(--pink),var(--orange),var(--neon))"></div></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
-              <div class="stat"><div class="label">Wallet Age</div><div class="value">${fs.features.wallet_age_days}d</div></div>
-              <div class="stat"><div class="label">Transactions</div><div class="value">${fs.features.tx_count.toLocaleString()}</div></div>
-              <div class="stat"><div class="label">Active Days</div><div class="value">${fs.features.active_days}</div></div>
-            </div>
-            ${fs.badges.length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">${fs.badges.map(b=>`<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(0,255,136,.08);color:var(--neon);border:1px solid rgba(0,255,136,.15)">${b.replace(/_/g,' ')}</span>`).join('')}</div>`:''}
-          </div>`;
-        })()}
-        <div class="trade-history">
-          <h3>Recent Trades</h3>
-          <div class="trade-row header"><div>Type</div><div>Amount</div><div>Tokens</div><div>Time</div></div>
-          ${MOCK_TRADES.map(tr=>`<div class="trade-row"><div class="trade-type ${tr.type}">${tr.type.toUpperCase()}</div><div>${tr.amount}</div><div>${tr.tokens}</div><div style="color:var(--text3)">${tr.time}</div></div>`).join('')}
-        </div>
-      </div>
-      <div class="trade-panel">
-        <div class="card">
-          <div class="trade-tabs">
-            <button class="trade-tab active-buy" onclick="setTradeMode('buy',this)">Buy</button>
-            <button class="trade-tab" onclick="setTradeMode('sell',this)">Sell</button>
-          </div>
-          <div style="margin-top:16px">
-            <label style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px">Amount</label>
-            <div class="amount-input" style="margin-top:6px">
-              <input type="number" placeholder="0.00" step="0.01" id="tradeAmount">
-              <span class="suffix" id="tradeSuffix">SOL</span>
-            </div>
-          </div>
-          <div style="margin-top:14px">
-            <label style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:block">Slippage</label>
-            <div class="slippage-row">
-              ${['0.5%','1%','2%','5%'].map((s,i)=>`<button class="slippage-btn${i===1?' active':''}" onclick="this.parentNode.querySelectorAll('.slippage-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${s}</button>`).join('')}
-            </div>
-          </div>
-          <div style="margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text3)">
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>You receive (est.)</span><span style="color:var(--text);font-family:'JetBrains Mono',monospace" id="estReceive">—</span></div>
-            <div style="display:flex;justify-content:space-between"><span>Price impact</span><span style="color:var(--orange)">~0.12%</span></div>
-          </div>
-          <button class="exec-trade buy-btn" id="execTradeBtn" onclick="executeTrade()" style="margin-top:16px">Buy $${t.symbol}</button>
-        </div>
-        <div class="card" style="text-align:center;padding:16px">
-          <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Market Cap</div>
-          <div style="font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace">$${fmt(t.mcap)}</div>
-          <div class="migration-bar" style="margin-top:12px"><div class="fill" style="width:${t.migration}%"></div></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">${t.migration}% to Raydium migration</div>
-        </div>
+        <div style="font-size:24px;font-weight:900">${escHtml(t.name)}</div>
+        <div style="font-family:'JetBrains Mono',monospace;color:var(--neon);font-size:14px">$${escHtml(t.symbol)}</div>
       </div>
     </div>
+
+    <div class="detail-info-grid">
+      <div class="detail-info-item">
+        <div class="label">Reserve</div>
+        <div class="value" style="color:var(--neon)">${fmtSol(t.reserveSol)} SOL</div>
+      </div>
+      <div class="detail-info-item">
+        <div class="label">Tokens Sold</div>
+        <div class="value">${fmtTokens(t.tokensSold)}</div>
+      </div>
+      <div class="detail-info-item">
+        <div class="label">Total Volume</div>
+        <div class="value">${fmtSol(t.totalVolumeSol)} SOL</div>
+      </div>
+      <div class="detail-info-item">
+        <div class="label">Creator Fee</div>
+        <div class="value">${(t.creatorFeeBps / 100).toFixed(1)}%</div>
+      </div>
+      <div class="detail-info-item">
+        <div class="label">Migration</div>
+        <div class="value" style="color:${t.migrationPct > 80 ? 'var(--neon)' : 'var(--text2)'}">${t.migrationPct.toFixed(1)}%</div>
+      </div>
+      <div class="detail-info-item">
+        <div class="label">Created</div>
+        <div class="value" style="font-size:12px">${timeAgo(t.createdAt)}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Mint</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all;color:var(--text2)">
+        ${t.mint}
+        <a href="https://solscan.io/token/${t.mint}?cluster=devnet" target="_blank" style="color:var(--neon);margin-left:6px"><i class="fa-solid fa-external-link"></i></a>
+      </div>
+    </div>
+
+    ${t.migrated ? '<div style="text-align:center;padding:16px;color:var(--purple);font-weight:700"><i class="fa-solid fa-water"></i> This token has graduated to AMM</div>' : `
+    <div class="trade-tabs">
+      <button class="trade-tab active-buy" id="tabBuy" onclick="setTradeMode('buy')">💚 Buy</button>
+      <button class="trade-tab" id="tabSell" onclick="setTradeMode('sell')">🔴 Sell</button>
+    </div>
+
+    <div id="tradePanel">
+      <div class="trade-input-group">
+        <input type="number" id="tradeAmount" placeholder="0.01" step="0.001" min="0">
+        <span class="unit" id="tradeUnit">SOL</span>
+      </div>
+      <div class="quick-amounts" id="quickAmounts">
+        <button class="quick-amt" onclick="setQuickAmt(0.01)">0.01</button>
+        <button class="quick-amt" onclick="setQuickAmt(0.05)">0.05</button>
+        <button class="quick-amt" onclick="setQuickAmt(0.1)">0.1</button>
+        <button class="quick-amt" onclick="setQuickAmt(0.5)">0.5</button>
+        <button class="quick-amt" onclick="setQuickAmt(1)">1.0</button>
+      </div>
+      <button class="trade-btn buy" id="tradeBtn" onclick="executeTrade()">💚 Buy</button>
+    </div>
+    `}
+
+    <div class="tx-result" id="detailTxResult"></div>
   `;
-  currentTradeMode = 'buy';
+
+  document.getElementById('detailOverlay').classList.add('show');
 }
 
-function setTradeMode(mode, el){
-  currentTradeMode = mode;
-  const tabs = el.parentNode.querySelectorAll('.trade-tab');
-  tabs.forEach(t=>{t.classList.remove('active-buy','active-sell')});
-  el.classList.add(mode==='buy'?'active-buy':'active-sell');
-  const btn = document.getElementById('execTradeBtn');
-  const suffix = document.getElementById('tradeSuffix');
-  if(mode==='buy'){
-    btn.className='exec-trade buy-btn';btn.textContent='Buy';suffix.textContent='SOL';
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('show');
+  currentDetailToken = null;
+}
+
+function setTradeMode(mode) {
+  tradeMode = mode;
+  const buyTab = document.getElementById('tabBuy');
+  const sellTab = document.getElementById('tabSell');
+  const btn = document.getElementById('tradeBtn');
+  const unit = document.getElementById('tradeUnit');
+  const input = document.getElementById('tradeAmount');
+
+  if (mode === 'buy') {
+    buyTab.className = 'trade-tab active-buy';
+    sellTab.className = 'trade-tab';
+    btn.className = 'trade-btn buy';
+    btn.innerHTML = '💚 Buy';
+    unit.textContent = 'SOL';
+    input.placeholder = '0.01';
+    input.step = '0.001';
+    // Show SOL quick amounts
+    document.getElementById('quickAmounts').innerHTML = `
+      <button class="quick-amt" onclick="setQuickAmt(0.01)">0.01</button>
+      <button class="quick-amt" onclick="setQuickAmt(0.05)">0.05</button>
+      <button class="quick-amt" onclick="setQuickAmt(0.1)">0.1</button>
+      <button class="quick-amt" onclick="setQuickAmt(0.5)">0.5</button>
+      <button class="quick-amt" onclick="setQuickAmt(1)">1.0</button>
+    `;
   } else {
-    btn.className='exec-trade sell-btn';btn.textContent='Sell';suffix.textContent='Tokens';
+    buyTab.className = 'trade-tab';
+    sellTab.className = 'trade-tab active-sell';
+    btn.className = 'trade-btn sell';
+    btn.innerHTML = '🔴 Sell';
+    unit.textContent = 'Tokens';
+    input.placeholder = '1000000';
+    input.step = '1000';
+    document.getElementById('quickAmounts').innerHTML = `
+      <button class="quick-amt" onclick="setQuickAmt(100000)">100K</button>
+      <button class="quick-amt" onclick="setQuickAmt(1000000)">1M</button>
+      <button class="quick-amt" onclick="setQuickAmt(5000000)">5M</button>
+      <button class="quick-amt" onclick="setQuickAmt(10000000)">10M</button>
+    `;
+  }
+  input.value = '';
+}
+
+function setQuickAmt(val) {
+  document.getElementById('tradeAmount').value = val;
+}
+
+// ═══════════════════════════════════════════════
+//  EXECUTE TRADE
+// ═══════════════════════════════════════════════
+async function executeTrade() {
+  if (!walletPubkey) { toast('Connect wallet first'); return; }
+  if (!currentDetailToken) return;
+
+  const amount = parseFloat(document.getElementById('tradeAmount').value);
+  if (!amount || amount <= 0) { toast('Enter a valid amount'); return; }
+
+  const btn = document.getElementById('tradeBtn');
+  btn.disabled = true;
+  const origText = btn.innerHTML;
+
+  if (tradeMode === 'buy') {
+    btn.innerHTML = '<div class="spinner"></div> Buying...';
+    await buyToken(currentDetailToken.mint, amount, btn, origText);
+  } else {
+    btn.innerHTML = '<div class="spinner"></div> Selling...';
+    await sellToken(currentDetailToken.mint, Math.floor(amount * 1e6), btn, origText);
   }
 }
 
-function executeTrade(){
-  if(!walletConnected){toast('Connect wallet first!');return;}
-  const amt = document.getElementById('tradeAmount').value;
-  if(!amt||amt<=0){toast('Enter an amount');return;}
-  toast(`${currentTradeMode==='buy'?'Bought':'Sold'} successfully! 🎉`);
+async function buyToken(mintStr, solAmount, btn, origText) {
+  const { PublicKey, Transaction, TransactionInstruction, SystemProgram } = solanaWeb3;
+  const mint = new PublicKey(mintStr);
+
+  try {
+    const [platformConfig] = findPDA([SEEDS.platformConfig]);
+    const [tokenLaunch] = findPDA([SEEDS.tokenLaunch, mint]);
+    const [solVault] = findPDA([SEEDS.solVault, mint]);
+    const [platformVault] = findPDA([SEEDS.platformVault]);
+    const launchVault = getATA(mint, tokenLaunch);
+    const buyerAta = getATA(mint, walletPubkey);
+    const [userPosition] = findPDA([SEEDS.userPosition, walletPubkey, mint]);
+
+    // Find creator from token data
+    const t = allTokens.find(tk => tk.mint === mintStr);
+    const creatorKey = t ? new PublicKey(t.creator) : walletPubkey;
+
+    const tx = new Transaction();
+
+    // Pre-fund PDAs if needed
+    const rentExempt = await connection.getMinimumBalanceForRentExemption(0);
+    const svInfo = await connection.getAccountInfo(solVault);
+    const pvInfo = await connection.getAccountInfo(platformVault);
+    if (!svInfo) tx.add(SystemProgram.transfer({ fromPubkey: walletPubkey, toPubkey: solVault, lamports: rentExempt }));
+    if (!pvInfo) tx.add(SystemProgram.transfer({ fromPubkey: walletPubkey, toPubkey: platformVault, lamports: rentExempt }));
+
+    const lamports = BigInt(Math.round(solAmount * 1e9));
+    const disc = await getDiscriminator('buy');
+    const data = new Uint8Array(16);
+    data.set(disc, 0);
+    new DataView(data.buffer).setBigUint64(8, lamports, true);
+
+    tx.add(new TransactionInstruction({
+      keys: [
+        { pubkey: tokenLaunch, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: false, isWritable: false },
+        { pubkey: launchVault, isSigner: false, isWritable: true },
+        { pubkey: solVault, isSigner: false, isWritable: true },
+        { pubkey: buyerAta, isSigner: false, isWritable: true },
+        { pubkey: userPosition, isSigner: false, isWritable: true },
+        { pubkey: platformVault, isSigner: false, isWritable: true },
+        { pubkey: creatorKey, isSigner: false, isWritable: true },
+        { pubkey: platformConfig, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: ATA_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: PROGRAM_KEY,
+      data,
+    }));
+
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    toast('💚 Buy succeeded!');
+    showDetailTx('buy', sig, mintStr);
+    updateBalance();
+    loadLiveTokens();
+  } catch (e) {
+    console.error('Buy failed:', e);
+    toast('❌ Buy failed: ' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+async function sellToken(mintStr, tokenAmount, btn, origText) {
+  const { PublicKey, Transaction, TransactionInstruction, SystemProgram } = solanaWeb3;
+  const mint = new PublicKey(mintStr);
+
+  try {
+    const [platformConfig] = findPDA([SEEDS.platformConfig]);
+    const [tokenLaunch] = findPDA([SEEDS.tokenLaunch, mint]);
+    const [solVault] = findPDA([SEEDS.solVault, mint]);
+    const [platformVault] = findPDA([SEEDS.platformVault]);
+    const launchVault = getATA(mint, tokenLaunch);
+    const sellerAta = getATA(mint, walletPubkey);
+    const [userPosition] = findPDA([SEEDS.userPosition, walletPubkey, mint]);
+
+    const t = allTokens.find(tk => tk.mint === mintStr);
+    const creatorKey = t ? new PublicKey(t.creator) : walletPubkey;
+
+    const disc = await getDiscriminator('sell');
+    const data = new Uint8Array(16);
+    data.set(disc, 0);
+    new DataView(data.buffer).setBigUint64(8, BigInt(tokenAmount), true);
+
+    const tx = new Transaction().add(new TransactionInstruction({
+      keys: [
+        { pubkey: tokenLaunch, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: false, isWritable: false },
+        { pubkey: launchVault, isSigner: false, isWritable: true },
+        { pubkey: solVault, isSigner: false, isWritable: true },
+        { pubkey: sellerAta, isSigner: false, isWritable: true },
+        { pubkey: userPosition, isSigner: false, isWritable: true },
+        { pubkey: platformVault, isSigner: false, isWritable: true },
+        { pubkey: creatorKey, isSigner: false, isWritable: true },
+        { pubkey: platformConfig, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: PROGRAM_KEY,
+      data,
+    }));
+
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    toast('🔴 Sell succeeded!');
+    showDetailTx('sell', sig, mintStr);
+    updateBalance();
+    loadLiveTokens();
+  } catch (e) {
+    console.error('Sell failed:', e);
+    toast('❌ Sell failed: ' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+function showDetailTx(action, sig, mint) {
+  const el = document.getElementById('detailTxResult');
+  if (!el) return;
+  const emoji = action === 'buy' ? '💚' : action === 'sell' ? '🔴' : '🚀';
+  el.innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px">${emoji} ${action.charAt(0).toUpperCase() + action.slice(1)} Confirmed!</div>
+    <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}?cluster=devnet" target="_blank">${sig.slice(0,24)}...</a></div>
+  `;
+  el.classList.add('show');
 }
 
 // ═══════════════════════════════════════════════
-//  LEADERBOARD
+//  CREATE TOKEN
 // ═══════════════════════════════════════════════
-function renderLeaderboards(){
-  const sorted = [...MOCK_TOKENS].sort((a,b)=>b.vol-a.vol);
-  document.getElementById('lb-tokens').innerHTML = `
-    <table class="lb-table"><thead><tr><th>#</th><th>Token</th><th>Price</th><th>Market Cap</th><th>Volume (24h)</th><th>Migration</th></tr></thead><tbody>
-    ${sorted.map((t,i)=>`<tr>
-      <td><span class="rank rank-${i<3?i+1:''}">${i+1}</span></td>
-      <td><div class="lb-token"><div class="lb-avatar" style="display:flex;align-items:center;justify-content:center;font-size:18px">${t.img}</div><div><div style="font-weight:700">${t.name}</div><div style="font-size:11px;color:var(--neon);font-family:'JetBrains Mono',monospace">$${t.symbol}</div></div></div></td>
-      <td style="font-family:'JetBrains Mono',monospace">${t.price.toFixed(5)}</td>
-      <td style="font-family:'JetBrains Mono',monospace">$${fmt(t.mcap)}</td>
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">$${fmt(t.vol)}</td>
-      <td><div class="migration-bar" style="width:100px;display:inline-block;vertical-align:middle"><div class="fill" style="width:${t.migration}%"></div></div> <span style="font-size:12px;color:var(--text2)">${t.migration}%</span></td>
-    </tr>`).join('')}
-    </tbody></table>`;
+async function createToken() {
+  if (!walletPubkey) { toast('Connect wallet first'); return; }
 
-  const csorted = [...MOCK_CREATORS].sort((a,b)=>b.volume-a.volume);
-  document.getElementById('lb-creators').innerHTML = `
-    <table class="lb-table"><thead><tr><th>#</th><th>Creator</th><th>Launches</th><th>Total Volume</th></tr></thead><tbody>
-    ${csorted.map((c,i)=>`<tr>
-      <td><span class="rank rank-${i<3?i+1:''}">${i+1}</span></td>
-      <td style="font-family:'JetBrains Mono',monospace">${c.addr}</td>
-      <td style="font-weight:700">${c.launches}</td>
-      <td style="font-family:'JetBrains Mono',monospace;color:var(--neon)">$${fmt(c.volume)}</td>
-    </tr>`).join('')}
-    </tbody></table>`;
-}
+  const { PublicKey, Transaction, TransactionInstruction, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } = solanaWeb3;
 
-function switchLbTab(el, id){
-  el.parentNode.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('lb-tokens').style.display = id==='lb-tokens'?'block':'none';
-  document.getElementById('lb-creators').style.display = id==='lb-creators'?'block':'none';
+  const name = document.getElementById('tokenName')?.value?.trim();
+  const symbol = document.getElementById('tokenSymbol')?.value?.trim().toUpperCase();
+  if (!name) { toast('Enter a token name'); return; }
+  if (!symbol) { toast('Enter a symbol'); return; }
+
+  const description = document.getElementById('tokenDesc')?.value?.trim() || '';
+  let uri = document.getElementById('tokenUri')?.value?.trim() || '';
+  const feePct = parseFloat(document.getElementById('creatorFee')?.value || '5');
+  const feeBps = Math.round(feePct * 100); // 5% = 500 bps
+
+  const launchBtn = document.getElementById('launchBtn');
+  launchBtn.disabled = true;
+  launchBtn.textContent = '⏳ Creating...';
+
+  // ─── Storacha Upload ───
+  const storachaEnabled = document.getElementById('storachaToggle')?.checked;
+  if (storachaEnabled && !uri && typeof uploadTokenMetadataToStoracha === 'function') {
+    try {
+      launchBtn.textContent = '📦 Uploading to Filecoin...';
+      const result = await uploadTokenMetadataToStoracha({
+        name, symbol, description,
+        imageFile: selectedImageFile,
+        creatorAddress: walletPubkey.toBase58(),
+      });
+      if (result?.metadataUri) {
+        uri = result.metadataUri;
+        toast('✅ Metadata stored on Filecoin!');
+      }
+    } catch (e) {
+      console.warn('Storacha upload failed:', e);
+    }
+  }
+  if (!uri) uri = 'https://senditsolana.io';
+
+  launchBtn.textContent = '⏳ Sending transaction...';
+
+  try {
+    const mintKeypair = Keypair.generate();
+    const mint = mintKeypair.publicKey;
+    const [platformConfig] = findPDA([SEEDS.platformConfig]);
+    const [tokenLaunch] = findPDA([SEEDS.tokenLaunch, mint]);
+    const [solVault] = findPDA([SEEDS.solVault, mint]);
+    const launchVault = getATA(mint, tokenLaunch);
+
+    // Metaplex metadata PDA
+    const [metadata] = PublicKey.findProgramAddressSync(
+      [new TextEncoder().encode('metadata'), MPL_METADATA.toBuffer(), mint.toBuffer()],
+      MPL_METADATA
+    );
+
+    const disc = await getDiscriminator('create_token');
+    const feeBuf = new Uint8Array(2);
+    new DataView(feeBuf.buffer).setUint16(0, feeBps, true);
+    const data = concat(disc, encodeString(name), encodeString(symbol), encodeString(uri), feeBuf);
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: tokenLaunch, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: true, isWritable: true },
+        { pubkey: launchVault, isSigner: false, isWritable: true },
+        { pubkey: solVault, isSigner: false, isWritable: true },
+        { pubkey: metadata, isSigner: false, isWritable: true },
+        { pubkey: platformConfig, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: ATA_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+        { pubkey: MPL_METADATA, isSigner: false, isWritable: false },
+      ],
+      programId: PROGRAM_KEY,
+      data,
+    });
+
+    const tx = new Transaction().add(ix);
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+    tx.partialSign(mintKeypair);
+
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    toast(`🚀 Token launched! ${name} ($${symbol})`);
+
+    // Show result
+    const el = document.getElementById('createTxResult');
+    el.innerHTML = `
+      <div style="font-weight:700;margin-bottom:8px">🚀 Token Created!</div>
+      <div style="font-size:12px;margin-bottom:4px">Name: <strong>${escHtml(name)}</strong> ($${escHtml(symbol)})</div>
+      <div style="font-size:12px;margin-bottom:4px">Mint: <span style="font-family:'JetBrains Mono',monospace">${mint.toBase58()}</span></div>
+      <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}?cluster=devnet" target="_blank">${sig.slice(0,24)}...</a></div>
+    `;
+    el.classList.add('show');
+
+    // Post to Tapestry
+    try {
+      await fetch(`${TAPESTRY_API}/contents/create?apiKey=${TAPESTRY_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: walletPubkey.toBase58().slice(0, 8),
+          content: `🚀 Launched ${name} ($${symbol}) on Send.it!\nMint: ${mint.toBase58()}`,
+          contentType: 'text',
+          customProperties: [
+            { key: 'type', value: 'token_launch' },
+            { key: 'mint', value: mint.toBase58() },
+          ],
+          blockchain: 'SOLANA',
+          execution: 'FAST_UNCONFIRMED'
+        })
+      });
+    } catch (e) { console.warn('Tapestry post failed:', e); }
+
+    // Clear form
+    document.getElementById('tokenName').value = '';
+    document.getElementById('tokenSymbol').value = '';
+    document.getElementById('tokenDesc').value = '';
+    document.getElementById('tokenUri').value = '';
+
+    updateBalance();
+    loadLiveTokens();
+  } catch (e) {
+    console.error('Create failed:', e);
+    toast('❌ Launch failed: ' + (e.message || e));
+  } finally {
+    launchBtn.disabled = false;
+    launchBtn.textContent = '🚀 Launch Token';
+  }
 }
 
 // ═══════════════════════════════════════════════
 //  PORTFOLIO
 // ═══════════════════════════════════════════════
-function renderPortfolio(){
-  const holdings = MOCK_TOKENS.slice(0,4);
-  const totalVal = holdings.reduce((s,t)=>s+(Math.random()*5+0.5),0);
-  document.getElementById('portfolioSummary').innerHTML = `
-    <div class="card summary-card"><div class="big">${totalVal.toFixed(2)} SOL</div><div class="desc">Total Value</div></div>
-    <div class="card summary-card"><div class="big">${holdings.length}</div><div class="desc">Tokens Held</div></div>
-    <div class="card summary-card"><div class="big" style="background:linear-gradient(135deg,var(--neon),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">+${(Math.random()*50+5).toFixed(1)}%</div><div class="desc">Total PnL</div></div>
-  `;
-  document.getElementById('holdingsTable').innerHTML = `
-    <thead><tr><th>Token</th><th>Balance</th><th>Value</th><th>PnL</th></tr></thead><tbody>
-    ${holdings.map(t=>{
-      const val = (Math.random()*5+0.2).toFixed(2);
-      const pnl = (Math.random()*200-50).toFixed(1);
-      return `<tr>
-        <td><div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">${t.img}</span><div><div style="font-weight:700">${t.name}</div><div style="font-size:11px;color:var(--neon);font-family:'JetBrains Mono',monospace">$${t.symbol}</div></div></div></td>
-        <td style="font-family:'JetBrains Mono',monospace">${(Math.random()*50000+1000).toFixed(0)}</td>
-        <td style="font-family:'JetBrains Mono',monospace">${val} SOL</td>
-        <td class="${pnl>0?'pnl-pos':'pnl-neg'}" style="font-weight:700;font-family:'JetBrains Mono',monospace">${pnl>0?'+':''}${pnl}%</td>
-      </tr>`;
-    }).join('')}
-    </tbody>`;
-}
-
-// ═══════════════════════════════════════════════
-//  LAUNCH HANDLER
-// ═══════════════════════════════════════════════
-function checkLaunchReputation(){
-  const gate=document.getElementById('launchRepGate');
-  if(!walletConnected){gate.style.display='none';return;}
-  gate.style.display='block';
-  const fs=MOCK_FAIRSCORES['7xKq..3mFz']; // demo wallet
-  if(!fs){
-    gate.className='launch-rep-gate blocked';
-    document.getElementById('launchRepContent').innerHTML='<div style="color:var(--pink)">⚫ No FairScore found. You need a minimum score of 30 to launch.</div>';
-    document.getElementById('launchBtn').disabled=true;
+async function loadPortfolio() {
+  const container = document.getElementById('portfolioContent');
+  if (!walletPubkey) {
+    container.innerHTML = `<div class="portfolio-empty"><i class="fa-solid fa-wallet"></i><p style="font-size:16px;font-weight:600;margin-bottom:8px">Connect your wallet</p><p>Your token positions will appear here</p></div>`;
     return;
   }
-  const trust=getTrustLevel(fs.fairscore);
-  const eligible=fs.fairscore>=30;
-  const premium=fs.fairscore>=60;
-  gate.className='launch-rep-gate '+(eligible?'eligible':'blocked');
-  document.getElementById('launchRepContent').innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-      <span style="font-size:24px;font-weight:900;font-family:'JetBrains Mono',monospace;color:${getTierColor(fs.tier)}">${fs.fairscore}</span>
-      ${tierBadgeHtml(fs.tier)} ${trustBadgeHtml(fs.fairscore)}
-    </div>
-    <div style="font-size:12px;color:var(--text3)">
-      ${eligible?'✅ Eligible to launch':`❌ Score too low (min 30)`}
-      ${eligible&&!premium?' · Standard launches only':''}
-      ${premium?' · Premium launches unlocked':''}
-      · Fee discount: ${getFeeDiscount(fs.tier)}%
-      ${fs.fairscore<40?' · ⚠️ Extended vesting (2x) applies':''}
-    </div>`;
-  document.getElementById('launchBtn').disabled=!eligible;
+
+  container.innerHTML = '<div class="loading-grid"><div class="spinner"></div><p style="margin-top:12px">Loading positions...</p></div>';
+
+  try {
+    // Find all token accounts owned by the wallet
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPubkey, { programId: TOKEN_PROGRAM });
+
+    const positions = [];
+    for (const ta of tokenAccounts.value) {
+      const info = ta.account.data.parsed.info;
+      const mintStr = info.mint;
+      const amount = info.tokenAmount;
+      if (amount.uiAmount === 0) continue;
+
+      // Check if this mint matches any of our launched tokens
+      const token = allTokens.find(t => t.mint === mintStr);
+
+      positions.push({
+        mint: mintStr,
+        balance: amount.uiAmount,
+        balanceRaw: amount.amount,
+        decimals: amount.decimals,
+        name: token?.name || 'Unknown Token',
+        symbol: token?.symbol || mintStr.slice(0, 6) + '...',
+        isOurs: !!token,
+        token,
+      });
+    }
+
+    // Sort: our tokens first
+    positions.sort((a, b) => (b.isOurs ? 1 : 0) - (a.isOurs ? 1 : 0));
+
+    if (positions.length === 0) {
+      container.innerHTML = `<div class="portfolio-empty"><i class="fa-solid fa-box-open"></i><p style="font-size:16px;font-weight:600;margin-bottom:8px">No tokens yet</p><p>Buy some tokens or launch your own!</p></div>`;
+      return;
+    }
+
+    container.innerHTML = positions.map(p => `
+      <div class="card position-card" ${p.isOurs ? `style="cursor:pointer" onclick="openDetail('${p.mint}')"` : ''}>
+        <div class="token-img">${p.isOurs ? '🪙' : '💎'}</div>
+        <div style="flex:1">
+          <div style="font-weight:700">${escHtml(p.name)} <span style="font-family:'JetBrains Mono',monospace;color:var(--neon);font-size:12px">$${escHtml(p.symbol)}</span></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text2);margin-top:2px">${p.balance.toLocaleString()} tokens</div>
+        </div>
+        ${p.isOurs ? '<div style="color:var(--neon);font-size:12px;font-weight:600">Send.it ✓</div>' : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('Portfolio load failed:', e);
+    container.innerHTML = `<div class="portfolio-empty"><p>Failed to load portfolio</p><p style="font-size:12px;color:var(--text3)">${e.message}</p></div>`;
+  }
 }
 
-function handleLaunch(e){
-  e.preventDefault();
-  if(!walletConnected){toast('Connect wallet first!');return;}
-  const fs=MOCK_FAIRSCORES['7xKq..3mFz'];
-  if(!fs||fs.fairscore<30){toast('Insufficient reputation to launch!');return;}
-  const name = document.getElementById('tokenName').value;
-  const symbol = document.getElementById('tokenSymbol').value;
-  MOCK_TOKENS.unshift({
-    name, symbol, img:'🚀',
-    price: 0.00001, mcap: 1000, vol: 0, migration: 0,
-    creator: '7xKq..3mFz', time: 0,
-    curve: document.getElementById('curveType').value,
-    supply: '1B', reserve: '0 SOL', holders: 1, antiSnipe: true
+// ═══════════════════════════════════════════════
+//  IMAGE UPLOAD
+// ═══════════════════════════════════════════════
+function initImageUpload() {
+  const area = document.getElementById('uploadArea');
+  if (!area) return;
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/png,image/jpeg,image/gif,image/webp';
+  fileInput.style.display = 'none';
+  area.appendChild(fileInput);
+
+  area.addEventListener('click', () => fileInput.click());
+
+  area.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    area.style.borderColor = 'var(--neon)';
+    area.style.background = 'rgba(0,232,123,.06)';
   });
-  toast(`$${symbol} launched! 🚀`);
-  renderTokenGrid(MOCK_TOKENS);
-  renderLeaderboards();
-  e.target.reset();
-  setTimeout(()=>showPage('explore'),800);
+  area.addEventListener('dragleave', () => {
+    area.style.borderColor = '';
+    area.style.background = '';
+  });
+  area.addEventListener('drop', (e) => {
+    e.preventDefault();
+    area.style.borderColor = '';
+    area.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) handleImage(file);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleImage(fileInput.files[0]);
+  });
+}
+
+function handleImage(file) {
+  if (file.size > 5 * 1024 * 1024) { toast('Image too large (max 5MB)'); return; }
+  selectedImageFile = file;
+  const area = document.getElementById('uploadArea');
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    area.innerHTML = `
+      <img src="${e.target.result}" style="max-height:120px;border-radius:8px;margin-bottom:8px">
+      <div style="color:var(--neon);font-weight:600">${file.name}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">${(file.size / 1024).toFixed(1)} KB · Click to change</div>
+    `;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ═══════════════════════════════════════════════
 //  TOAST
 // ═══════════════════════════════════════════════
-function toast(msg){
-  const t = document.createElement('div');
-  t.className='toast';t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(),3000);
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
 }
 
-// ═══════════════════════════════════════════════
-//  PARTICLES
-// ═══════════════════════════════════════════════
-function initParticles(){
-  const c = document.getElementById('particles');
-  for(let i=0;i<30;i++){
-    const p = document.createElement('div');
-    p.className='particle';
-    const size = Math.random()*3+1;
-    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*5}s`;
-    c.appendChild(p);
-  }
-}
-
-// ═══════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════
-function renderReputation(){
-  const fs=MOCK_FAIRSCORES['7xKq..3mFz']; // demo wallet
-  if(!fs){
-    document.getElementById('myFairScore').textContent='—';
-    return;
-  }
-  const trust=getTrustLevel(fs.fairscore);
-  document.getElementById('myFairScore').style.color=getTierColor(fs.tier);
-  document.getElementById('myFairScore').textContent=fs.fairscore;
-  document.getElementById('myScoreGauge').style.width=fs.fairscore+'%';
-  document.getElementById('myTierBadge').innerHTML=tierBadgeHtml(fs.tier);
-  document.getElementById('repTier').innerHTML=tierBadgeHtml(fs.tier);
-  document.getElementById('repTrust').innerHTML=`<span style="color:${trust.color}">${trust.emoji} ${trust.label}</span>`;
-  document.getElementById('repDiscount').textContent=getFeeDiscount(fs.tier)+'%';
-  document.getElementById('repAge').textContent=fs.features.wallet_age_days+' days';
-  document.getElementById('repTxCount').textContent=fs.features.tx_count.toLocaleString();
-  document.getElementById('repActiveDays').textContent=fs.features.active_days;
-  document.getElementById('repCanLaunch').innerHTML=fs.fairscore>=30?'<span style="color:var(--neon)">✅ Yes</span>':'<span style="color:var(--pink)">❌ No (min 30)</span>';
-  document.getElementById('repVesting').textContent=fs.fairscore<40?'2x (extended)':'1x (normal)';
-  document.getElementById('myBadges').innerHTML=fs.badges.length?fs.badges.map(b=>`<span style="font-size:12px;padding:6px 14px;border-radius:16px;background:rgba(0,255,136,.08);color:var(--neon);border:1px solid rgba(0,255,136,.15);font-weight:600">${b.replace(/_/g,' ')}</span>`).join(''):'<span style="color:var(--text3)">No badges yet</span>';
-}
-
-renderTokenGrid(MOCK_TOKENS);
-renderLeaderboards();
-renderPortfolio();
-renderReputation();
-checkLaunchReputation();
-initParticles();
+// ─── Keyboard shortcut: Escape to close detail ───
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeDetail();
+});
 </script>
 </body>
 </html>
