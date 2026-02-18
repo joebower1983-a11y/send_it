@@ -43,6 +43,8 @@ header{position:sticky;top:36px;z-index:100;background:rgba(15,17,23,.95);backdr
 .header-right{display:flex;align-items:center;gap:12px}
 .sol-balance{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--neon);background:rgba(0,232,123,.08);padding:6px 14px;border-radius:20px;border:1px solid rgba(0,232,123,.15);display:none;align-items:center;gap:6px}
 .sol-balance.show{display:flex}
+.network-toggle{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--bg3);color:var(--text2);border:1px solid rgba(255,255,255,.1);transition:.2s;white-space:nowrap}
+.network-toggle:hover{border-color:rgba(0,232,123,.3);color:var(--neon)}
 .wallet-btn{padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;color:#000;background:linear-gradient(135deg,var(--neon),#00c868);transition:.3s}
 .wallet-btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}
 .wallet-btn.connected{background:var(--bg3);color:var(--neon);border:1px solid rgba(0,232,123,.2)}
@@ -176,7 +178,7 @@ main{flex:1;padding:24px;max-width:1200px;margin:0 auto;width:100%}
 <body>
 
 <!-- Testnet Banner -->
-<div class="testnet-banner">
+<div class="testnet-banner" id="testnetBanner">
   <span>⚠️ Devnet — Tokens have no real value</span>
 </div>
 
@@ -188,6 +190,9 @@ main{flex:1;padding:24px;max-width:1200px;margin:0 auto;width:100%}
       <span>Send<span style="color:var(--pink)">.it</span></span>
     </div>
     <div class="header-right">
+      <button class="network-toggle" id="networkToggle" title="Switch network">
+        <span id="networkLabel">🧪 Devnet</span>
+      </button>
       <div class="sol-balance" id="solBalance">
         <i class="fa-solid fa-coins"></i>
         <span id="balanceAmt">0.00</span> SOL
@@ -307,8 +312,37 @@ main{flex:1;padding:24px;max-width:1200px;margin:0 auto;width:100%}
 // ═══════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════
-const PROGRAM_ID = 'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx';
-const RPC = 'https://api.devnet.solana.com';
+// ─── Network Config ───
+const NETWORKS = {
+  devnet: {
+    name: 'Devnet',
+    rpc: 'https://api.devnet.solana.com',
+    programId: 'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx',
+    chain: 'solana:devnet',
+    solscanCluster: '${net().solscanCluster}',
+    label: '🧪 Devnet',
+    bannerColor: 'linear-gradient(90deg,#0f1117,#1a2332,#0f1117)',
+    bannerText: '⚠️ Devnet — Tokens have no real value',
+  },
+  mainnet: {
+    name: 'Mainnet',
+    rpc: 'https://api.mainnet-beta.solana.com',
+    programId: null, // SET THIS AFTER MAINNET DEPLOY
+    chain: 'solana:mainnet',
+    solscanCluster: '',
+    label: '🟢 Mainnet',
+    bannerColor: 'linear-gradient(90deg,#0f1117,#1a1a2e,#0f1117)',
+    bannerText: '🟢 Mainnet — Real tokens, real value',
+  },
+};
+
+// Read saved network preference, default to devnet
+let currentNetwork = localStorage.getItem('sendit_network') || 'devnet';
+// Force devnet if mainnet program not deployed yet
+if (currentNetwork === 'mainnet' && !NETWORKS.mainnet.programId) currentNetwork = 'devnet';
+
+function net() { return NETWORKS[currentNetwork]; }
+
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const ATA_PROGRAM_ID = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
 const MPL_TOKEN_METADATA_ID = 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
@@ -338,18 +372,73 @@ let selectedImageFile = null;
 //  INIT
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  const { Connection, PublicKey } = solanaWeb3;
-  connection = new Connection(RPC, 'confirmed');
-  PROGRAM_KEY = new PublicKey(PROGRAM_ID);
-  TOKEN_PROGRAM = new PublicKey(TOKEN_PROGRAM_ID);
-  ATA_PROGRAM = new PublicKey(ATA_PROGRAM_ID);
-  MPL_METADATA = new PublicKey(MPL_TOKEN_METADATA_ID);
-
+  initNetwork();
   initNav();
+  initNetworkToggle();
   initImageUpload();
   loadLiveTokens();
   updatePlatformStats();
 });
+
+function initNetwork() {
+  const { Connection, PublicKey } = solanaWeb3;
+  connection = new Connection(net().rpc, 'confirmed');
+  PROGRAM_KEY = new PublicKey(net().programId);
+  TOKEN_PROGRAM = new PublicKey(TOKEN_PROGRAM_ID);
+  ATA_PROGRAM = new PublicKey(ATA_PROGRAM_ID);
+  MPL_METADATA = new PublicKey(MPL_TOKEN_METADATA_ID);
+
+  // Update banner
+  const banner = document.getElementById('testnetBanner');
+  if (banner) {
+    banner.style.background = net().bannerColor;
+    banner.querySelector('span').textContent = net().bannerText;
+    banner.style.color = currentNetwork === 'mainnet' ? '#00e87b' : 'var(--neon)';
+  }
+
+  // Update network selector display
+  const netLabel = document.getElementById('networkLabel');
+  if (netLabel) netLabel.textContent = net().label;
+
+  // Update stats bar
+  const statNet = document.getElementById('statNetwork');
+  if (statNet) statNet.textContent = net().name;
+}
+
+function switchNetwork(network) {
+  if (network === currentNetwork) return;
+  if (network === 'mainnet' && !NETWORKS.mainnet.programId) {
+    toast('Mainnet program not deployed yet — coming soon!');
+    return;
+  }
+
+  // Disconnect wallet on network switch
+  if (walletPubkey) {
+    try { walletAdapter?.disconnect?.(); } catch(e) {}
+    walletPubkey = null;
+    walletAdapter = null;
+    const btn = document.getElementById('walletBtn');
+    btn.innerHTML = '<i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet';
+    btn.classList.remove('connected');
+    document.getElementById('solBalance').classList.remove('show');
+  }
+
+  currentNetwork = network;
+  localStorage.setItem('sendit_network', network);
+  allTokens = [];
+  initNetwork();
+  loadLiveTokens();
+  updatePlatformStats();
+  toast(`Switched to ${net().name}`);
+}
+
+function initNetworkToggle() {
+  const toggle = document.getElementById('networkToggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    switchNetwork(currentNetwork === 'devnet' ? 'mainnet' : 'devnet');
+  });
+}
 
 // ═══════════════════════════════════════════════
 //  NAV
@@ -527,7 +616,7 @@ function buildStandardAdapter(stdWallet) {
         const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
         const result = await feat.signTransaction({
           transaction: serialized,
-          chain: 'solana:devnet',
+          chain: net().chain,
         });
         return solanaWeb3.Transaction.from(result.signedTransaction);
       }
@@ -540,7 +629,7 @@ function buildStandardAdapter(stdWallet) {
         const serialized = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
         const result = await feat.signAndSendTransaction({
           transaction: serialized,
-          chain: 'solana:devnet',
+          chain: net().chain,
         });
         return { signature: result.signature };
       }
@@ -765,7 +854,7 @@ if (!solanaWeb3.PublicKey.decode) {
 // ═══════════════════════════════════════════════
 async function loadLiveTokens() {
   const grid = document.getElementById('tokenGrid');
-  grid.innerHTML = '<div class="loading-grid"><div class="spinner"></div><p style="margin-top:12px">Loading tokens from devnet...</p></div>';
+  grid.innerHTML = `<div class="loading-grid"><div class="spinner"></div><p style="margin-top:12px">Loading tokens from ${net().name}...</p></div>`;
 
   try {
     // Fetch all program accounts — TokenLaunch accounts are the biggest ones
@@ -938,7 +1027,7 @@ function openDetail(mintStr) {
       <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Mint</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all;color:var(--text2)">
         ${t.mint}
-        <a href="https://solscan.io/token/${t.mint}?cluster=devnet" target="_blank" style="color:var(--neon);margin-left:6px"><i class="fa-solid fa-external-link"></i></a>
+        <a href="https://solscan.io/token/${t.mint}${net().solscanCluster}" target="_blank" style="color:var(--neon);margin-left:6px"><i class="fa-solid fa-external-link"></i></a>
       </div>
     </div>
 
@@ -1178,7 +1267,7 @@ function showDetailTx(action, sig, mint) {
   const emoji = action === 'buy' ? '💚' : action === 'sell' ? '🔴' : '🚀';
   el.innerHTML = `
     <div style="font-weight:700;margin-bottom:4px">${emoji} ${action.charAt(0).toUpperCase() + action.slice(1)} Confirmed!</div>
-    <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}?cluster=devnet" target="_blank">${sig.slice(0,24)}...</a></div>
+    <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}${net().solscanCluster}" target="_blank">${sig.slice(0,24)}...</a></div>
   `;
   el.classList.add('show');
 }
@@ -1281,7 +1370,7 @@ async function createToken() {
       <div style="font-weight:700;margin-bottom:8px">🚀 Token Created!</div>
       <div style="font-size:12px;margin-bottom:4px">Name: <strong>${escHtml(name)}</strong> ($${escHtml(symbol)})</div>
       <div style="font-size:12px;margin-bottom:4px">Mint: <span style="font-family:'JetBrains Mono',monospace">${mint.toBase58()}</span></div>
-      <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}?cluster=devnet" target="_blank">${sig.slice(0,24)}...</a></div>
+      <div style="font-size:12px">Tx: <a href="https://solscan.io/tx/${sig}${net().solscanCluster}" target="_blank">${sig.slice(0,24)}...</a></div>
     `;
     el.classList.add('show');
 
