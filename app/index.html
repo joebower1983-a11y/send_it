@@ -383,7 +383,10 @@ async function connectWallet() {
   const btn = document.getElementById('walletBtn');
 
   if (walletPubkey) {
-    // Disconnect
+    // Disconnect properly
+    try {
+      if (walletAdapter?.disconnect) await walletAdapter.disconnect();
+    } catch (e) { console.warn('Disconnect error:', e); }
     walletPubkey = null;
     walletAdapter = null;
     btn.innerHTML = '<i class="fa-solid fa-wallet"></i>&nbsp; Connect Wallet';
@@ -393,22 +396,35 @@ async function connectWallet() {
     return;
   }
 
+  // Show wallet picker if multiple wallets detected
+  const wallets = [];
+  if (window.solana?.isPhantom) wallets.push({ name: 'Phantom', provider: window.solana, icon: '👻' });
+  if (window.solflare?.isSolflare) wallets.push({ name: 'Solflare', provider: window.solflare, icon: '🔆' });
+  // Backpack, Glow, etc
+  if (window.backpack?.isBackpack) wallets.push({ name: 'Backpack', provider: window.backpack, icon: '🎒' });
+
+  if (wallets.length === 0) {
+    toast('Install Phantom, Solflare, or Backpack wallet');
+    return;
+  }
+
+  let provider;
+  if (wallets.length === 1) {
+    provider = wallets[0].provider;
+  } else {
+    // Multiple wallets — let user pick
+    const choice = await showWalletPicker(wallets);
+    if (!choice) return;
+    provider = choice;
+  }
+
   try {
-    if (window.solana?.isPhantom) {
-      const resp = await window.solana.connect();
-      walletAdapter = window.solana;
-      walletPubkey = resp.publicKey;
-    } else if (window.solflare?.isSolflare) {
-      await window.solflare.connect();
-      walletAdapter = window.solflare;
-      walletPubkey = window.solflare.publicKey;
-    } else {
-      toast('Install Phantom or Solflare wallet');
-      return;
-    }
+    const resp = await provider.connect();
+    walletAdapter = provider;
+    walletPubkey = resp.publicKey || provider.publicKey;
 
     const addr = walletPubkey.toBase58();
-    btn.innerHTML = `<i class="fa-solid fa-wallet"></i>&nbsp; ${addr.slice(0,4)}..${addr.slice(-4)}`;
+    btn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>&nbsp; ${addr.slice(0,4)}..${addr.slice(-4)}`;
     btn.classList.add('connected');
     toast('Wallet connected! ✅');
 
@@ -418,6 +434,31 @@ async function connectWallet() {
     console.error('Wallet connect failed:', e);
     toast('Connection failed: ' + (e.message || e));
   }
+}
+
+function showWalletPicker(wallets) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center';
+    overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); resolve(null); } };
+
+    const panel = document.createElement('div');
+    panel.style.cssText = 'background:var(--bg2);border:1px solid rgba(0,232,123,.15);border-radius:16px;padding:24px;max-width:320px;width:100%;animation:fadeUp .3s';
+    panel.innerHTML = '<h3 style="margin-bottom:16px;font-size:18px;font-weight:800">Select Wallet</h3>';
+
+    wallets.forEach(w => {
+      const btn = document.createElement('button');
+      btn.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border-radius:10px;background:var(--bg3);color:var(--text);font-size:15px;font-weight:600;margin-bottom:8px;transition:.2s;border:1px solid transparent';
+      btn.innerHTML = `<span style="font-size:24px">${w.icon}</span> ${w.name}`;
+      btn.onmouseenter = () => btn.style.borderColor = 'rgba(0,232,123,.3)';
+      btn.onmouseleave = () => btn.style.borderColor = 'transparent';
+      btn.onclick = () => { overlay.remove(); resolve(w.provider); };
+      panel.appendChild(btn);
+    });
+
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+  });
 }
 
 async function updateBalance() {
