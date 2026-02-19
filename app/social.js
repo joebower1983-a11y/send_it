@@ -4,7 +4,7 @@
  */
 
 const TAPESTRY_API = 'https://api.usetapestry.dev/v1';
-const TAPESTRY_KEY = '601a8251-9c95-4456-97af-c1e79b5c0259';
+const TAPESTRY_KEY = '6e42e1b7-f35e-447c-aaab-e5b8c71726f3';
 
 // ─── State ───
 let connectedWallet = null;

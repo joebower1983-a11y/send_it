@@ -11,7 +11,7 @@ const SENDIT_PROGRAM = 'HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx';
 const SENDIT_MINT    = 'F8qWTN8JfyDCvj4RoCHuvNMVbTV9XQksLuziA8PYpump';
 const RPC_DEVNET     = 'https://api.devnet.solana.com';
 const TAPESTRY_API   = 'https://api.usetapestry.dev/api/v1';
-const TAPESTRY_APP   = '601a8251-9c95-4456-97af-c1e79b5c0259';
+const TAPESTRY_APP   = '6e42e1b7-f35e-447c-aaab-e5b8c71726f3';
 
 const TIERS = [
   { name: 'Bronze',   emoji: '🥉', min: 0,      mult: 1.0,  color: '#cd7f32' },

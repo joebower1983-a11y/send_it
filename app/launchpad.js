@@ -6,7 +6,7 @@
 
 const PROGRAM_ID = 'program_id_placeholder'; // replaced below
 const RPC = 'https://api.devnet.solana.com';
-const TAPESTRY_KEY = '601a8251-9c95-4456-97af-c1e79b5c0259';
+const TAPESTRY_KEY = '6e42e1b7-f35e-447c-aaab-e5b8c71726f3';
 const TAPESTRY_API = 'https://api.usetapestry.dev/v1';
 
 // ─── Image Upload State ───
