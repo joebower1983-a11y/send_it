@@ -4,7 +4,7 @@
 
 **Version:** 2.2.0
 **Date:** February 2026
-**Status:** Draft
+**Status:** Final
 
 ---
 
@@ -16,7 +16,7 @@
 4. [Bonding Curve Mechanics](#4-bonding-curve-mechanics)
 5. [Anti-Snipe System](#5-anti-snipe-system)
 6. [Rug Protection](#6-rug-protection)
-7. [PumpSwap-Style AMM & Graduation](#7-pumpswap-style-amm--graduation)
+7. [Send.Swap AMM & Graduation](#7-sendswap-amm--graduation)
 7b. [Storacha/Filecoin Decentralized Storage](#7b-storachafilecoin-decentralized-storage)
 8. [DeFi Suite](#8-defi-suite)
    - 8.1 [Staking](#81-staking)
@@ -290,11 +290,11 @@ A circuit-breaker mechanism with strict constraints:
 
 ---
 
-## 7. PumpSwap-Style AMM & Graduation
+## 7. Send.Swap AMM & Graduation
 
 ### 7.1 Architecture
 
-The Send.it native Automated Market Maker (AMM) is a PumpSwap-style liquidity solution designed to operate entirely within the Send.it ecosystem. Unlike other platforms that migrate liquidity to external DEXs (e.g., Raydium), **all liquidity remains within Send.it**, creating a self-sustaining and robust economy.
+The Send.it native Automated Market Maker (AMM) is a Send.Swap-style liquidity solution designed to operate entirely within the Send.it ecosystem. Unlike other platforms that migrate liquidity to external DEXs (e.g., Raydium), **all liquidity remains within Send.it**, creating a self-sustaining and robust economy.
 
 ### 7.2 Graduation Process
 
@@ -1752,7 +1752,7 @@ A comprehensive audit of the SENDIT token's Token-2022 configuration confirmed:
 - [x] Core bonding curve program (linear, exponential, sigmoid)
 - [x] Anti-snipe system (3 layers)
 - [x] Rug protection (LP locking, vesting, emergency pause)
-- [x] PumpSwap-style AMM (bonding curve graduation, swap, liquidity)
+- [x] Send.Swap AMM (bonding curve graduation, swap, liquidity)
 - [x] Storacha/Filecoin decentralized metadata storage
 - [x] Sec3 X-Ray: 0 vulnerabilities
 - [x] SolForge vault and burn mechanism
