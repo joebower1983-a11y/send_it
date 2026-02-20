@@ -81,7 +81,7 @@ Send.it is a **next-generation token launchpad** on Solana that goes far beyond 
 | **Bonding Curve Trading** | Linear, Exponential, and Sigmoid curves with fixed-point math (1e12 precision) |
 | **Anti-Snipe Protection** | Configurable launch delays, per-wallet buy caps during snipe windows, global bot blocklist |
 | **Rug Protection** | Lock periods on liquidity, linear creator vesting schedules, emergency pause |
-| **PumpSwap-Style AMM** | Bonding curve → constant-product AMM graduation. `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). All liquidity stays in-ecosystem. |
+| **Send.Swap AMM** | Bonding curve → constant-product AMM graduation (PumpSwap-style). `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). All liquidity stays in-ecosystem. |
 | **Decentralized Storage** | Token metadata (images + JSON) stored permanently on IPFS/Filecoin via Storacha. Content-addressed, verifiable, immutable. |
 | **Creator Revenue Share** | Configurable creator fee on every trade (up to 5%), paid directly on each tx |
 | **Platform Config & Fees** | Global PDA config, adjustable platform fees, admin controls |
@@ -301,7 +301,7 @@ anchor deploy --provider.cluster devnet
 - [x] Core bonding curve engine (Linear, Exponential, Sigmoid)
 - [x] Anti-snipe protection & bot blocklist
 - [x] Creator vesting & rug protection
-- [x] PumpSwap-style AMM (bonding curve graduation, swap, liquidity)
+- [x] Send.Swap AMM (PumpSwap-style bonding curve graduation, swap, liquidity)
 - [x] Storacha/Filecoin decentralized metadata storage
 - [x] Sec3 X-Ray: 0 vulnerabilities (both programs)
 - [x] Leaderboard system
@@ -368,7 +368,7 @@ See also: [`SECURITY.md`](SECURITY.md) · [`.well-known/security.txt`](.well-kno
 - **Storacha/Filecoin integration** — Token metadata (images + JSON) stored permanently on IPFS/Filecoin via Storacha. Decentralized, content-addressed, verifiable.
 - **Image upload on launchpad** — Drag-drop or click-to-browse with preview. Uploads to Filecoin before on-chain mint.
 - **Serverless upload API** — `/api/storacha-upload` endpoint with delegated credentials.
-- **PumpSwap-style AMM** — `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). Bonding curve graduation to constant-product AMM.
+- **Send.Swap AMM** — `create_pool`, `swap`, `add_liquidity`, `remove_liquidity`. 1% swap fee (0.3% LP, 0.7% protocol). Bonding curve graduation to constant-product AMM.
 - **Trading UI** — Swap interface, pool browser with TVL, LP position tracking.
 - **Staking UI** — Stake/unstake with devnet integration.
 - **Sec3 X-Ray: 0 vulnerabilities** — Both slim and full programs clean (GitHub Actions CI).
