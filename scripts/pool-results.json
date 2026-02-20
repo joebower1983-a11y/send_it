@@ -1,0 +1,23 @@
+[
+  {
+    "name": "AlphaSwap",
+    "symbol": "ALPHA",
+    "mint": "6MaRfhxisFv94biNqTRJ5VT7nLZTVwhxwdZcT41n6HVB",
+    "ammPool": "HsuEfMjkzwDe5bbHAK7FNBtggewZy6pWXhiUrFsu8PJm",
+    "lpMint": "93BxWeGQGTwByBokvhFwXKtYzENNqYfuFcZLMMbxpwK1"
+  },
+  {
+    "name": "BetaToken",
+    "symbol": "BETA",
+    "mint": "7Dr6ah6LYiobAu58LcJr7F5FEP6QtaEVKJgTL4VMThat",
+    "ammPool": "DRoGDZfmNfE3eoLuwL1y6KovuveVq9rypcR9EKqsVu8U",
+    "lpMint": "BCzy2Eo2rfn3oU43eLtosE8STSbeDzFv3AYjAZ3hn6CP"
+  },
+  {
+    "name": "GammaFi",
+    "symbol": "GAMMA",
+    "mint": "BoXw9FB3ArZuXbKLmL9XxFG9HzMUGJAbCrXSzeDnfn7N",
+    "ammPool": "3x2bGrv6mZwFGM8WNtyQ7Phkrc8Btsuydc1a6sL2rdH8",
+    "lpMint": "AhqKpNsHdSpx5pkibLGDDCQBCcKLABgQ9VQfPGgrn8ec"
+  }
+]
