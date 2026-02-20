@@ -19,6 +19,13 @@ const PLATFORM_CONFIG_SEED = 'platform_config';
 const PLATFORM_VAULT_SEED = 'platform_vault';
 const TOKEN_LAUNCH_SEED = 'token_launch';
 
+// Known devnet pools (seeded via seed-pools.mjs)
+const KNOWN_POOLS = [
+  { name: 'AlphaSwap', symbol: 'ALPHA', mint: '6MaRfhxisFv94biNqTRJ5VT7nLZTVwhxwdZcT41n6HVB', pool: 'HsuEfMjkzwDe5bbHAK7FNBtggewZy6pWXhiUrFsu8PJm', lpMint: '93BxWeGQGTwByBokvhFwXKtYzENNqYfuFcZLMMbxpwK1' },
+  { name: 'BetaToken', symbol: 'BETA', mint: '7Dr6ah6LYiobAu58LcJr7F5FEP6QtaEVKJgTL4VMThat', pool: 'DRoGDZfmNfE3eoLuwL1y6KovuveVq9rypcR9EKqsVu8U', lpMint: 'BCzy2Eo2rfn3oU43eLtosE8STSbeDzFv3AYjAZ3hn6CP' },
+  { name: 'GammaFi', symbol: 'GAMMA', mint: 'BoXw9FB3ArZuXbKLmL9XxFG9HzMUGJAbCrXSzeDnfn7N', pool: '3x2bGrv6mZwFGM8WNtyQ7Phkrc8Btsuydc1a6sL2rdH8', lpMint: 'AhqKpNsHdSpx5pkibLGDDCQBCcKLABgQ9VQfPGgrn8ec' },
+];
+
 // Globals
 let connection = null;
 let walletPubkey = null;
@@ -32,6 +39,8 @@ function init() {
   const { Connection, PublicKey } = solanaWeb3;
   connection = new Connection(RPC, 'confirmed');
   PROGRAM = new PublicKey(PROGRAM_ID_STR);
+  // Load pools immediately (no wallet needed for read-only)
+  loadPools();
 }
 init();
 
@@ -98,11 +107,16 @@ async function loadPools() {
       const bump = data[120];
       const poolSolVaultBump = data[121];
 
+      // Match against known pools for proper name/symbol
+      const mintStr = mint.toBase58();
+      const known = KNOWN_POOLS.find(k => k.mint === mintStr);
+
       return {
         pubkey, mint, tokenReserve, solReserve, lpMint,
         lpSupply, totalFeesSol, totalFeesToken, createdAt,
         bump, poolSolVaultBump,
-        symbol: mint.toBase58().slice(0, 6), // placeholder
+        name: known ? known.name : mintStr.slice(0, 8),
+        symbol: known ? known.symbol : mintStr.slice(0, 6),
       };
     });
 
@@ -134,13 +148,14 @@ function renderPools() {
     return;
   }
 
+  const icons = { ALPHA: '🅰️', BETA: '🅱️', GAMMA: '🌀' };
   list.innerHTML = pools.map((p, i) => `
     <div class="pool-item ${i === 0 ? 'active' : ''}" onclick="selectPool(${i})" id="pool-${i}">
-      <div class="pool-icon">🏊</div>
+      <div class="pool-icon">${icons[p.symbol] || '🏊'}</div>
       <div>
-        <div class="pool-name">${p.symbol}/SOL</div>
-        <div class="pool-pair">${p.mint.toBase58().slice(0, 8)}...</div>
-        <div class="pool-tvl">TVL: ${(p.solReserve / 1e9).toFixed(4)} SOL</div>
+        <div class="pool-name">${p.name} <span style="color:var(--text2);font-weight:400;font-size:12px">${p.symbol}/SOL</span></div>
+        <div class="pool-pair">${p.mint.toBase58().slice(0, 12)}...</div>
+        <div class="pool-tvl">TVL: ${(p.solReserve / 1e9).toFixed(4)} SOL · Price: ${p.tokenReserve > 0 ? (p.solReserve / p.tokenReserve * 1e3).toFixed(6) : '—'} SOL</div>
       </div>
     </div>
   `).join('');
