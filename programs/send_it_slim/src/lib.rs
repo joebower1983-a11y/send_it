@@ -1449,14 +1449,16 @@ pub struct CreatePool<'info> {
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
-    #[account(init_if_needed, payer=user, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(init_if_needed, payer=user, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     /// CHECK: Platform vault
     #[account(mut, seeds=[PLATFORM_VAULT_SEED], bump)]
@@ -1469,16 +1471,18 @@ pub struct Swap<'info> {
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(init_if_needed, payer=user, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
@@ -1490,16 +1494,18 @@ pub struct AddLiquidity<'info> {
 
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
+    #[account(constraint=token_mint.key()==amm_pool.mint)]
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(mut, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
