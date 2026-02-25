@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer, MintTo, Burn};
 use anchor_spl::associated_token::AssociatedToken;
 
 declare_id!("HTKq18cATdwCZb6XM66Mhn8JWKCFTrZqH6zU1zip88Zx");
@@ -32,6 +32,26 @@ pub const SWAP_FEE_BPS: u64 = 100; // 1% swap fee
 pub const LP_FEE_BPS: u64 = 30; // 0.3% to LP holders
 pub const PROTOCOL_FEE_BPS: u64 = 70; // 0.7% to protocol
 pub const MIN_LIQUIDITY: u64 = 1000; // minimum LP tokens locked forever
+
+// ── Governance (Realms) Constants ──
+pub const GOV_BRIDGE_SEED: &[u8] = b"gov_bridge";
+pub const PROPOSAL_SEED: &[u8] = b"proposal";
+pub const VOTE_SEED: &[u8] = b"vote_record";
+pub const MAX_TITLE_LEN: usize = 64;
+pub const MAX_DESC_LEN: usize = 256;
+
+// ── Tapestry (Social) Constants ──
+pub const SOCIAL_PROFILE_SEED: &[u8] = b"social_profile";
+pub const SOCIAL_POST_SEED: &[u8] = b"social_post";
+pub const FOLLOW_SEED: &[u8] = b"follow";
+pub const LIKE_SEED: &[u8] = b"like";
+pub const MAX_DISPLAY_NAME_LEN: usize = 32;
+pub const MAX_BIO_LEN: usize = 160;
+pub const MAX_POST_LEN: usize = 280;
+
+// ── Torque (Loyalty) Constants ──
+pub const LOYALTY_CONFIG_SEED: &[u8] = b"loyalty_config";
+pub const LOYALTY_ACCOUNT_SEED: &[u8] = b"loyalty_account";
 
 // ── Events ──
 
@@ -114,6 +134,76 @@ pub struct LiquidityRemoved {
     pub sol_amount: u64,
     pub token_amount: u64,
     pub lp_burned: u64,
+}
+
+#[event]
+pub struct GovernanceBridgeInitialized {
+    pub mint: Pubkey,
+    pub realm: Pubkey,
+    pub authority: Pubkey,
+}
+
+#[event]
+pub struct ProposalCreated {
+    pub proposal_id: u64,
+    pub mint: Pubkey,
+    pub proposer: Pubkey,
+    pub title: String,
+}
+
+#[event]
+pub struct VoteCast {
+    pub proposal_id: u64,
+    pub voter: Pubkey,
+    pub approve: bool,
+    pub weight: u64,
+}
+
+#[event]
+pub struct SocialProfileCreated {
+    pub owner: Pubkey,
+    pub display_name: String,
+}
+
+#[event]
+pub struct SocialProfileUpdated {
+    pub owner: Pubkey,
+    pub display_name: String,
+}
+
+#[event]
+pub struct UserFollowed {
+    pub follower: Pubkey,
+    pub followee: Pubkey,
+}
+
+#[event]
+pub struct SocialPostCreated {
+    pub author: Pubkey,
+    pub post_id: u64,
+    pub content: String,
+}
+
+#[event]
+pub struct PostLiked {
+    pub liker: Pubkey,
+    pub post_author: Pubkey,
+    pub post_id: u64,
+}
+
+#[event]
+pub struct LoyaltyConfigInitialized {
+    pub mint: Pubkey,
+    pub authority: Pubkey,
+    pub points_per_sol: u64,
+}
+
+#[event]
+pub struct LoyaltyPointsAwarded {
+    pub user: Pubkey,
+    pub mint: Pubkey,
+    pub points: u64,
+    pub total_points: u64,
 }
 
 #[program]
@@ -804,6 +894,208 @@ pub mod send_it {
 
         Ok(())
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // REALMS — Governance Bridge
+    // ══════════════════════════════════════════════════════════════
+
+    /// Initialize a governance bridge linking a token launch to a Realms DAO
+    pub fn init_governance_bridge(ctx: Context<InitGovernanceBridge>, realm: Pubkey) -> Result<()> {
+        let bridge = &mut ctx.accounts.gov_bridge;
+        bridge.mint = ctx.accounts.token_mint.key();
+        bridge.realm = realm;
+        bridge.authority = ctx.accounts.authority.key();
+        bridge.proposal_count = 0;
+        bridge.created_at = Clock::get()?.unix_timestamp;
+        bridge.bump = ctx.bumps.gov_bridge;
+
+        emit!(GovernanceBridgeInitialized {
+            mint: bridge.mint,
+            realm,
+            authority: bridge.authority,
+        });
+        Ok(())
+    }
+
+    /// Create a governance proposal
+    pub fn create_realms_proposal(ctx: Context<CreateRealmsProposal>, title: String, description: String) -> Result<()> {
+        require!(title.len() <= MAX_TITLE_LEN, SendItError::TitleTooLong);
+        require!(description.len() <= MAX_DESC_LEN, SendItError::DescTooLong);
+
+        let bridge = &mut ctx.accounts.gov_bridge;
+        let proposal_id = bridge.proposal_count;
+        bridge.proposal_count = bridge.proposal_count.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        let proposal = &mut ctx.accounts.proposal;
+        proposal.proposal_id = proposal_id;
+        proposal.mint = bridge.mint;
+        proposal.proposer = ctx.accounts.proposer.key();
+        proposal.title = title.clone();
+        proposal.description = description;
+        proposal.votes_for = 0;
+        proposal.votes_against = 0;
+        proposal.created_at = Clock::get()?.unix_timestamp;
+        proposal.finalized = false;
+        proposal.bump = ctx.bumps.proposal;
+
+        emit!(ProposalCreated { proposal_id, mint: bridge.mint, proposer: ctx.accounts.proposer.key(), title });
+        Ok(())
+    }
+
+    /// Cast a vote on a governance proposal
+    pub fn cast_realms_vote(ctx: Context<CastRealmsVote>, approve: bool, weight: u64) -> Result<()> {
+        require!(weight > 0, SendItError::ZeroAmount);
+        let proposal = &mut ctx.accounts.proposal;
+        require!(!proposal.finalized, SendItError::ProposalFinalized);
+
+        if approve {
+            proposal.votes_for = proposal.votes_for.checked_add(weight).ok_or(SendItError::MathOverflow)?;
+        } else {
+            proposal.votes_against = proposal.votes_against.checked_add(weight).ok_or(SendItError::MathOverflow)?;
+        }
+
+        let vote_record = &mut ctx.accounts.vote_record;
+        vote_record.voter = ctx.accounts.voter.key();
+        vote_record.proposal_id = proposal.proposal_id;
+        vote_record.approve = approve;
+        vote_record.weight = weight;
+        vote_record.timestamp = Clock::get()?.unix_timestamp;
+        vote_record.bump = ctx.bumps.vote_record;
+
+        emit!(VoteCast { proposal_id: proposal.proposal_id, voter: ctx.accounts.voter.key(), approve, weight });
+        Ok(())
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // TAPESTRY — Social Layer
+    // ══════════════════════════════════════════════════════════════
+
+    /// Create a social profile linked to the user's wallet
+    pub fn create_social_profile(ctx: Context<CreateSocialProfile>, display_name: String, bio: String) -> Result<()> {
+        require!(display_name.len() <= MAX_DISPLAY_NAME_LEN, SendItError::NameTooLong);
+        require!(bio.len() <= MAX_BIO_LEN, SendItError::BioTooLong);
+
+        let profile = &mut ctx.accounts.social_profile;
+        profile.owner = ctx.accounts.owner.key();
+        profile.display_name = display_name.clone();
+        profile.bio = bio;
+        profile.post_count = 0;
+        profile.follower_count = 0;
+        profile.following_count = 0;
+        profile.created_at = Clock::get()?.unix_timestamp;
+        profile.bump = ctx.bumps.social_profile;
+
+        emit!(SocialProfileCreated { owner: profile.owner, display_name });
+        Ok(())
+    }
+
+    /// Update an existing social profile
+    pub fn update_social_profile(ctx: Context<UpdateSocialProfile>, display_name: Option<String>, bio: Option<String>) -> Result<()> {
+        let profile = &mut ctx.accounts.social_profile;
+        if let Some(name) = display_name.clone() {
+            require!(name.len() <= MAX_DISPLAY_NAME_LEN, SendItError::NameTooLong);
+            profile.display_name = name;
+        }
+        if let Some(b) = bio {
+            require!(b.len() <= MAX_BIO_LEN, SendItError::BioTooLong);
+            profile.bio = b;
+        }
+        emit!(SocialProfileUpdated { owner: profile.owner, display_name: profile.display_name.clone() });
+        Ok(())
+    }
+
+    /// Follow another user
+    pub fn follow_user(ctx: Context<FollowUser>) -> Result<()> {
+        let follow = &mut ctx.accounts.follow_account;
+        follow.follower = ctx.accounts.follower.key();
+        follow.followee = ctx.accounts.followee_profile.owner;
+        follow.created_at = Clock::get()?.unix_timestamp;
+        follow.bump = ctx.bumps.follow_account;
+
+        let follower_profile = &mut ctx.accounts.follower_profile;
+        follower_profile.following_count = follower_profile.following_count.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        let followee_profile = &mut ctx.accounts.followee_profile;
+        followee_profile.follower_count = followee_profile.follower_count.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        emit!(UserFollowed { follower: follow.follower, followee: follow.followee });
+        Ok(())
+    }
+
+    /// Create a social post
+    pub fn create_social_post(ctx: Context<CreateSocialPost>, content: String) -> Result<()> {
+        require!(content.len() <= MAX_POST_LEN, SendItError::PostTooLong);
+
+        let profile = &mut ctx.accounts.author_profile;
+        let post_id = profile.post_count;
+        profile.post_count = profile.post_count.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        let post = &mut ctx.accounts.social_post;
+        post.author = ctx.accounts.author.key();
+        post.post_id = post_id;
+        post.content = content.clone();
+        post.likes = 0;
+        post.created_at = Clock::get()?.unix_timestamp;
+        post.bump = ctx.bumps.social_post;
+
+        emit!(SocialPostCreated { author: post.author, post_id, content });
+        Ok(())
+    }
+
+    /// Like a social post
+    pub fn like_post(ctx: Context<LikePost>) -> Result<()> {
+        let post = &mut ctx.accounts.social_post;
+        post.likes = post.likes.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        let like = &mut ctx.accounts.like_account;
+        like.liker = ctx.accounts.liker.key();
+        like.post_author = post.author;
+        like.post_id = post.post_id;
+        like.timestamp = Clock::get()?.unix_timestamp;
+        like.bump = ctx.bumps.like_account;
+
+        emit!(PostLiked { liker: like.liker, post_author: like.post_author, post_id: like.post_id });
+        Ok(())
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // TORQUE — Loyalty Points
+    // ══════════════════════════════════════════════════════════════
+
+    /// Initialize loyalty configuration for a token
+    pub fn init_loyalty_config(ctx: Context<InitLoyaltyConfig>, points_per_sol: u64) -> Result<()> {
+        require!(points_per_sol > 0, SendItError::ZeroAmount);
+        let config = &mut ctx.accounts.loyalty_config;
+        config.mint = ctx.accounts.token_mint.key();
+        config.authority = ctx.accounts.authority.key();
+        config.points_per_sol = points_per_sol;
+        config.total_points_distributed = 0;
+        config.created_at = Clock::get()?.unix_timestamp;
+        config.bump = ctx.bumps.loyalty_config;
+
+        emit!(LoyaltyConfigInitialized { mint: config.mint, authority: config.authority, points_per_sol });
+        Ok(())
+    }
+
+    /// Award loyalty points to a user
+    pub fn award_loyalty_points(ctx: Context<AwardLoyaltyPoints>, points: u64) -> Result<()> {
+        require!(points > 0, SendItError::ZeroAmount);
+
+        let loyalty = &mut ctx.accounts.loyalty_account;
+        if loyalty.bump == 0 {
+            loyalty.owner = ctx.accounts.user.key();
+            loyalty.mint = ctx.accounts.loyalty_config.mint;
+            loyalty.bump = ctx.bumps.loyalty_account;
+        }
+        loyalty.points = loyalty.points.checked_add(points).ok_or(SendItError::MathOverflow)?;
+        loyalty.last_updated = Clock::get()?.unix_timestamp;
+
+        let config = &mut ctx.accounts.loyalty_config;
+        config.total_points_distributed = config.total_points_distributed.checked_add(points).ok_or(SendItError::MathOverflow)?;
+
+        emit!(LoyaltyPointsAwarded { user: loyalty.owner, mint: loyalty.mint, points, total_points: loyalty.points });
+        Ok(())
+    }
 }
 
 /// Integer square root (Babylonian method)
@@ -885,6 +1177,113 @@ pub struct AmmPool {
     pub pool_sol_vault_bump: u8,
 }
 impl AmmPool { pub const SIZE: usize = 8+32+8+8+32+8+8+8+8+1+1; }
+
+// ── Governance Accounts ──
+
+#[account]
+pub struct GovernanceBridge {
+    pub mint: Pubkey,
+    pub realm: Pubkey,
+    pub authority: Pubkey,
+    pub proposal_count: u64,
+    pub created_at: i64,
+    pub bump: u8,
+}
+impl GovernanceBridge { pub const SIZE: usize = 8+32+32+32+8+8+1; }
+
+#[account]
+pub struct Proposal {
+    pub proposal_id: u64,
+    pub mint: Pubkey,
+    pub proposer: Pubkey,
+    pub title: String,
+    pub description: String,
+    pub votes_for: u64,
+    pub votes_against: u64,
+    pub created_at: i64,
+    pub finalized: bool,
+    pub bump: u8,
+}
+impl Proposal { pub const SIZE: usize = 8+8+32+32+(4+64)+(4+256)+8+8+8+1+1; }
+
+#[account]
+pub struct VoteRecord {
+    pub voter: Pubkey,
+    pub proposal_id: u64,
+    pub approve: bool,
+    pub weight: u64,
+    pub timestamp: i64,
+    pub bump: u8,
+}
+impl VoteRecord { pub const SIZE: usize = 8+32+8+1+8+8+1; }
+
+// ── Social (Tapestry) Accounts ──
+
+#[account]
+pub struct SocialProfile {
+    pub owner: Pubkey,
+    pub display_name: String,
+    pub bio: String,
+    pub post_count: u64,
+    pub follower_count: u64,
+    pub following_count: u64,
+    pub created_at: i64,
+    pub bump: u8,
+}
+impl SocialProfile { pub const SIZE: usize = 8+32+(4+32)+(4+160)+8+8+8+8+1; }
+
+#[account]
+pub struct SocialPost {
+    pub author: Pubkey,
+    pub post_id: u64,
+    pub content: String,
+    pub likes: u64,
+    pub created_at: i64,
+    pub bump: u8,
+}
+impl SocialPost { pub const SIZE: usize = 8+32+8+(4+280)+8+8+1; }
+
+#[account]
+pub struct FollowAccount {
+    pub follower: Pubkey,
+    pub followee: Pubkey,
+    pub created_at: i64,
+    pub bump: u8,
+}
+impl FollowAccount { pub const SIZE: usize = 8+32+32+8+1; }
+
+#[account]
+pub struct LikeAccount {
+    pub liker: Pubkey,
+    pub post_author: Pubkey,
+    pub post_id: u64,
+    pub timestamp: i64,
+    pub bump: u8,
+}
+impl LikeAccount { pub const SIZE: usize = 8+32+32+8+8+1; }
+
+// ── Loyalty (Torque) Accounts ──
+
+#[account]
+pub struct LoyaltyConfig {
+    pub mint: Pubkey,
+    pub authority: Pubkey,
+    pub points_per_sol: u64,
+    pub total_points_distributed: u64,
+    pub created_at: i64,
+    pub bump: u8,
+}
+impl LoyaltyConfig { pub const SIZE: usize = 8+32+32+8+8+8+1; }
+
+#[account]
+pub struct LoyaltyAccount {
+    pub owner: Pubkey,
+    pub mint: Pubkey,
+    pub points: u64,
+    pub last_updated: i64,
+    pub bump: u8,
+}
+impl LoyaltyAccount { pub const SIZE: usize = 8+32+32+8+8+1; }
 
 // ── Contexts ──
 
@@ -1021,26 +1420,26 @@ pub struct UnstakeTokens<'info> {
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
     #[account(init, payer=creator, space=AmmPool::SIZE, seeds=[POOL_SEED, token_mint.key().as_ref()], bump)]
-    pub amm_pool: Box<Account<'info, AmmPool>>,
+    pub amm_pool: Account<'info, AmmPool>,
     #[account(mut, seeds=[TOKEN_LAUNCH_SEED, token_mint.key().as_ref()], bump=token_launch.bump, has_one=creator)]
-    pub token_launch: Box<Account<'info, TokenLaunch>>,
-    pub token_mint: Box<Account<'info, Mint>>,
+    pub token_launch: Account<'info, TokenLaunch>,
+    pub token_mint: Account<'info, Mint>,
     #[account(mut, associated_token::mint=token_mint, associated_token::authority=token_launch)]
-    pub launch_token_vault: Box<Account<'info, TokenAccount>>,
+    pub launch_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Launch SOL vault
     #[account(mut, seeds=[SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
     pub launch_sol_vault: AccountInfo<'info>,
     #[account(init, payer=creator, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
-    pub pool_token_vault: Box<Account<'info, TokenAccount>>,
+    pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault PDA
     #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(init, payer=creator, mint::decimals=TOKEN_DECIMALS, mint::authority=amm_pool)]
-    pub lp_mint: Box<Account<'info, Mint>>,
+    pub lp_mint: Account<'info, Mint>,
     #[account(init, payer=creator, associated_token::mint=lp_mint, associated_token::authority=creator)]
-    pub creator_lp_account: Box<Account<'info, TokenAccount>>,
+    pub creator_lp_account: Account<'info, TokenAccount>,
     #[account(seeds=[PLATFORM_CONFIG_SEED], bump=platform_config.bump)]
-    pub platform_config: Box<Account<'info, PlatformConfig>>,
+    pub platform_config: Account<'info, PlatformConfig>,
     #[account(mut)] pub creator: Signer<'info>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -1050,16 +1449,14 @@ pub struct CreatePool<'info> {
 
 #[derive(Accounts)]
 pub struct Swap<'info> {
-    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(constraint=token_mint.key()==amm_pool.mint)]
-    pub token_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
-    #[account(init_if_needed, payer=user, associated_token::mint=token_mint, associated_token::authority=user)]
+    #[account(init_if_needed, payer=user, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     /// CHECK: Platform vault
     #[account(mut, seeds=[PLATFORM_VAULT_SEED], bump)]
@@ -1072,18 +1469,16 @@ pub struct Swap<'info> {
 
 #[derive(Accounts)]
 pub struct AddLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(constraint=token_mint.key()==amm_pool.mint)]
-    pub token_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(init_if_needed, payer=user, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
@@ -1095,24 +1490,125 @@ pub struct AddLiquidity<'info> {
 
 #[derive(Accounts)]
 pub struct RemoveLiquidity<'info> {
-    #[account(mut, seeds=[POOL_SEED, token_mint.key().as_ref()], bump=amm_pool.bump)]
+    #[account(mut, seeds=[POOL_SEED, amm_pool.mint.as_ref()], bump=amm_pool.bump)]
     pub amm_pool: Account<'info, AmmPool>,
-    #[account(constraint=token_mint.key()==amm_pool.mint)]
-    pub token_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=token_mint, associated_token::authority=amm_pool)]
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=amm_pool)]
     pub pool_token_vault: Account<'info, TokenAccount>,
     /// CHECK: Pool SOL vault
-    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, token_mint.key().as_ref()], bump=amm_pool.pool_sol_vault_bump)]
+    #[account(mut, seeds=[POOL_SOL_VAULT_SEED, amm_pool.mint.as_ref()], bump=amm_pool.pool_sol_vault_bump)]
     pub pool_sol_vault: AccountInfo<'info>,
     #[account(mut, constraint=lp_mint.key()==amm_pool.lp_mint)]
     pub lp_mint: Account<'info, Mint>,
-    #[account(mut, associated_token::mint=token_mint, associated_token::authority=user)]
+    #[account(mut, associated_token::mint=amm_pool.mint, associated_token::authority=user)]
     pub user_token_account: Account<'info, TokenAccount>,
     #[account(mut, associated_token::mint=lp_mint, associated_token::authority=user)]
     pub user_lp_account: Account<'info, TokenAccount>,
     #[account(mut)] pub user: Signer<'info>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+// ── Governance Contexts ──
+
+#[derive(Accounts)]
+pub struct InitGovernanceBridge<'info> {
+    #[account(init, payer=authority, space=GovernanceBridge::SIZE, seeds=[GOV_BRIDGE_SEED, token_mint.key().as_ref()], bump)]
+    pub gov_bridge: Account<'info, GovernanceBridge>,
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut)] pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateRealmsProposal<'info> {
+    #[account(mut, seeds=[GOV_BRIDGE_SEED, gov_bridge.mint.as_ref()], bump=gov_bridge.bump)]
+    pub gov_bridge: Account<'info, GovernanceBridge>,
+    #[account(init, payer=proposer, space=Proposal::SIZE, seeds=[PROPOSAL_SEED, gov_bridge.mint.as_ref(), &gov_bridge.proposal_count.to_le_bytes()], bump)]
+    pub proposal: Account<'info, Proposal>,
+    #[account(mut)] pub proposer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CastRealmsVote<'info> {
+    #[account(mut, seeds=[PROPOSAL_SEED, proposal.mint.as_ref(), &proposal.proposal_id.to_le_bytes()], bump=proposal.bump)]
+    pub proposal: Account<'info, Proposal>,
+    #[account(init, payer=voter, space=VoteRecord::SIZE, seeds=[VOTE_SEED, proposal.mint.as_ref(), &proposal.proposal_id.to_le_bytes(), voter.key().as_ref()], bump)]
+    pub vote_record: Account<'info, VoteRecord>,
+    #[account(mut)] pub voter: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+// ── Social (Tapestry) Contexts ──
+
+#[derive(Accounts)]
+pub struct CreateSocialProfile<'info> {
+    #[account(init, payer=owner, space=SocialProfile::SIZE, seeds=[SOCIAL_PROFILE_SEED, owner.key().as_ref()], bump)]
+    pub social_profile: Account<'info, SocialProfile>,
+    #[account(mut)] pub owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateSocialProfile<'info> {
+    #[account(mut, seeds=[SOCIAL_PROFILE_SEED, owner.key().as_ref()], bump=social_profile.bump, has_one=owner)]
+    pub social_profile: Account<'info, SocialProfile>,
+    pub owner: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct FollowUser<'info> {
+    #[account(init, payer=follower, space=FollowAccount::SIZE, seeds=[FOLLOW_SEED, follower.key().as_ref(), followee_profile.owner.as_ref()], bump)]
+    pub follow_account: Account<'info, FollowAccount>,
+    #[account(mut, seeds=[SOCIAL_PROFILE_SEED, follower.key().as_ref()], bump=follower_profile.bump)]
+    pub follower_profile: Account<'info, SocialProfile>,
+    #[account(mut)]
+    pub followee_profile: Account<'info, SocialProfile>,
+    #[account(mut)] pub follower: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateSocialPost<'info> {
+    #[account(init, payer=author, space=SocialPost::SIZE, seeds=[SOCIAL_POST_SEED, author.key().as_ref(), &author_profile.post_count.to_le_bytes()], bump)]
+    pub social_post: Account<'info, SocialPost>,
+    #[account(mut, seeds=[SOCIAL_PROFILE_SEED, author.key().as_ref()], bump=author_profile.bump)]
+    pub author_profile: Account<'info, SocialProfile>,
+    #[account(mut)] pub author: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct LikePost<'info> {
+    #[account(mut, seeds=[SOCIAL_POST_SEED, social_post.author.as_ref(), &social_post.post_id.to_le_bytes()], bump=social_post.bump)]
+    pub social_post: Account<'info, SocialPost>,
+    #[account(init, payer=liker, space=LikeAccount::SIZE, seeds=[LIKE_SEED, liker.key().as_ref(), social_post.author.as_ref(), &social_post.post_id.to_le_bytes()], bump)]
+    pub like_account: Account<'info, LikeAccount>,
+    #[account(mut)] pub liker: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+// ── Loyalty (Torque) Contexts ──
+
+#[derive(Accounts)]
+pub struct InitLoyaltyConfig<'info> {
+    #[account(init, payer=authority, space=LoyaltyConfig::SIZE, seeds=[LOYALTY_CONFIG_SEED, token_mint.key().as_ref()], bump)]
+    pub loyalty_config: Account<'info, LoyaltyConfig>,
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut)] pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AwardLoyaltyPoints<'info> {
+    #[account(mut, seeds=[LOYALTY_CONFIG_SEED, loyalty_config.mint.as_ref()], bump=loyalty_config.bump, has_one=authority)]
+    pub loyalty_config: Account<'info, LoyaltyConfig>,
+    #[account(init_if_needed, payer=authority, space=LoyaltyAccount::SIZE, seeds=[LOYALTY_ACCOUNT_SEED, loyalty_config.mint.as_ref(), user.key().as_ref()], bump)]
+    pub loyalty_account: Account<'info, LoyaltyAccount>,
+    /// CHECK: User receiving points
+    pub user: AccountInfo<'info>,
+    #[account(mut)] pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -1141,6 +1637,11 @@ pub enum SendItError {
     #[msg("Insufficient vault balance")] InsufficientVaultBalance,
     #[msg("Token has not graduated")] NotGraduated,
     #[msg("Invalid swap — set exactly one of sol_amount or token_amount")] InvalidSwap,
+    #[msg("Title too long")] TitleTooLong,
+    #[msg("Description too long")] DescTooLong,
+    #[msg("Proposal already finalized")] ProposalFinalized,
+    #[msg("Bio too long")] BioTooLong,
+    #[msg("Post too long")] PostTooLong,
 }
 
 // ── Metaplex CPI Helper ──
