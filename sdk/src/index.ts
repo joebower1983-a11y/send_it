@@ -403,42 +403,42 @@ export class SendItClient {
   }
 
   /**
-   * PumpSwap AMM program ID
+   * Send.Swap AMM program ID
    */
-  static PUMPSWAP_PROGRAM_ID = new PublicKey("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
-  static PUMPSWAP_GLOBAL_CONFIG = new PublicKey("ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw");
+  static SENDSWAP_PROGRAM_ID = new PublicKey("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
+  static SENDSWAP_GLOBAL_CONFIG = new PublicKey("ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw");
   static WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 
   /**
-   * Derive PumpSwap pool PDA
+   * Derive Send.Swap pool PDA
    */
-  pumpswapPoolPda(creator: PublicKey, baseMint: PublicKey, quoteMint: PublicKey, index: number = 0): PublicKey {
+  sendswapPoolPda(creator: PublicKey, baseMint: PublicKey, quoteMint: PublicKey, index: number = 0): PublicKey {
     const indexBuf = Buffer.alloc(2);
     indexBuf.writeUInt16LE(index);
     const [pda] = PublicKey.findProgramAddressSync(
       [Buffer.from("pool"), indexBuf, creator.toBuffer(), baseMint.toBuffer(), quoteMint.toBuffer()],
-      SendItSDK.PUMPSWAP_PROGRAM_ID,
+      SendItSDK.SENDSWAP_PROGRAM_ID,
     );
     return pda;
   }
 
   /**
-   * Derive PumpSwap LP mint PDA
+   * Derive Send.Swap LP mint PDA
    */
-  pumpswapLpMintPda(pool: PublicKey): PublicKey {
+  sendswapLpMintPda(pool: PublicKey): PublicKey {
     const [pda] = PublicKey.findProgramAddressSync(
       [Buffer.from("pool_lp_mint"), pool.toBuffer()],
-      SendItSDK.PUMPSWAP_PROGRAM_ID,
+      SendItSDK.SENDSWAP_PROGRAM_ID,
     );
     return pda;
   }
 
   /**
-   * Migrate token liquidity to PumpSwap AMM when bonding curve completes.
+   * Migrate token liquidity to Send.Swap AMM when bonding curve completes.
    * Permissionless — anyone can crank this.
-   * Creates a PumpSwap pool, deposits SOL + tokens, and burns LP tokens.
+   * Creates a Send.Swap pool, deposits SOL + tokens, and burns LP tokens.
    */
-  async migrateToPumpSwap(params: {
+  async migrateToSend.Swap(params: {
     mint: PublicKey;
   }): Promise<string> {
     const signer = this.signer();
@@ -449,14 +449,14 @@ export class SendItClient {
     )[0];
     const launchTokenVault = getAssociatedTokenAddressSync(params.mint, launchPda, true);
 
-    // PumpSwap pool accounts
-    const poolPda = this.pumpswapPoolPda(launchPda, params.mint, SendItSDK.WSOL_MINT);
-    const lpMintPda = this.pumpswapLpMintPda(poolPda);
+    // Send.Swap pool accounts
+    const poolPda = this.sendswapPoolPda(launchPda, params.mint, SendItSDK.WSOL_MINT);
+    const lpMintPda = this.sendswapLpMintPda(poolPda);
     const poolBaseAta = getAssociatedTokenAddressSync(params.mint, poolPda, true);
     const poolQuoteAta = getAssociatedTokenAddressSync(SendItSDK.WSOL_MINT, poolPda, true);
     const creatorLpAta = getAssociatedTokenAddressSync(lpMintPda, launchPda, true);
 
-    const data = ixDiscriminator("migrate_to_pumpswap");
+    const data = ixDiscriminator("migrate_to_sendswap");
 
     const ix = new TransactionInstruction({
       programId: this.programId,
@@ -468,12 +468,12 @@ export class SendItClient {
         { pubkey: this.platformConfigPda, isSigner: false, isWritable: false },
         { pubkey: SendItSDK.WSOL_MINT, isSigner: false, isWritable: false },
         { pubkey: poolPda, isSigner: false, isWritable: true },
-        { pubkey: SendItSDK.PUMPSWAP_GLOBAL_CONFIG, isSigner: false, isWritable: false },
+        { pubkey: SendItSDK.SENDSWAP_GLOBAL_CONFIG, isSigner: false, isWritable: false },
         { pubkey: lpMintPda, isSigner: false, isWritable: true },
         { pubkey: poolBaseAta, isSigner: false, isWritable: true },
         { pubkey: poolQuoteAta, isSigner: false, isWritable: true },
         { pubkey: creatorLpAta, isSigner: false, isWritable: true },
-        { pubkey: SendItSDK.PUMPSWAP_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SendItSDK.SENDSWAP_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: signer.publicKey, isSigner: true, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },

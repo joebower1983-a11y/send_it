@@ -67,8 +67,8 @@ pub const TOKEN_DECIMALS: u8 = 6;
 // Curve precision constant (fixed-point math with 1e12 scaling)
 pub const PRECISION: u128 = 1_000_000_000_000;
 
-// PumpSwap AMM program (mainnet + devnet)
-pub const PUMPSWAP_PROGRAM_ID: Pubkey = solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
+// Send.Swap AMM program (mainnet + devnet)
+pub const SENDSWAP_PROGRAM_ID: Pubkey = solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 pub const CANONICAL_POOL_INDEX: u16 = 0;
 
 // ============================================================================
@@ -657,15 +657,15 @@ pub mod send_it {
     }
 
     // ------------------------------------------------------------------------
-    // Migrate to PumpSwap AMM (triggered when bonding curve completes)
+    // Migrate to Send.Swap AMM (triggered when bonding curve completes)
     // ------------------------------------------------------------------------
     // Anyone can crank this once threshold is met. It:
-    //   1. Creates a PumpSwap pool via CPI (create_pool)
+    //   1. Creates a Send.Swap pool via CPI (create_pool)
     //   2. Deposits SOL reserves + remaining tokens as initial liquidity
     //   3. Burns the LP tokens so liquidity is permanently locked
     //   4. Marks the launch as migrated
     // ------------------------------------------------------------------------
-    pub fn migrate_to_pumpswap(ctx: Context<MigrateToPumpSwap>) -> Result<()> {
+    pub fn migrate_to_sendswap(ctx: Context<MigrateToSend.Swap>) -> Result<()> {
         let launch = &ctx.accounts.token_launch;
         let config = &ctx.accounts.platform_config;
 
@@ -718,8 +718,8 @@ pub mod send_it {
         **sol_vault_info.try_borrow_mut_lamports()? -= sol_amount;
         **pool_wsol_info.try_borrow_mut_lamports()? += sol_amount;
 
-        // --- Step 3: CPI to PumpSwap create_pool ---
-        // PumpSwap create_pool instruction discriminator: sha256("global:create_pool")[..8]
+        // --- Step 3: CPI to Send.Swap create_pool ---
+        // Send.Swap create_pool instruction discriminator: sha256("global:create_pool")[..8]
         let create_pool_disc: [u8; 8] = [233, 146, 209, 142, 207, 104, 64, 188];
 
         let mut data = Vec::with_capacity(8 + 2 + 8 + 8);
@@ -729,12 +729,12 @@ pub mod send_it {
         data.extend_from_slice(&sol_amount.to_le_bytes());       // quote_in
 
         let accounts_meta = vec![
-            AccountMeta::new(ctx.accounts.pumpswap_pool.key(), false),
-            AccountMeta::new_readonly(ctx.accounts.pumpswap_global_config.key(), false),
+            AccountMeta::new(ctx.accounts.sendswap_pool.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.sendswap_global_config.key(), false),
             AccountMeta::new(ctx.accounts.token_launch.key(), true), // creator (signer via PDA)
             AccountMeta::new_readonly(ctx.accounts.token_mint.key(), false),            // base_mint
             AccountMeta::new_readonly(ctx.accounts.wsol_mint.key(), false),              // quote_mint
-            AccountMeta::new(ctx.accounts.pumpswap_lp_mint.key(), false),
+            AccountMeta::new(ctx.accounts.sendswap_lp_mint.key(), false),
             AccountMeta::new(ctx.accounts.pool_base_token_account.key(), false),
             AccountMeta::new(ctx.accounts.pool_quote_token_account.key(), false),
             AccountMeta::new(ctx.accounts.creator_lp_token_account.key(), false),
@@ -744,7 +744,7 @@ pub mod send_it {
         ];
 
         let create_pool_ix = solana_program::instruction::Instruction {
-            program_id: PUMPSWAP_PROGRAM_ID,
+            program_id: SENDSWAP_PROGRAM_ID,
             accounts: accounts_meta,
             data,
         };
@@ -752,12 +752,12 @@ pub mod send_it {
         solana_program::program::invoke_signed(
             &create_pool_ix,
             &[
-                ctx.accounts.pumpswap_pool.to_account_info(),
-                ctx.accounts.pumpswap_global_config.to_account_info(),
+                ctx.accounts.sendswap_pool.to_account_info(),
+                ctx.accounts.sendswap_global_config.to_account_info(),
                 ctx.accounts.token_launch.to_account_info(),
                 ctx.accounts.token_mint.to_account_info(),
                 ctx.accounts.wsol_mint.to_account_info(),
-                ctx.accounts.pumpswap_lp_mint.to_account_info(),
+                ctx.accounts.sendswap_lp_mint.to_account_info(),
                 ctx.accounts.pool_base_token_account.to_account_info(),
                 ctx.accounts.pool_quote_token_account.to_account_info(),
                 ctx.accounts.creator_lp_token_account.to_account_info(),
@@ -775,7 +775,7 @@ pub mod send_it {
                 CpiContext::new_with_signer(
                     ctx.accounts.token_program.to_account_info(),
                     Burn {
-                        mint: ctx.accounts.pumpswap_lp_mint.to_account_info(),
+                        mint: ctx.accounts.sendswap_lp_mint.to_account_info(),
                         from: ctx.accounts.creator_lp_token_account.to_account_info(),
                         authority: ctx.accounts.token_launch.to_account_info(),
                     },
@@ -789,9 +789,9 @@ pub mod send_it {
         let launch = &mut ctx.accounts.token_launch;
         launch.migrated = true;
 
-        emit!(MigratedToPumpSwap {
+        emit!(MigratedToSend.Swap {
             mint: launch.mint,
-            pool: ctx.accounts.pumpswap_pool.key(),
+            pool: ctx.accounts.sendswap_pool.key(),
             reserve_sol: sol_amount,
             tokens_deposited: tokens_remaining,
             lp_tokens_burned: lp_balance,
@@ -1556,7 +1556,7 @@ pub struct ClaimVestedTokens<'info> {
 }
 
 #[derive(Accounts)]
-pub struct MigrateToPumpSwap<'info> {
+pub struct MigrateToSend.Swap<'info> {
     #[account(
         mut,
         seeds = [TOKEN_LAUNCH_SEED, token_mint.key().as_ref()],
@@ -1590,18 +1590,18 @@ pub struct MigrateToPumpSwap<'info> {
     /// CHECK: Native SOL mint (So11111111111111111111111111111111111111112)
     pub wsol_mint: Account<'info, Mint>,
 
-    // --- PumpSwap accounts ---
+    // --- Send.Swap accounts ---
 
-    /// CHECK: PumpSwap pool PDA — derived from [pool, index, creator, base_mint, quote_mint]
+    /// CHECK: Send.Swap pool PDA — derived from [pool, index, creator, base_mint, quote_mint]
     #[account(mut)]
-    pub pumpswap_pool: AccountInfo<'info>,
+    pub sendswap_pool: AccountInfo<'info>,
 
-    /// CHECK: PumpSwap global config — ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw
-    pub pumpswap_global_config: AccountInfo<'info>,
+    /// CHECK: Send.Swap global config — ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw
+    pub sendswap_global_config: AccountInfo<'info>,
 
-    /// CHECK: LP mint created by PumpSwap for this pool
+    /// CHECK: LP mint created by Send.Swap for this pool
     #[account(mut)]
-    pub pumpswap_lp_mint: AccountInfo<'info>,
+    pub sendswap_lp_mint: AccountInfo<'info>,
 
     /// CHECK: Pool's base token account (ATA of pool for token_mint)
     #[account(mut)]
@@ -1615,9 +1615,9 @@ pub struct MigrateToPumpSwap<'info> {
     #[account(mut)]
     pub creator_lp_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: PumpSwap program
-    #[account(address = PUMPSWAP_PROGRAM_ID)]
-    pub pumpswap_program: AccountInfo<'info>,
+    /// CHECK: Send.Swap program
+    #[account(address = SENDSWAP_PROGRAM_ID)]
+    pub sendswap_program: AccountInfo<'info>,
 
     /// CHECK: Can be called by anyone (permissionless crank)
     #[account(mut)]
@@ -1701,7 +1701,7 @@ pub struct MigrationReady {
 }
 
 #[event]
-pub struct MigratedToPumpSwap {
+pub struct MigratedToSend.Swap {
     pub mint: Pubkey,
     pub pool: Pubkey,
     pub reserve_sol: u64,
@@ -1737,7 +1737,7 @@ pub enum SendItError {
     PlatformPaused,
     #[msg("Token is paused")]
     TokenPaused,
-    #[msg("Token already migrated to PumpSwap")]
+    #[msg("Token already migrated to Send.Swap")]
     AlreadyMigrated,
     #[msg("Trading has not started yet")]
     TradingNotStarted,
