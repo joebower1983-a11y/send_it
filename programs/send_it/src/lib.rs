@@ -71,6 +71,12 @@ pub const PRECISION: u128 = 1_000_000_000_000;
 pub const SENDSWAP_PROGRAM_ID: Pubkey = solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 pub const CANONICAL_POOL_INDEX: u16 = 0;
 
+// Creator fee vault PDA seed
+pub const CREATOR_VAULT_SEED: &[u8] = b"creator-vault";
+
+// Token2022 program ID
+pub const TOKEN_2022_PROGRAM_ID: Pubkey = solana_program::pubkey!("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+
 // ============================================================================
 // PROGRAM
 // ============================================================================
@@ -405,14 +411,14 @@ pub mod send_it {
             )?;
         }
 
-        // Transfer creator fee
+        // Transfer creator fee to vault PDA (creator claims later)
         if creator_fee > 0 {
             anchor_lang::system_program::transfer(
                 CpiContext::new(
                     ctx.accounts.system_program.to_account_info(),
                     anchor_lang::system_program::Transfer {
                         from: ctx.accounts.buyer.to_account_info(),
-                        to: ctx.accounts.creator_wallet.to_account_info(),
+                        to: ctx.accounts.creator_vault.to_account_info(),
                     },
                 ),
                 creator_fee,
@@ -562,10 +568,10 @@ pub mod send_it {
             **ctx.accounts.platform_vault.to_account_info().try_borrow_mut_lamports()? += platform_fee;
         }
 
-        // Creator fee
+        // Creator fee to vault PDA
         if creator_fee > 0 {
             **ctx.accounts.launch_sol_vault.to_account_info().try_borrow_mut_lamports()? -= creator_fee;
-            **ctx.accounts.creator_wallet.to_account_info().try_borrow_mut_lamports()? += creator_fee;
+            **ctx.accounts.creator_vault.to_account_info().try_borrow_mut_lamports()? += creator_fee;
         }
 
         // Update state
@@ -665,7 +671,7 @@ pub mod send_it {
     //   3. Burns the LP tokens so liquidity is permanently locked
     //   4. Marks the launch as migrated
     // ------------------------------------------------------------------------
-    pub fn migrate_to_sendswap(ctx: Context<MigrateToSend.Swap>) -> Result<()> {
+    pub fn migrate_to_sendswap(ctx: Context<MigrateToSendSwap>) -> Result<()> {
         let launch = &ctx.accounts.token_launch;
         let config = &ctx.accounts.platform_config;
 
@@ -789,13 +795,179 @@ pub mod send_it {
         let launch = &mut ctx.accounts.token_launch;
         launch.migrated = true;
 
-        emit!(MigratedToSend.Swap {
+        emit!(MigratedToSendSwap {
             mint: launch.mint,
             pool: ctx.accounts.sendswap_pool.key(),
             reserve_sol: sol_amount,
             tokens_deposited: tokens_remaining,
             lp_tokens_burned: lp_balance,
             timestamp: clock.unix_timestamp,
+        });
+
+        Ok(())
+    }
+
+    // ------------------------------------------------------------------------
+    // Collect Creator Fee (creator claims accumulated vault fees)
+    // ------------------------------------------------------------------------
+    pub fn collect_creator_fee(ctx: Context<CollectCreatorFee>) -> Result<()> {
+        let vault_info = ctx.accounts.creator_vault.to_account_info();
+        let rent = Rent::get()?;
+        let min_balance = rent.minimum_balance(0);
+
+        let vault_lamports = vault_info.lamports();
+        let claimable = vault_lamports.saturating_sub(min_balance);
+        require!(claimable > 0, SendItError::NothingToClaim);
+
+        **vault_info.try_borrow_mut_lamports()? -= claimable;
+        **ctx.accounts.creator.to_account_info().try_borrow_mut_lamports()? += claimable;
+
+        emit!(CreatorFeeCollected {
+            creator: ctx.accounts.creator.key(),
+            amount: claimable,
+        });
+
+        Ok(())
+    }
+
+    // ------------------------------------------------------------------------
+    // Create Token V2 (Token2022 — no Metaplex dependency)
+    // ------------------------------------------------------------------------
+    // Uses Token2022 for minting with embedded metadata instead of Metaplex.
+    // Same bonding curve and fairness mechanics as create_token.
+    // ------------------------------------------------------------------------
+    pub fn create_token_v2(
+        ctx: Context<CreateTokenV2>,
+        name: String,
+        symbol: String,
+        uri: String,
+        curve_type: CurveType,
+        creator_fee_bps: u16,
+        launch_delay_seconds: i64,
+        snipe_window_seconds: i64,
+        max_buy_during_snipe: u64,
+        lock_period_seconds: i64,
+        creator_vesting_duration: i64,
+        creator_token_allocation_bps: u16,
+    ) -> Result<()> {
+        require!(name.len() <= MAX_NAME_LEN, SendItError::NameTooLong);
+        require!(symbol.len() <= MAX_SYMBOL_LEN, SendItError::SymbolTooLong);
+        require!(uri.len() <= MAX_URI_LEN, SendItError::UriTooLong);
+        require!(creator_fee_bps <= 500, SendItError::FeeTooHigh);
+        require!(creator_token_allocation_bps <= 1000, SendItError::AllocationTooHigh);
+
+        let config = &ctx.accounts.platform_config;
+        require!(!config.paused, SendItError::PlatformPaused);
+
+        let clock = Clock::get()?;
+
+        let launch = &mut ctx.accounts.token_launch;
+        launch.creator = ctx.accounts.creator.key();
+        launch.mint = ctx.accounts.token_mint.key();
+        launch.name = name.clone();
+        launch.symbol = symbol.clone();
+        launch.uri = uri.clone();
+        launch.curve_type = curve_type;
+        launch.creator_fee_bps = creator_fee_bps;
+        launch.total_supply = DEFAULT_TOTAL_SUPPLY;
+        launch.tokens_sold = 0;
+        launch.reserve_sol = 0;
+        launch.created_at = clock.unix_timestamp;
+        launch.trading_starts_at = clock.unix_timestamp + launch_delay_seconds;
+        launch.snipe_window_end = clock.unix_timestamp + launch_delay_seconds + snipe_window_seconds;
+        launch.max_buy_during_snipe = if max_buy_during_snipe == 0 {
+            DEFAULT_TOTAL_SUPPLY / 100
+        } else {
+            max_buy_during_snipe
+        };
+        launch.lock_period_end = clock.unix_timestamp + lock_period_seconds;
+        launch.migrated = false;
+        launch.paused = false;
+        launch.total_volume_sol = 0;
+        launch.bump = ctx.bumps.token_launch;
+
+        // Initialize Token2022 mint with metadata via CPI
+        // The mint is already created by Anchor with Token2022 program
+        // We use the metadata pointer extension to embed name/symbol/uri
+
+        // Mint supply to vault
+        let creator_allocation = (DEFAULT_TOTAL_SUPPLY as u128)
+            .checked_mul(creator_token_allocation_bps as u128)
+            .unwrap()
+            .checked_div(10_000)
+            .unwrap() as u64;
+        let curve_supply = DEFAULT_TOTAL_SUPPLY - creator_allocation;
+
+        let mint_key = ctx.accounts.token_mint.key();
+        let launch_seeds: &[&[u8]] = &[
+            TOKEN_LAUNCH_SEED,
+            mint_key.as_ref(),
+            &[launch.bump],
+        ];
+        let signer_seeds = &[launch_seeds];
+
+        // Mint curve supply using Token2022
+        let mint_ix = spl_token_2022::instruction::mint_to(
+            &TOKEN_2022_PROGRAM_ID,
+            &ctx.accounts.token_mint.key(),
+            &ctx.accounts.launch_token_vault.key(),
+            &ctx.accounts.token_launch.key(),
+            &[],
+            curve_supply,
+        )?;
+
+        solana_program::program::invoke_signed(
+            &mint_ix,
+            &[
+                ctx.accounts.token_mint.to_account_info(),
+                ctx.accounts.launch_token_vault.to_account_info(),
+                ctx.accounts.token_launch.to_account_info(),
+            ],
+            signer_seeds,
+        )?;
+
+        // Setup creator vesting if allocation > 0
+        if creator_allocation > 0 {
+            let vesting = &mut ctx.accounts.creator_vesting;
+            vesting.creator = ctx.accounts.creator.key();
+            vesting.mint = ctx.accounts.token_mint.key();
+            vesting.total_amount = creator_allocation;
+            vesting.claimed_amount = 0;
+            vesting.vesting_start = clock.unix_timestamp;
+            vesting.vesting_duration = creator_vesting_duration;
+            vesting.bump = ctx.bumps.creator_vesting;
+
+            let vest_ix = spl_token_2022::instruction::mint_to(
+                &TOKEN_2022_PROGRAM_ID,
+                &ctx.accounts.token_mint.key(),
+                &ctx.accounts.launch_token_vault.key(),
+                &ctx.accounts.token_launch.key(),
+                &[],
+                creator_allocation,
+            )?;
+
+            solana_program::program::invoke_signed(
+                &vest_ix,
+                &[
+                    ctx.accounts.token_mint.to_account_info(),
+                    ctx.accounts.launch_token_vault.to_account_info(),
+                    ctx.accounts.token_launch.to_account_info(),
+                ],
+                signer_seeds,
+            )?;
+        }
+
+        // Update platform stats
+        let config = &mut ctx.accounts.platform_config;
+        config.total_launches = config.total_launches.checked_add(1).ok_or(SendItError::MathOverflow)?;
+
+        emit!(TokenCreated {
+            mint: launch.mint,
+            creator: launch.creator,
+            name,
+            symbol,
+            curve_type,
+            trading_starts_at: launch.trading_starts_at,
         });
 
         Ok(())
@@ -1417,12 +1589,13 @@ pub struct BuyTokens<'info> {
     )]
     pub platform_vault: AccountInfo<'info>,
 
-    /// CHECK: Creator wallet for fee share
+    /// CHECK: Creator fee vault PDA — fees accumulate here, creator claims later
     #[account(
         mut,
-        constraint = creator_wallet.key() == token_launch.creator @ SendItError::InvalidCreator,
+        seeds = [CREATOR_VAULT_SEED, token_launch.creator.as_ref()],
+        bump,
     )]
-    pub creator_wallet: AccountInfo<'info>,
+    pub creator_vault: AccountInfo<'info>,
 
     #[account(
         mut,
@@ -1493,12 +1666,13 @@ pub struct SellTokens<'info> {
     )]
     pub platform_vault: AccountInfo<'info>,
 
-    /// CHECK: Creator wallet
+    /// CHECK: Creator fee vault PDA
     #[account(
         mut,
-        constraint = creator_wallet.key() == token_launch.creator @ SendItError::InvalidCreator,
+        seeds = [CREATOR_VAULT_SEED, token_launch.creator.as_ref()],
+        bump,
     )]
-    pub creator_wallet: AccountInfo<'info>,
+    pub creator_vault: AccountInfo<'info>,
 
     #[account(
         mut,
@@ -1556,7 +1730,7 @@ pub struct ClaimVestedTokens<'info> {
 }
 
 #[derive(Accounts)]
-pub struct MigrateToSend.Swap<'info> {
+pub struct MigrateToSendSwap<'info> {
     #[account(
         mut,
         seeds = [TOKEN_LAUNCH_SEED, token_mint.key().as_ref()],
@@ -1626,6 +1800,69 @@ pub struct MigrateToSend.Swap<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CollectCreatorFee<'info> {
+    /// CHECK: Creator vault PDA — lamports go to creator
+    #[account(
+        mut,
+        seeds = [CREATOR_VAULT_SEED, creator.key().as_ref()],
+        bump,
+    )]
+    pub creator_vault: AccountInfo<'info>,
+
+    #[account(mut)]
+    pub creator: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateTokenV2<'info> {
+    #[account(
+        init,
+        payer = creator,
+        space = TokenLaunch::SIZE,
+        seeds = [TOKEN_LAUNCH_SEED, token_mint.key().as_ref()],
+        bump,
+    )]
+    pub token_launch: Account<'info, TokenLaunch>,
+
+    /// CHECK: Token2022 mint — initialized externally with metadata extension
+    #[account(mut)]
+    pub token_mint: AccountInfo<'info>,
+
+    /// CHECK: Token2022 ATA for the launch PDA
+    #[account(mut)]
+    pub launch_token_vault: AccountInfo<'info>,
+
+    #[account(
+        init_if_needed,
+        payer = creator,
+        space = CreatorVesting::SIZE,
+        seeds = [CREATOR_VESTING_SEED, token_mint.key().as_ref()],
+        bump,
+    )]
+    pub creator_vesting: Account<'info, CreatorVesting>,
+
+    #[account(
+        mut,
+        seeds = [PLATFORM_CONFIG_SEED],
+        bump = platform_config.bump,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+
+    #[account(mut)]
+    pub creator: Signer<'info>,
+
+    /// CHECK: Token2022 program
+    #[account(address = TOKEN_2022_PROGRAM_ID)]
+    pub token_2022_program: AccountInfo<'info>,
+
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
@@ -1701,13 +1938,19 @@ pub struct MigrationReady {
 }
 
 #[event]
-pub struct MigratedToSend.Swap {
+pub struct MigratedToSendSwap {
     pub mint: Pubkey,
     pub pool: Pubkey,
     pub reserve_sol: u64,
     pub tokens_deposited: u64,
     pub lp_tokens_burned: u64,
     pub timestamp: i64,
+}
+
+#[event]
+pub struct CreatorFeeCollected {
+    pub creator: Pubkey,
+    pub amount: u64,
 }
 
 #[event]

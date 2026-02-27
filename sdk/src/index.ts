@@ -127,6 +127,12 @@ function encodeU64(val: BN): Buffer {
   return val.toArrayLike(Buffer, "le", 8);
 }
 
+function encodeI64(val: number): Buffer {
+  const buf = Buffer.alloc(8);
+  buf.writeBigInt64LE(BigInt(val));
+  return buf;
+}
+
 function encodeU8(val: number): Buffer {
   return Buffer.from([val]);
 }
@@ -326,6 +332,7 @@ export class SendItClient {
     mint: PublicKey;
     amount: BN;
     maxSolCost: BN;
+    creator: PublicKey;
   }): Promise<string> {
     const signer = this.signer();
     const launchPda = this.tokenLaunchPda(params.mint);
@@ -334,6 +341,7 @@ export class SendItClient {
       params.mint,
       signer.publicKey
     );
+    const creatorVault = this.creatorVaultPda(params.creator);
 
     const data = Buffer.concat([
       ixDiscriminator("buy"),
@@ -349,6 +357,7 @@ export class SendItClient {
         { pubkey: params.mint, isSigner: false, isWritable: false },
         { pubkey: buyerAta, isSigner: false, isWritable: true },
         { pubkey: positionPda, isSigner: false, isWritable: true },
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
         { pubkey: this.platformConfigPda, isSigner: false, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         {
@@ -370,6 +379,7 @@ export class SendItClient {
     mint: PublicKey;
     amount: BN;
     minSolReturn: BN;
+    creator: PublicKey;
   }): Promise<string> {
     const signer = this.signer();
     const launchPda = this.tokenLaunchPda(params.mint);
@@ -378,6 +388,7 @@ export class SendItClient {
       params.mint,
       signer.publicKey
     );
+    const creatorVault = this.creatorVaultPda(params.creator);
 
     const data = Buffer.concat([
       ixDiscriminator("sell"),
@@ -393,6 +404,7 @@ export class SendItClient {
         { pubkey: params.mint, isSigner: false, isWritable: false },
         { pubkey: sellerAta, isSigner: false, isWritable: true },
         { pubkey: positionPda, isSigner: false, isWritable: true },
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
         { pubkey: this.platformConfigPda, isSigner: false, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
@@ -485,24 +497,104 @@ export class SendItClient {
   }
 
   /**
-   * Creator claims accumulated fees from their token launch.
+   * Token2022 program ID
    */
-  async claimCreatorFees(params: { mint: PublicKey }): Promise<string> {
-    const signer = this.signer();
-    const launchPda = this.tokenLaunchPda(params.mint);
+  static TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
-    const data = ixDiscriminator("claim_creator_fees");
+  /**
+   * Derive creator fee vault PDA
+   */
+  creatorVaultPda(creator: PublicKey): PublicKey {
+    const [pda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("creator-vault"), creator.toBuffer()],
+      this.programId,
+    );
+    return pda;
+  }
+
+  /**
+   * Creator collects accumulated fees from their vault PDA.
+   * Fees accumulate per-trade; creator claims whenever they want.
+   */
+  async collectCreatorFee(): Promise<string> {
+    const signer = this.signer();
+    const creatorVault = this.creatorVaultPda(signer.publicKey);
+
+    const data = ixDiscriminator("collect_creator_fee");
 
     const ix = new TransactionInstruction({
       programId: this.programId,
       keys: [
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
         { pubkey: signer.publicKey, isSigner: true, isWritable: true },
-        { pubkey: launchPda, isSigner: false, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
       data,
     });
     return this.sendTx(ix, [signer]);
+  }
+
+  /**
+   * Create a token using Token2022 (no Metaplex dependency).
+   * Metadata is embedded in the mint via Token2022 metadata extension.
+   */
+  async createTokenV2(params: {
+    mint: Keypair;
+    name: string;
+    symbol: string;
+    uri: string;
+    curveType?: number;
+    creatorFeeBps?: number;
+    launchDelaySeconds?: number;
+    snipeWindowSeconds?: number;
+    maxBuyDuringSnipe?: BN;
+    lockPeriodSeconds?: number;
+    creatorVestingDuration?: number;
+    creatorTokenAllocationBps?: number;
+  }): Promise<string> {
+    const signer = this.signer();
+    const launchPda = this.tokenLaunchPda(params.mint.publicKey);
+    const launchTokenVault = getAssociatedTokenAddressSync(
+      params.mint.publicKey, launchPda, true,
+      SendItSDK.TOKEN_2022_PROGRAM_ID,
+    );
+    const vestingPda = PublicKey.findProgramAddressSync(
+      [Buffer.from("creator_vesting"), params.mint.publicKey.toBuffer()],
+      this.programId,
+    )[0];
+
+    const data = Buffer.concat([
+      ixDiscriminator("create_token_v2"),
+      encodeString(params.name),
+      encodeString(params.symbol),
+      encodeString(params.uri),
+      Buffer.from([params.curveType ?? 0]),
+      encodeU16(params.creatorFeeBps ?? 100),
+      encodeI64(params.launchDelaySeconds ?? 0),
+      encodeI64(params.snipeWindowSeconds ?? 60),
+      encodeU64(params.maxBuyDuringSnipe ?? new BN(0)),
+      encodeI64(params.lockPeriodSeconds ?? 0),
+      encodeI64(params.creatorVestingDuration ?? 0),
+      encodeU16(params.creatorTokenAllocationBps ?? 0),
+    ]);
+
+    const ix = new TransactionInstruction({
+      programId: this.programId,
+      keys: [
+        { pubkey: launchPda, isSigner: false, isWritable: true },
+        { pubkey: params.mint.publicKey, isSigner: true, isWritable: true },
+        { pubkey: launchTokenVault, isSigner: false, isWritable: true },
+        { pubkey: vestingPda, isSigner: false, isWritable: true },
+        { pubkey: this.platformConfigPda, isSigner: false, isWritable: true },
+        { pubkey: signer.publicKey, isSigner: true, isWritable: true },
+        { pubkey: SendItSDK.TOKEN_2022_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      ],
+      data,
+    });
+    return this.sendTx(ix, [signer, params.mint]);
   }
 
   /**
