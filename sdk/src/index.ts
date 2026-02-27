@@ -403,41 +403,80 @@ export class SendItClient {
   }
 
   /**
-   * Migrate token liquidity to Raydium when threshold is hit.
+   * PumpSwap AMM program ID
    */
-  async migrateToRaydium(params: {
+  static PUMPSWAP_PROGRAM_ID = new PublicKey("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
+  static PUMPSWAP_GLOBAL_CONFIG = new PublicKey("ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw");
+  static WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+
+  /**
+   * Derive PumpSwap pool PDA
+   */
+  pumpswapPoolPda(creator: PublicKey, baseMint: PublicKey, quoteMint: PublicKey, index: number = 0): PublicKey {
+    const indexBuf = Buffer.alloc(2);
+    indexBuf.writeUInt16LE(index);
+    const [pda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pool"), indexBuf, creator.toBuffer(), baseMint.toBuffer(), quoteMint.toBuffer()],
+      SendItSDK.PUMPSWAP_PROGRAM_ID,
+    );
+    return pda;
+  }
+
+  /**
+   * Derive PumpSwap LP mint PDA
+   */
+  pumpswapLpMintPda(pool: PublicKey): PublicKey {
+    const [pda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pool_lp_mint"), pool.toBuffer()],
+      SendItSDK.PUMPSWAP_PROGRAM_ID,
+    );
+    return pda;
+  }
+
+  /**
+   * Migrate token liquidity to PumpSwap AMM when bonding curve completes.
+   * Permissionless — anyone can crank this.
+   * Creates a PumpSwap pool, deposits SOL + tokens, and burns LP tokens.
+   */
+  async migrateToPumpSwap(params: {
     mint: PublicKey;
-    raydiumPoolAccounts: {
-      ammId: PublicKey;
-      ammAuthority: PublicKey;
-      ammOpenOrders: PublicKey;
-      lpMint: PublicKey;
-      coinVault: PublicKey;
-      pcVault: PublicKey;
-      raydiumProgram: PublicKey;
-    };
   }): Promise<string> {
     const signer = this.signer();
     const launchPda = this.tokenLaunchPda(params.mint);
-    const r = params.raydiumPoolAccounts;
+    const solVaultPda = PublicKey.findProgramAddressSync(
+      [Buffer.from("sol_vault"), params.mint.toBuffer()],
+      this.programId,
+    )[0];
+    const launchTokenVault = getAssociatedTokenAddressSync(params.mint, launchPda, true);
 
-    const data = ixDiscriminator("migrate_to_raydium");
+    // PumpSwap pool accounts
+    const poolPda = this.pumpswapPoolPda(launchPda, params.mint, SendItSDK.WSOL_MINT);
+    const lpMintPda = this.pumpswapLpMintPda(poolPda);
+    const poolBaseAta = getAssociatedTokenAddressSync(params.mint, poolPda, true);
+    const poolQuoteAta = getAssociatedTokenAddressSync(SendItSDK.WSOL_MINT, poolPda, true);
+    const creatorLpAta = getAssociatedTokenAddressSync(lpMintPda, launchPda, true);
+
+    const data = ixDiscriminator("migrate_to_pumpswap");
 
     const ix = new TransactionInstruction({
       programId: this.programId,
       keys: [
-        { pubkey: signer.publicKey, isSigner: true, isWritable: true },
         { pubkey: launchPda, isSigner: false, isWritable: true },
-        { pubkey: params.mint, isSigner: false, isWritable: true },
+        { pubkey: params.mint, isSigner: false, isWritable: false },
+        { pubkey: launchTokenVault, isSigner: false, isWritable: true },
+        { pubkey: solVaultPda, isSigner: false, isWritable: true },
         { pubkey: this.platformConfigPda, isSigner: false, isWritable: false },
-        { pubkey: r.ammId, isSigner: false, isWritable: true },
-        { pubkey: r.ammAuthority, isSigner: false, isWritable: false },
-        { pubkey: r.ammOpenOrders, isSigner: false, isWritable: true },
-        { pubkey: r.lpMint, isSigner: false, isWritable: true },
-        { pubkey: r.coinVault, isSigner: false, isWritable: true },
-        { pubkey: r.pcVault, isSigner: false, isWritable: true },
+        { pubkey: SendItSDK.WSOL_MINT, isSigner: false, isWritable: false },
+        { pubkey: poolPda, isSigner: false, isWritable: true },
+        { pubkey: SendItSDK.PUMPSWAP_GLOBAL_CONFIG, isSigner: false, isWritable: false },
+        { pubkey: lpMintPda, isSigner: false, isWritable: true },
+        { pubkey: poolBaseAta, isSigner: false, isWritable: true },
+        { pubkey: poolQuoteAta, isSigner: false, isWritable: true },
+        { pubkey: creatorLpAta, isSigner: false, isWritable: true },
+        { pubkey: SendItSDK.PUMPSWAP_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: signer.publicKey, isSigner: true, isWritable: true },
         { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-        { pubkey: r.raydiumProgram, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
       data,

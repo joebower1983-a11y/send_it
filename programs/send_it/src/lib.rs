@@ -27,6 +27,7 @@ pub mod staking;
 pub mod token_chat;
 pub mod token_videos;
 pub mod voting;
+pub mod realms_governance;
 
 pub mod fee_splitting;
 pub mod content_claims;
@@ -65,6 +66,10 @@ pub const TOKEN_DECIMALS: u8 = 6;
 
 // Curve precision constant (fixed-point math with 1e12 scaling)
 pub const PRECISION: u128 = 1_000_000_000_000;
+
+// PumpSwap AMM program (mainnet + devnet)
+pub const PUMPSWAP_PROGRAM_ID: Pubkey = solana_program::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
+pub const CANONICAL_POOL_INDEX: u16 = 0;
 
 // ============================================================================
 // PROGRAM
@@ -652,9 +657,15 @@ pub mod send_it {
     }
 
     // ------------------------------------------------------------------------
-    // Migrate to Raydium (triggered when threshold met)
+    // Migrate to PumpSwap AMM (triggered when bonding curve completes)
     // ------------------------------------------------------------------------
-    pub fn migrate_to_raydium(ctx: Context<MigrateToRaydium>) -> Result<()> {
+    // Anyone can crank this once threshold is met. It:
+    //   1. Creates a PumpSwap pool via CPI (create_pool)
+    //   2. Deposits SOL reserves + remaining tokens as initial liquidity
+    //   3. Burns the LP tokens so liquidity is permanently locked
+    //   4. Marks the launch as migrated
+    // ------------------------------------------------------------------------
+    pub fn migrate_to_pumpswap(ctx: Context<MigrateToPumpSwap>) -> Result<()> {
         let launch = &ctx.accounts.token_launch;
         let config = &ctx.accounts.platform_config;
 
@@ -670,26 +681,154 @@ pub mod send_it {
             SendItError::LockPeriodActive
         );
 
-        // In production, this would CPI into Raydium AMM to:
-        // 1. Create a Raydium liquidity pool
-        // 2. Deposit SOL reserve + remaining tokens as liquidity
-        // 3. Lock the LP tokens in a PDA
-        //
-        // For now, we mark as migrated and emit event.
-        // The actual Raydium CPI requires their specific program accounts
-        // which would be passed as remaining_accounts.
+        // Calculate liquidity amounts
+        let tokens_remaining = launch.total_supply
+            .checked_sub(launch.tokens_sold)
+            .ok_or(SendItError::MathOverflow)?;
+        let sol_amount = launch.reserve_sol;
 
+        require!(tokens_remaining > 0 && sol_amount > 0, SendItError::InsufficientReserve);
+
+        // PDA signer seeds for the token_launch (owns the vaults)
+        let mint_key = launch.mint;
+        let launch_seeds: &[&[u8]] = &[
+            TOKEN_LAUNCH_SEED,
+            mint_key.as_ref(),
+            &[launch.bump],
+        ];
+
+        // --- Step 1: Transfer tokens from launch vault to pool base token account ---
+        token::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.launch_token_vault.to_account_info(),
+                    to: ctx.accounts.pool_base_token_account.to_account_info(),
+                    authority: ctx.accounts.token_launch.to_account_info(),
+                },
+                &[launch_seeds],
+            ),
+            tokens_remaining,
+        )?;
+
+        // --- Step 2: Transfer SOL from sol vault to pool quote token account ---
+        // SOL vault is a PDA, transfer via lamport manipulation
+        let sol_vault_info = ctx.accounts.launch_sol_vault.to_account_info();
+        let pool_wsol_info = ctx.accounts.pool_quote_token_account.to_account_info();
+        **sol_vault_info.try_borrow_mut_lamports()? -= sol_amount;
+        **pool_wsol_info.try_borrow_mut_lamports()? += sol_amount;
+
+        // --- Step 3: CPI to PumpSwap create_pool ---
+        // PumpSwap create_pool instruction discriminator: sha256("global:create_pool")[..8]
+        let create_pool_disc: [u8; 8] = [233, 146, 209, 142, 207, 104, 64, 188];
+
+        let mut data = Vec::with_capacity(8 + 2 + 8 + 8);
+        data.extend_from_slice(&create_pool_disc);
+        data.extend_from_slice(&CANONICAL_POOL_INDEX.to_le_bytes());
+        data.extend_from_slice(&tokens_remaining.to_le_bytes()); // base_in
+        data.extend_from_slice(&sol_amount.to_le_bytes());       // quote_in
+
+        let accounts_meta = vec![
+            AccountMeta::new(ctx.accounts.pumpswap_pool.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.pumpswap_global_config.key(), false),
+            AccountMeta::new(ctx.accounts.token_launch.key(), true), // creator (signer via PDA)
+            AccountMeta::new_readonly(ctx.accounts.token_mint.key(), false),            // base_mint
+            AccountMeta::new_readonly(ctx.accounts.wsol_mint.key(), false),              // quote_mint
+            AccountMeta::new(ctx.accounts.pumpswap_lp_mint.key(), false),
+            AccountMeta::new(ctx.accounts.pool_base_token_account.key(), false),
+            AccountMeta::new(ctx.accounts.pool_quote_token_account.key(), false),
+            AccountMeta::new(ctx.accounts.creator_lp_token_account.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.associated_token_program.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
+        ];
+
+        let create_pool_ix = solana_program::instruction::Instruction {
+            program_id: PUMPSWAP_PROGRAM_ID,
+            accounts: accounts_meta,
+            data,
+        };
+
+        solana_program::program::invoke_signed(
+            &create_pool_ix,
+            &[
+                ctx.accounts.pumpswap_pool.to_account_info(),
+                ctx.accounts.pumpswap_global_config.to_account_info(),
+                ctx.accounts.token_launch.to_account_info(),
+                ctx.accounts.token_mint.to_account_info(),
+                ctx.accounts.wsol_mint.to_account_info(),
+                ctx.accounts.pumpswap_lp_mint.to_account_info(),
+                ctx.accounts.pool_base_token_account.to_account_info(),
+                ctx.accounts.pool_quote_token_account.to_account_info(),
+                ctx.accounts.creator_lp_token_account.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.associated_token_program.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            &[launch_seeds],
+        )?;
+
+        // --- Step 4: Burn LP tokens (permanent liquidity lock) ---
+        let lp_balance = ctx.accounts.creator_lp_token_account.amount;
+        if lp_balance > 0 {
+            token::burn(
+                CpiContext::new_with_signer(
+                    ctx.accounts.token_program.to_account_info(),
+                    Burn {
+                        mint: ctx.accounts.pumpswap_lp_mint.to_account_info(),
+                        from: ctx.accounts.creator_lp_token_account.to_account_info(),
+                        authority: ctx.accounts.token_launch.to_account_info(),
+                    },
+                    &[launch_seeds],
+                ),
+                lp_balance,
+            )?;
+        }
+
+        // --- Step 5: Mark migrated ---
         let launch = &mut ctx.accounts.token_launch;
         launch.migrated = true;
 
-        emit!(MigratedToRaydium {
+        emit!(MigratedToPumpSwap {
             mint: launch.mint,
-            reserve_sol: launch.reserve_sol,
-            tokens_remaining: launch.total_supply.checked_sub(launch.tokens_sold).unwrap_or(0),
+            pool: ctx.accounts.pumpswap_pool.key(),
+            reserve_sol: sol_amount,
+            tokens_deposited: tokens_remaining,
+            lp_tokens_burned: lp_balance,
             timestamp: clock.unix_timestamp,
         });
 
         Ok(())
+    }
+
+    // ------------------------------------------------------------------------
+    // Realms Governance Bridge
+    // ------------------------------------------------------------------------
+    pub fn init_governance_bridge(
+        ctx: Context<realms_governance::InitGovernanceBridge>,
+        realm: Pubkey,
+        governance: Pubkey,
+        community_mint: Pubkey,
+        min_proposal_balance: u64,
+    ) -> Result<()> {
+        realms_governance::handle_init_governance_bridge(ctx, realm, governance, community_mint, min_proposal_balance)
+    }
+
+    pub fn create_realms_proposal(
+        ctx: Context<realms_governance::CreateRealmsProposal>,
+        title: String,
+        description: String,
+        vote_type: u8,
+        options: Vec<String>,
+    ) -> Result<()> {
+        realms_governance::handle_create_realms_proposal(ctx, title, description, vote_type, options)
+    }
+
+    pub fn cast_realms_vote(
+        ctx: Context<realms_governance::CastRealmsVote>,
+        vote_choice: u8,
+    ) -> Result<()> {
+        realms_governance::handle_cast_realms_vote(ctx, vote_choice)
     }
 
     // ------------------------------------------------------------------------
@@ -1417,7 +1556,7 @@ pub struct ClaimVestedTokens<'info> {
 }
 
 #[derive(Accounts)]
-pub struct MigrateToRaydium<'info> {
+pub struct MigrateToPumpSwap<'info> {
     #[account(
         mut,
         seeds = [TOKEN_LAUNCH_SEED, token_mint.key().as_ref()],
@@ -1428,15 +1567,64 @@ pub struct MigrateToRaydium<'info> {
     pub token_mint: Account<'info, Mint>,
 
     #[account(
+        mut,
+        associated_token::mint = token_mint,
+        associated_token::authority = token_launch,
+    )]
+    pub launch_token_vault: Account<'info, TokenAccount>,
+
+    /// CHECK: SOL vault PDA for the launch
+    #[account(
+        mut,
+        seeds = [b"sol_vault", token_mint.key().as_ref()],
+        bump,
+    )]
+    pub launch_sol_vault: AccountInfo<'info>,
+
+    #[account(
         seeds = [PLATFORM_CONFIG_SEED],
         bump = platform_config.bump,
     )]
     pub platform_config: Account<'info, PlatformConfig>,
 
+    /// CHECK: Native SOL mint (So11111111111111111111111111111111111111112)
+    pub wsol_mint: Account<'info, Mint>,
+
+    // --- PumpSwap accounts ---
+
+    /// CHECK: PumpSwap pool PDA — derived from [pool, index, creator, base_mint, quote_mint]
+    #[account(mut)]
+    pub pumpswap_pool: AccountInfo<'info>,
+
+    /// CHECK: PumpSwap global config — ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw
+    pub pumpswap_global_config: AccountInfo<'info>,
+
+    /// CHECK: LP mint created by PumpSwap for this pool
+    #[account(mut)]
+    pub pumpswap_lp_mint: AccountInfo<'info>,
+
+    /// CHECK: Pool's base token account (ATA of pool for token_mint)
+    #[account(mut)]
+    pub pool_base_token_account: AccountInfo<'info>,
+
+    /// CHECK: Pool's quote token account (ATA of pool for WSOL)
+    #[account(mut)]
+    pub pool_quote_token_account: AccountInfo<'info>,
+
+    /// CHECK: LP token account owned by token_launch PDA (receives LP then burns)
+    #[account(mut)]
+    pub creator_lp_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PumpSwap program
+    #[account(address = PUMPSWAP_PROGRAM_ID)]
+    pub pumpswap_program: AccountInfo<'info>,
+
     /// CHECK: Can be called by anyone (permissionless crank)
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
@@ -1513,10 +1701,12 @@ pub struct MigrationReady {
 }
 
 #[event]
-pub struct MigratedToRaydium {
+pub struct MigratedToPumpSwap {
     pub mint: Pubkey,
+    pub pool: Pubkey,
     pub reserve_sol: u64,
-    pub tokens_remaining: u64,
+    pub tokens_deposited: u64,
+    pub lp_tokens_burned: u64,
     pub timestamp: i64,
 }
 
@@ -1547,7 +1737,7 @@ pub enum SendItError {
     PlatformPaused,
     #[msg("Token is paused")]
     TokenPaused,
-    #[msg("Token already migrated to Raydium")]
+    #[msg("Token already migrated to PumpSwap")]
     AlreadyMigrated,
     #[msg("Trading has not started yet")]
     TradingNotStarted,
