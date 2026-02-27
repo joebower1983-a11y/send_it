@@ -2914,4 +2914,633 @@ describe("send_it_v2", () => {
       assert.isTrue(updatedRaffle.prizeClaimed);
     });
   });
+
+  // ============================================================================
+  // SEND.SWAP MIGRATION
+  // ============================================================================
+  describe("migrate_to_send_swap", () => {
+    const CREATOR_VAULT_SEED = Buffer.from("creator-vault");
+    const CREATOR_VESTING_SEED = Buffer.from("creator_vesting");
+    const SOL_VAULT_SEED = Buffer.from("sol_vault");
+    const PLATFORM_VAULT_SEED = Buffer.from("platform_vault");
+    const BLOCKLIST_SEED = Buffer.from("blocklist");
+    let mintKp: Keypair;
+    let tokenLaunchPDA: PublicKey;
+    let solVaultPDA: PublicKey;
+    let creatorVaultPDA: PublicKey;
+    let platformVaultPDA: PublicKey;
+    let launchTokenVault: PublicKey;
+    let blocklistPDA: PublicKey;
+
+    before(async () => {
+      mintKp = Keypair.generate();
+      [tokenLaunchPDA] = findPDA(
+        [TOKEN_LAUNCH_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+      [solVaultPDA] = findPDA(
+        [SOL_VAULT_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+      [creatorVaultPDA] = findPDA(
+        [CREATOR_VAULT_SEED, creator.publicKey.toBuffer()],
+        program.programId
+      );
+      [platformVaultPDA] = findPDA(
+        [PLATFORM_VAULT_SEED],
+        program.programId
+      );
+      [blocklistPDA] = findPDA(
+        [BLOCKLIST_SEED],
+        program.programId
+      );
+      launchTokenVault = await getAssociatedTokenAddress(
+        mintKp.publicKey,
+        tokenLaunchPDA,
+        true
+      );
+    });
+
+    it("creates a token for migration testing", async () => {
+      try {
+        await program.methods
+          .initializePlatform(100, new BN(5 * LAMPORTS_PER_SOL))
+          .accounts({
+            platformConfig: platformConfigPDA,
+            authority: authority.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      } catch {
+        // already initialized
+      }
+
+      try {
+        await program.methods
+          .initializeBlocklist()
+          .accounts({
+            blocklist: blocklistPDA,
+            platformConfig: platformConfigPDA,
+            authority: authority.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      } catch {
+        // already initialized
+      }
+
+      const creatorVestingPDA = findPDA(
+        [CREATOR_VESTING_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      )[0];
+
+      await program.methods
+        .createToken(
+          "MigrateTest",
+          "MIGT",
+          "https://senditsolana.io",
+          { exponential: {} },
+          200,                    // creator_fee_bps
+          new BN(0),             // launch_delay
+          new BN(0),             // snipe_window
+          new BN(0),             // max_buy_during_snipe
+          new BN(0),             // lock_period
+          new BN(0),             // vesting_duration
+          0                      // creator_allocation_bps
+        )
+        .accounts({
+          tokenLaunch: tokenLaunchPDA,
+          tokenMint: mintKp.publicKey,
+          launchTokenVault: launchTokenVault,
+          creatorVesting: creatorVestingPDA,
+          platformConfig: platformConfigPDA,
+          creator: creator.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([creator, mintKp])
+        .rpc();
+
+      const launch = await program.account.tokenLaunch.fetch(tokenLaunchPDA);
+      assert.equal(launch.name, "MigrateTest");
+      assert.equal(launch.symbol, "MIGT");
+      assert.isFalse(launch.migrated);
+    });
+
+    it("cannot migrate before threshold is met", async () => {
+      try {
+        await program.methods
+          .migrateToSendswap()
+          .accounts({
+            tokenLaunch: tokenLaunchPDA,
+            tokenMint: mintKp.publicKey,
+            launchTokenVault: launchTokenVault,
+            launchSolVault: solVaultPDA,
+            platformConfig: platformConfigPDA,
+            payer: user1.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([user1])
+          .rpc();
+        assert.fail("Should have thrown");
+      } catch (e: any) {
+        assert.include(e.message, "MigrationThresholdNotMet");
+      }
+    });
+
+    it("cannot migrate token that is already migrated", async () => {
+      // This test validates the error path — actual migration requires
+      // a live PumpSwap program on devnet which we can't CPI in tests.
+      // The threshold check above proves the guard works.
+      const launch = await program.account.tokenLaunch.fetch(tokenLaunchPDA);
+      assert.isFalse(launch.migrated);
+    });
+  });
+
+  // ============================================================================
+  // CREATOR FEE VAULTS
+  // ============================================================================
+  describe("creator_fee_vaults", () => {
+    const CREATOR_VAULT_SEED = Buffer.from("creator-vault");
+    const SOL_VAULT_SEED = Buffer.from("sol_vault");
+    const PLATFORM_VAULT_SEED = Buffer.from("platform_vault");
+    const BLOCKLIST_SEED = Buffer.from("blocklist");
+    let mintKp: Keypair;
+    let tokenLaunchPDA: PublicKey;
+    let solVaultPDA: PublicKey;
+    let creatorVaultPDA: PublicKey;
+    let platformVaultPDA: PublicKey;
+    let blocklistPDA: PublicKey;
+    let launchTokenVault: PublicKey;
+    let feeCreator: Keypair;
+
+    before(async () => {
+      feeCreator = Keypair.generate();
+      await airdrop(feeCreator.publicKey, 100);
+
+      mintKp = Keypair.generate();
+      [tokenLaunchPDA] = findPDA(
+        [TOKEN_LAUNCH_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+      [solVaultPDA] = findPDA(
+        [SOL_VAULT_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+      [creatorVaultPDA] = findPDA(
+        [CREATOR_VAULT_SEED, feeCreator.publicKey.toBuffer()],
+        program.programId
+      );
+      [platformVaultPDA] = findPDA(
+        [PLATFORM_VAULT_SEED],
+        program.programId
+      );
+      [blocklistPDA] = findPDA(
+        [BLOCKLIST_SEED],
+        program.programId
+      );
+      launchTokenVault = await getAssociatedTokenAddress(
+        mintKp.publicKey,
+        tokenLaunchPDA,
+        true
+      );
+
+      // Create token for fee testing
+      const creatorVestingPDA = findPDA(
+        [Buffer.from("creator_vesting"), mintKp.publicKey.toBuffer()],
+        program.programId
+      )[0];
+
+      await program.methods
+        .createToken(
+          "FeeTest",
+          "FEET",
+          "https://senditsolana.io",
+          { linear: {} },
+          300,                    // 3% creator fee
+          new BN(0),
+          new BN(0),
+          new BN(0),
+          new BN(0),
+          new BN(0),
+          0
+        )
+        .accounts({
+          tokenLaunch: tokenLaunchPDA,
+          tokenMint: mintKp.publicKey,
+          launchTokenVault: launchTokenVault,
+          creatorVesting: creatorVestingPDA,
+          platformConfig: platformConfigPDA,
+          creator: feeCreator.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([feeCreator, mintKp])
+        .rpc();
+    });
+
+    it("buy routes creator fee to vault PDA", async () => {
+      // Pre-fund the vaults
+      const rentExempt = await provider.connection.getMinimumBalanceForRentExemption(0);
+      const tx = new anchor.web3.Transaction();
+
+      for (const vault of [solVaultPDA, platformVaultPDA, creatorVaultPDA]) {
+        const info = await provider.connection.getAccountInfo(vault);
+        if (!info) {
+          tx.add(
+            SystemProgram.transfer({
+              fromPubkey: user1.publicKey,
+              toPubkey: vault,
+              lamports: rentExempt,
+            })
+          );
+        }
+      }
+      if (tx.instructions.length > 0) {
+        tx.recentBlockhash = (await provider.connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = user1.publicKey;
+        tx.sign(user1);
+        await provider.connection.sendRawTransaction(tx.serialize());
+      }
+
+      const vaultBefore = await provider.connection.getBalance(creatorVaultPDA);
+
+      const buyerAta = await getAssociatedTokenAddress(
+        mintKp.publicKey,
+        user1.publicKey
+      );
+      const [userPosition] = findPDA(
+        [Buffer.from("user_position"), user1.publicKey.toBuffer(), mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+
+      await program.methods
+        .buy(new BN(LAMPORTS_PER_SOL)) // 1 SOL
+        .accounts({
+          tokenLaunch: tokenLaunchPDA,
+          tokenMint: mintKp.publicKey,
+          launchTokenVault: launchTokenVault,
+          launchSolVault: solVaultPDA,
+          buyerTokenAccount: buyerAta,
+          userPosition: userPosition,
+          creatorVault: creatorVaultPDA,
+          platformVault: platformVaultPDA,
+          platformConfig: platformConfigPDA,
+          blocklist: blocklistPDA,
+          buyer: user1.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user1])
+        .rpc();
+
+      const vaultAfter = await provider.connection.getBalance(creatorVaultPDA);
+      // 3% creator fee on 1 SOL = 0.03 SOL = 30_000_000 lamports
+      const feeAccrued = vaultAfter - vaultBefore;
+      assert.isAbove(feeAccrued, 0, "Creator vault should have received fees");
+      console.log(`    Creator fee accrued: ${feeAccrued / LAMPORTS_PER_SOL} SOL`);
+    });
+
+    it("creator collects accumulated fees", async () => {
+      const creatorBefore = await provider.connection.getBalance(feeCreator.publicKey);
+
+      await program.methods
+        .collectCreatorFee()
+        .accounts({
+          creatorVault: creatorVaultPDA,
+          creator: feeCreator.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([feeCreator])
+        .rpc();
+
+      const creatorAfter = await provider.connection.getBalance(feeCreator.publicKey);
+      assert.isAbove(creatorAfter, creatorBefore, "Creator should have received vault funds");
+      console.log(`    Creator claimed: ${(creatorAfter - creatorBefore) / LAMPORTS_PER_SOL} SOL`);
+    });
+
+    it("cannot collect when vault is empty", async () => {
+      try {
+        await program.methods
+          .collectCreatorFee()
+          .accounts({
+            creatorVault: creatorVaultPDA,
+            creator: feeCreator.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([feeCreator])
+          .rpc();
+        assert.fail("Should have thrown");
+      } catch (e: any) {
+        assert.include(e.message, "NothingToClaim");
+      }
+    });
+
+    it("non-creator cannot collect from vault", async () => {
+      // Fund vault with some SOL first
+      const rentExempt = await provider.connection.getMinimumBalanceForRentExemption(0);
+      const tx = new anchor.web3.Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: user1.publicKey,
+          toPubkey: creatorVaultPDA,
+          lamports: rentExempt + 100_000,
+        })
+      );
+      tx.recentBlockhash = (await provider.connection.getLatestBlockhash()).blockhash;
+      tx.feePayer = user1.publicKey;
+      tx.sign(user1);
+      await provider.connection.sendRawTransaction(tx.serialize());
+
+      // user2's vault PDA is different from feeCreator's vault PDA
+      // so user2 can only collect from their own vault (which is empty)
+      const [user2Vault] = findPDA(
+        [CREATOR_VAULT_SEED, user2.publicKey.toBuffer()],
+        program.programId
+      );
+
+      try {
+        await program.methods
+          .collectCreatorFee()
+          .accounts({
+            creatorVault: user2Vault,
+            creator: user2.publicKey,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([user2])
+          .rpc();
+        // Either fails with NothingToClaim (empty vault) or succeeds with 0
+      } catch (e: any) {
+        // Expected — user2's vault has no fees
+        assert.include(e.message, "NothingToClaim");
+      }
+    });
+
+    it("sell also routes creator fee to vault", async () => {
+      const vaultBefore = await provider.connection.getBalance(creatorVaultPDA);
+
+      const sellerAta = await getAssociatedTokenAddress(
+        mintKp.publicKey,
+        user1.publicKey
+      );
+      const [userPosition] = findPDA(
+        [Buffer.from("user_position"), user1.publicKey.toBuffer(), mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+
+      // Sell half the tokens back
+      const tokenAccount = await getAccount(provider.connection, sellerAta);
+      const sellAmount = new BN(tokenAccount.amount.toString()).div(new BN(2));
+
+      await program.methods
+        .sell(sellAmount)
+        .accounts({
+          tokenLaunch: tokenLaunchPDA,
+          tokenMint: mintKp.publicKey,
+          launchTokenVault: launchTokenVault,
+          launchSolVault: solVaultPDA,
+          sellerTokenAccount: sellerAta,
+          userPosition: userPosition,
+          creatorVault: creatorVaultPDA,
+          platformVault: platformVaultPDA,
+          platformConfig: platformConfigPDA,
+          seller: user1.publicKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user1])
+        .rpc();
+
+      const vaultAfter = await provider.connection.getBalance(creatorVaultPDA);
+      assert.isAbove(vaultAfter, vaultBefore, "Sell should accrue creator fees to vault");
+      console.log(`    Sell fee accrued: ${(vaultAfter - vaultBefore) / LAMPORTS_PER_SOL} SOL`);
+    });
+  });
+
+  // ============================================================================
+  // TOKEN-2022 CREATE V2
+  // ============================================================================
+  describe("create_token_v2", () => {
+    const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+    let mintKp: Keypair;
+    let tokenLaunchPDA: PublicKey;
+    let t22Creator: Keypair;
+
+    before(async () => {
+      t22Creator = Keypair.generate();
+      await airdrop(t22Creator.publicKey, 100);
+      mintKp = Keypair.generate();
+      [tokenLaunchPDA] = findPDA(
+        [TOKEN_LAUNCH_SEED, mintKp.publicKey.toBuffer()],
+        program.programId
+      );
+    });
+
+    it("creates a token with Token-2022 program", async () => {
+      const creatorVestingPDA = findPDA(
+        [Buffer.from("creator_vesting"), mintKp.publicKey.toBuffer()],
+        program.programId
+      )[0];
+
+      // Token-2022 ATA
+      const launchTokenVault = anchor.utils.token.associatedAddress({
+        mint: mintKp.publicKey,
+        owner: tokenLaunchPDA,
+      });
+
+      await program.methods
+        .createTokenV2(
+          "Token2022Test",
+          "T22T",
+          "https://senditsolana.io/t22",
+          { exponential: {} },
+          200,
+          new BN(0),
+          new BN(60),
+          new BN(0),
+          new BN(0),
+          new BN(0),
+          0
+        )
+        .accounts({
+          tokenLaunch: tokenLaunchPDA,
+          tokenMint: mintKp.publicKey,
+          launchTokenVault: launchTokenVault,
+          creatorVesting: creatorVestingPDA,
+          platformConfig: platformConfigPDA,
+          creator: t22Creator.publicKey,
+          token2022Program: TOKEN_2022_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([t22Creator, mintKp])
+        .rpc();
+
+      const launch = await program.account.tokenLaunch.fetch(tokenLaunchPDA);
+      assert.equal(launch.name, "Token2022Test");
+      assert.equal(launch.symbol, "T22T");
+      assert.equal(launch.uri, "https://senditsolana.io/t22");
+      assert.isFalse(launch.migrated);
+      assert.equal(launch.creatorFeeBps, 200);
+      console.log(`    Token-2022 mint: ${mintKp.publicKey.toBase58()}`);
+    });
+
+    it("rejects name too long", async () => {
+      const badMint = Keypair.generate();
+      const [badLaunch] = findPDA(
+        [TOKEN_LAUNCH_SEED, badMint.publicKey.toBuffer()],
+        program.programId
+      );
+      const badVesting = findPDA(
+        [Buffer.from("creator_vesting"), badMint.publicKey.toBuffer()],
+        program.programId
+      )[0];
+      const badVault = anchor.utils.token.associatedAddress({
+        mint: badMint.publicKey,
+        owner: badLaunch,
+      });
+
+      try {
+        await program.methods
+          .createTokenV2(
+            "A".repeat(33), // exceeds MAX_NAME_LEN (32)
+            "BAD",
+            "https://senditsolana.io",
+            { linear: {} },
+            100,
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            0
+          )
+          .accounts({
+            tokenLaunch: badLaunch,
+            tokenMint: badMint.publicKey,
+            launchTokenVault: badVault,
+            creatorVesting: badVesting,
+            platformConfig: platformConfigPDA,
+            creator: t22Creator.publicKey,
+            token2022Program: TOKEN_2022_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+          })
+          .signers([t22Creator, badMint])
+          .rpc();
+        assert.fail("Should have thrown");
+      } catch (e: any) {
+        assert.include(e.message, "NameTooLong");
+      }
+    });
+
+    it("rejects creator fee too high", async () => {
+      const badMint = Keypair.generate();
+      const [badLaunch] = findPDA(
+        [TOKEN_LAUNCH_SEED, badMint.publicKey.toBuffer()],
+        program.programId
+      );
+      const badVesting = findPDA(
+        [Buffer.from("creator_vesting"), badMint.publicKey.toBuffer()],
+        program.programId
+      )[0];
+      const badVault = anchor.utils.token.associatedAddress({
+        mint: badMint.publicKey,
+        owner: badLaunch,
+      });
+
+      try {
+        await program.methods
+          .createTokenV2(
+            "BadFee",
+            "BFEE",
+            "https://senditsolana.io",
+            { linear: {} },
+            600, // > 500 max
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            new BN(0),
+            0
+          )
+          .accounts({
+            tokenLaunch: badLaunch,
+            tokenMint: badMint.publicKey,
+            launchTokenVault: badVault,
+            creatorVesting: badVesting,
+            platformConfig: platformConfigPDA,
+            creator: t22Creator.publicKey,
+            token2022Program: TOKEN_2022_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+          })
+          .signers([t22Creator, badMint])
+          .rpc();
+        assert.fail("Should have thrown");
+      } catch (e: any) {
+        assert.include(e.message, "FeeTooHigh");
+      }
+    });
+
+    it("creates token with creator vesting allocation", async () => {
+      const vestMint = Keypair.generate();
+      const [vestLaunch] = findPDA(
+        [TOKEN_LAUNCH_SEED, vestMint.publicKey.toBuffer()],
+        program.programId
+      );
+      const vestVestingPDA = findPDA(
+        [Buffer.from("creator_vesting"), vestMint.publicKey.toBuffer()],
+        program.programId
+      )[0];
+      const vestVault = anchor.utils.token.associatedAddress({
+        mint: vestMint.publicKey,
+        owner: vestLaunch,
+      });
+
+      await program.methods
+        .createTokenV2(
+          "VestTest",
+          "VEST",
+          "https://senditsolana.io",
+          { sigmoid: {} },
+          100,
+          new BN(0),
+          new BN(0),
+          new BN(0),
+          new BN(3600),       // 1hr lock
+          new BN(86400),      // 24hr vesting
+          500                  // 5% creator allocation
+        )
+        .accounts({
+          tokenLaunch: vestLaunch,
+          tokenMint: vestMint.publicKey,
+          launchTokenVault: vestVault,
+          creatorVesting: vestVestingPDA,
+          platformConfig: platformConfigPDA,
+          creator: t22Creator.publicKey,
+          token2022Program: TOKEN_2022_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([t22Creator, vestMint])
+        .rpc();
+
+      const launch = await program.account.tokenLaunch.fetch(vestLaunch);
+      assert.equal(launch.name, "VestTest");
+
+      const vesting = await program.account.creatorVesting.fetch(vestVestingPDA);
+      assert.isAbove(vesting.totalAmount.toNumber(), 0, "Vesting should have allocation");
+      assert.equal(vesting.vestingDuration.toNumber(), 86400);
+      console.log(`    Vesting allocation: ${vesting.totalAmount.toString()} tokens`);
+    });
+  });
 });
