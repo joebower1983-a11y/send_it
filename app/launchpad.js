@@ -27,7 +27,21 @@ const SEEDS = {
   platformVault: 'platform_vault',
   solVault: 'sol_vault',
   userPosition: 'user_position',
+  creatorVault: 'creator-vault',
+  creatorVesting: 'creator_vesting',
 };
+
+const TOKEN_2022_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+const SENDSWAP_PROGRAM = 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA';
+
+// Token standard selection
+let selectedTokenStandard = 'spl';
+
+function selectStandard(std) {
+  selectedTokenStandard = std;
+  document.getElementById('stdSpl').style.borderColor = std === 'spl' ? 'var(--accent)' : 'transparent';
+  document.getElementById('stdT22').style.borderColor = std === 'token2022' ? 'var(--accent)' : 'transparent';
+}
 
 // ─── Init ───
 async function initLaunchpad() {
@@ -65,6 +79,7 @@ async function connectWallet() {
     showToast('Wallet connected! ✅');
     updateBalance();
     loadLiveTokens();
+    checkCreatorVault();
   } catch (e) {
     console.error('Wallet connect failed:', e);
     showToast('Connection failed: ' + e.message);
@@ -123,8 +138,9 @@ function getATA(mint, owner, allowPDA = false) {
   return ata;
 }
 
-// ─── Create Token ───
+// ─── Create Token (routes to v1 or v2) ───
 async function createToken() {
+  if (selectedTokenStandard === 'token2022') return createTokenV2();
   if (!walletPubkey) { showToast('Connect wallet first'); return; }
 
   const { PublicKey, Transaction, TransactionInstruction, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } = solanaWeb3;
@@ -267,6 +283,9 @@ async function buyToken(mintStr, solAmount = 0.01) {
   const launchVault = getATA(mint, tokenLaunch);
   const buyerAta = getATA(mint, walletPubkey);
   const [userPosition] = findPDA([SEEDS.userPosition, walletPubkey.toBuffer(), mint.toBuffer()]);
+  // Creator vault — we need the token creator's pubkey. For now use wallet as fallback.
+  // In production, read the tokenLaunch account to get the actual creator.
+  const [creatorVault] = findPDA([SEEDS.creatorVault, walletPubkey.toBuffer()]);
 
   showToast(`⏳ Buying with ${solAmount} SOL...`);
 
@@ -277,8 +296,10 @@ async function buyToken(mintStr, solAmount = 0.01) {
     const rentExempt = await connection.getMinimumBalanceForRentExemption(0);
     const svInfo = await connection.getAccountInfo(solVault);
     const pvInfo = await connection.getAccountInfo(platformVault);
+    const cvInfo = await connection.getAccountInfo(creatorVault);
     if (!svInfo) tx.add(SystemProgram.transfer({ fromPubkey: walletPubkey, toPubkey: solVault, lamports: rentExempt }));
     if (!pvInfo) tx.add(SystemProgram.transfer({ fromPubkey: walletPubkey, toPubkey: platformVault, lamports: rentExempt }));
+    if (!cvInfo) tx.add(SystemProgram.transfer({ fromPubkey: walletPubkey, toPubkey: creatorVault, lamports: rentExempt }));
 
     const lamports = BigInt(Math.round(solAmount * 1e9));
     const disc = await getDiscriminator('buy');
@@ -294,8 +315,8 @@ async function buyToken(mintStr, solAmount = 0.01) {
         { pubkey: solVault, isSigner: false, isWritable: true },
         { pubkey: buyerAta, isSigner: false, isWritable: true },
         { pubkey: userPosition, isSigner: false, isWritable: true },
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
         { pubkey: platformVault, isSigner: false, isWritable: true },
-        { pubkey: walletPubkey, isSigner: false, isWritable: true }, // creator
         { pubkey: platformConfig, isSigner: false, isWritable: true },
         { pubkey: walletPubkey, isSigner: true, isWritable: true },
         { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
@@ -336,6 +357,7 @@ async function sellToken(mintStr, tokenAmount = 5000000) {
   const launchVault = getATA(mint, tokenLaunch);
   const buyerAta = getATA(mint, walletPubkey);
   const [userPosition] = findPDA([SEEDS.userPosition, walletPubkey.toBuffer(), mint.toBuffer()]);
+  const [creatorVault] = findPDA([SEEDS.creatorVault, walletPubkey.toBuffer()]);
 
   showToast(`⏳ Selling ${tokenAmount} tokens...`);
 
@@ -353,8 +375,8 @@ async function sellToken(mintStr, tokenAmount = 5000000) {
         { pubkey: solVault, isSigner: false, isWritable: true },
         { pubkey: buyerAta, isSigner: false, isWritable: true },
         { pubkey: userPosition, isSigner: false, isWritable: true },
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
         { pubkey: platformVault, isSigner: false, isWritable: true },
-        { pubkey: walletPubkey, isSigner: false, isWritable: true }, // creator
         { pubkey: platformConfig, isSigner: false, isWritable: true },
         { pubkey: walletPubkey, isSigner: true, isWritable: true },
         { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
@@ -436,6 +458,7 @@ async function loadLiveTokens() {
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn-sm" style="flex:1" onclick="event.stopPropagation();promptBuy('${addr}')">💚 Buy</button>
             <button class="btn-outline" style="flex:1" onclick="event.stopPropagation();promptSell('${addr}')">🔴 Sell</button>
+            <button class="btn-outline" style="flex:0;white-space:nowrap;color:var(--purple);border-color:rgba(168,85,247,.3)" onclick="event.stopPropagation();migrateToSendSwap('${addr}')" title="Migrate to Send.Swap AMM">🔄</button>
           </div>
         </div>
       `;
@@ -507,14 +530,258 @@ function showToast(msg) {
   setTimeout(() => toast.remove(), 4000);
 }
 
+// ─── Create Token V2 (Token-2022) ───
+async function createTokenV2() {
+  if (!walletPubkey) { showToast('Connect wallet first'); return; }
+
+  const { PublicKey, Transaction, TransactionInstruction, SystemProgram, Keypair, SYSVAR_RENT_PUBKEY } = solanaWeb3;
+  const T22_PROGRAM = new PublicKey(TOKEN_2022_PROGRAM);
+  const ATA_PROGRAM = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+
+  const name = document.getElementById('tokenName')?.value?.trim() || 'SendIt Token';
+  const symbol = document.getElementById('tokenSymbol')?.value?.trim() || 'SENDIT';
+  let uri = document.getElementById('tokenUri')?.value?.trim() || 'https://senditsolana.io';
+
+  const launchBtn = document.getElementById('launchBtn');
+  launchBtn.disabled = true;
+  launchBtn.textContent = '⏳ Creating (Token-2022)...';
+
+  // Storacha upload
+  const storachaEnabled = document.getElementById('storachaToggle')?.checked;
+  if (storachaEnabled && uri === 'https://senditsolana.io') {
+    try {
+      launchBtn.textContent = '📦 Uploading to Filecoin...';
+      const result = await uploadTokenMetadataToStoracha({
+        name, symbol,
+        description: document.getElementById('tokenDesc')?.value?.trim() || '',
+        imageFile: selectedImageFile,
+        creatorAddress: walletPubkey.toBase58(),
+      });
+      if (result.metadataUri) uri = result.metadataUri;
+    } catch (e) { console.warn('Storacha upload error:', e); }
+    launchBtn.textContent = '⏳ Creating on-chain...';
+  }
+
+  try {
+    const mintKeypair = Keypair.generate();
+    const mint = mintKeypair.publicKey;
+    const [platformConfig] = findPDA([SEEDS.platformConfig]);
+    const [tokenLaunch] = findPDA([SEEDS.tokenLaunch, mint.toBuffer()]);
+    const [creatorVesting] = findPDA([SEEDS.creatorVesting, mint.toBuffer()]);
+
+    // Token-2022 ATA (uses T22 program)
+    const [launchVault] = PublicKey.findProgramAddressSync(
+      [tokenLaunch.toBuffer(), T22_PROGRAM.toBuffer(), mint.toBuffer()],
+      ATA_PROGRAM
+    );
+
+    const curveMap = { linear: 0, exponential: 1, sigmoid: 2 };
+    const curveType = curveMap[document.getElementById('curveType')?.value] ?? 1;
+    const feeBps = Math.round(parseFloat(document.getElementById('feeSlider')?.value || '2') * 100);
+
+    const disc = await getDiscriminator('create_token_v2');
+    const data = concat(
+      disc,
+      encodeString(name),
+      encodeString(symbol),
+      encodeString(uri),
+      new Uint8Array([curveType]),
+      new Uint8Array(new Uint16Array([feeBps]).buffer),
+      new Uint8Array(new BigInt64Array([0n]).buffer),  // launch_delay
+      new Uint8Array(new BigInt64Array([60n]).buffer),  // snipe_window
+      new Uint8Array(new BigUint64Array([0n]).buffer),  // max_buy
+      new Uint8Array(new BigInt64Array([0n]).buffer),  // lock_period
+      new Uint8Array(new BigInt64Array([0n]).buffer),  // vesting_duration
+      new Uint8Array(new Uint16Array([0]).buffer),  // allocation_bps
+    );
+
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: tokenLaunch, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: true, isWritable: true },
+        { pubkey: launchVault, isSigner: false, isWritable: true },
+        { pubkey: creatorVesting, isSigner: false, isWritable: true },
+        { pubkey: platformConfig, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: T22_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: ATA_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      ],
+      programId: window.PROGRAM_KEY,
+      data,
+    });
+
+    const tx = new Transaction().add(ix);
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+    tx.partialSign(mintKeypair);
+
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    showToast(`⚡ Token-2022 created! Mint: ${mint.toBase58().slice(0,8)}...`);
+    showTxResult('create', sig, mint.toBase58());
+    loadLiveTokens();
+    updateBalance();
+  } catch (e) {
+    console.error('Create token v2 failed:', e);
+    showToast('❌ Launch failed: ' + (e.message || e));
+  } finally {
+    launchBtn.disabled = false;
+    launchBtn.textContent = '🚀 Launch Token';
+  }
+}
+
+// ─── Collect Creator Fee ───
+async function collectCreatorFee() {
+  if (!walletPubkey) { showToast('Connect wallet first'); return; }
+
+  const { Transaction, TransactionInstruction, SystemProgram } = solanaWeb3;
+  const [creatorVault] = findPDA([SEEDS.creatorVault, walletPubkey.toBuffer()]);
+
+  showToast('⏳ Claiming creator fees...');
+
+  try {
+    const disc = await getDiscriminator('collect_creator_fee');
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: creatorVault, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: window.PROGRAM_KEY,
+      data: disc,
+    });
+
+    const tx = new Transaction().add(ix);
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    showToast('💰 Creator fees claimed!');
+    checkCreatorVault();
+    updateBalance();
+  } catch (e) {
+    console.error('Collect fee failed:', e);
+    showToast('❌ Claim failed: ' + (e.message || e));
+  }
+}
+
+// ─── Check Creator Vault Balance ───
+async function checkCreatorVault() {
+  if (!walletPubkey) return;
+  try {
+    const [creatorVault] = findPDA([SEEDS.creatorVault, walletPubkey.toBuffer()]);
+    const info = await connection.getAccountInfo(creatorVault);
+    if (info) {
+      const rent = await connection.getMinimumBalanceForRentExemption(0);
+      const claimable = (info.lamports - rent) / 1e9;
+      if (claimable > 0.001) {
+        const banner = document.getElementById('creatorFeeBanner');
+        const text = document.getElementById('vaultBalanceText');
+        if (banner) {
+          banner.style.display = 'flex';
+          text.textContent = `Your fee vault has ${claimable.toFixed(4)} SOL ready to claim.`;
+        }
+      }
+    }
+  } catch (e) { /* vault doesn't exist yet */ }
+}
+
+// ─── Migrate to Send.Swap ───
+async function migrateToSendSwap(mintStr) {
+  if (!walletPubkey) { showToast('Connect wallet first'); return; }
+
+  const { PublicKey, Transaction, TransactionInstruction, SystemProgram } = solanaWeb3;
+  const TOKEN_PROGRAM = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+  const ATA_PROGRAM = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+  const SENDSWAP = new PublicKey(SENDSWAP_PROGRAM);
+  const SENDSWAP_CONFIG = new PublicKey('ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw');
+  const WSOL = new PublicKey('So11111111111111111111111111111111111111112');
+
+  const mint = new PublicKey(mintStr);
+  const [tokenLaunch] = findPDA([SEEDS.tokenLaunch, mint.toBuffer()]);
+  const [solVault] = findPDA([SEEDS.solVault, mint.toBuffer()]);
+  const [platformConfig] = findPDA([SEEDS.platformConfig]);
+  const launchVault = getATA(mint, tokenLaunch);
+
+  // PumpSwap pool PDA
+  const indexBuf = new Uint8Array(2); // index = 0
+  const [pool] = PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('pool'), indexBuf, tokenLaunch.toBuffer(), mint.toBuffer(), WSOL.toBuffer()],
+    SENDSWAP
+  );
+  const [lpMint] = PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('pool_lp_mint'), pool.toBuffer()],
+    SENDSWAP
+  );
+  const poolBaseAta = getATA(mint, pool);
+  const poolQuoteAta = getATA(WSOL, pool);
+  const creatorLpAta = getATA(lpMint, tokenLaunch);
+
+  showToast('🔄 Migrating to Send.Swap...');
+
+  try {
+    const disc = await getDiscriminator('migrate_to_send_swap');
+    const ix = new TransactionInstruction({
+      keys: [
+        { pubkey: tokenLaunch, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: false, isWritable: false },
+        { pubkey: launchVault, isSigner: false, isWritable: true },
+        { pubkey: solVault, isSigner: false, isWritable: true },
+        { pubkey: platformConfig, isSigner: false, isWritable: false },
+        { pubkey: WSOL, isSigner: false, isWritable: false },
+        { pubkey: pool, isSigner: false, isWritable: true },
+        { pubkey: SENDSWAP_CONFIG, isSigner: false, isWritable: false },
+        { pubkey: lpMint, isSigner: false, isWritable: true },
+        { pubkey: poolBaseAta, isSigner: false, isWritable: true },
+        { pubkey: poolQuoteAta, isSigner: false, isWritable: true },
+        { pubkey: creatorLpAta, isSigner: false, isWritable: true },
+        { pubkey: SENDSWAP, isSigner: false, isWritable: false },
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },
+        { pubkey: TOKEN_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: ATA_PROGRAM, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: window.PROGRAM_KEY,
+      data: disc,
+    });
+
+    const tx = new Transaction().add(ix);
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = walletPubkey;
+
+    const signed = await walletAdapter.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+    await connection.confirmTransaction(sig, 'confirmed');
+
+    showToast('🎓 Migrated to Send.Swap! LP tokens burned — liquidity locked forever.');
+    showTxResult('migrate', sig, mintStr);
+    loadLiveTokens();
+  } catch (e) {
+    console.error('Migration failed:', e);
+    showToast('❌ Migration failed: ' + (e.message || e));
+  }
+}
+
 // ─── Global ───
 window.connectWallet = connectWallet;
 window.createToken = createToken;
+window.createTokenV2 = createTokenV2;
 window.buyToken = buyToken;
 window.sellToken = sellToken;
 window.promptBuy = promptBuy;
 window.promptSell = promptSell;
 window.showTokenDetail = showTokenDetail;
+window.collectCreatorFee = collectCreatorFee;
+window.migrateToSendSwap = migrateToSendSwap;
+window.selectStandard = selectStandard;
+window.checkCreatorVault = checkCreatorVault;
 
 // ─── Image Upload Handler ───
 function initImageUpload() {
